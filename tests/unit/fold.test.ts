@@ -293,7 +293,7 @@ async function storedRowsOf(store: TerrainDb, campaignId: string): Promise<Row[]
   return (await loadCampaign(store, campaignId))?.rows ?? [];
 }
 
-describe('stored rows always equal the replay of the event log (§6.3)', () => {
+describe('stored rows always equal the replay of the event log', () => {
   it.each(Array.from({ length: 12 }, (_, i) => i + 1))(
     'random sequence %i, lots by parcel ID',
     async (seed) => {

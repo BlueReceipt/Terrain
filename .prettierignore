@@ -9,5 +9,5 @@ public/icons
 fixtures
 reference
 
-# Markdown is prose (BUILD_SPEC.md above all): never reflow it.
+# Markdown is prose: never reflow it.
 *.md

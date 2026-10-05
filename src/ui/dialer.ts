@@ -5,7 +5,7 @@ declare global {
   }
 }
 
-/** Opens the phone's dialer on a number (§5.5). */
+/** Opens the phone's dialer on a number. */
 export function openDialer(digits: string): void {
   const url = `tel:${digits}`;
   if (window.terrainDial) window.terrainDial(url);

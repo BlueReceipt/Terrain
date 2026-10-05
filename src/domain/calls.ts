@@ -2,7 +2,7 @@ import { headerKey } from './columns.ts';
 import { currentValue } from './identity.ts';
 import type { ColumnRoles, Row } from './types.ts';
 
-/** Call outcomes, in Alex's own words from the call results in his export (Phase 2 plan, 2026-10-01). */
+/** Call outcomes, in Alex's own words from the call results in his export (2026-10-01). */
 export const DEFAULT_CALL_OUTCOMES: readonly string[] = [
   'Info good',
   'Info changed',
@@ -11,7 +11,7 @@ export const DEFAULT_CALL_OUTCOMES: readonly string[] = [
   'Wrong number',
 ];
 
-/** A pending call survives the switch to the dialer for this long (§5.5). */
+/** A pending call survives the switch to the dialer for this long. */
 export const PENDING_CALL_MINUTES = 30;
 
 const TEN_DIGITS = /(?<!\d)(?:\+?1[\s.-]*)?\(?(\d{3})\)?[\s.-]*(\d{3})[\s.-]*(\d{4})(?!\d)/g;
@@ -48,7 +48,7 @@ export function phoneColumns(columns: readonly string[], roles: ColumnRoles): st
   });
 }
 
-/** A number at a house, for the number chooser (§5.3): who it reaches and how the file names it. */
+/** A number at a house, for the number chooser: who it reaches and how the file names it. */
 export interface HouseNumber {
   /** The number as the file writes it. */
   display: string;
@@ -62,7 +62,7 @@ export interface HouseNumber {
 }
 
 /**
- * Every number at a house, each once, in file order (§5.3 Call): "Marie Trempette, cell
+ * Every number at a house, each once, in file order: "Marie Trempette, cell
  * 514-555-0199", "Home, 450-555-0100". A number several rows list reaches all of them.
  */
 export function houseNumbers(
@@ -109,7 +109,7 @@ export function houseNumbers(
   return numbers;
 }
 
-/** Rows that list a number (§5.5): the home line reaches every row sharing it, a cell its owner's row. */
+/** Rows that list a number: the home line reaches every row sharing it, a cell its owner's row. */
 export function rowsListingNumber(
   rows: readonly Row[],
   number: string,

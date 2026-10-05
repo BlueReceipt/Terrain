@@ -35,9 +35,9 @@ export interface Toast {
   undoEventId: string | null;
 }
 
-/** The toast (§5.4): visible until the next action or 6 seconds. */
+/** The toast: visible until the next action or 6 seconds. */
 export const toast = signal<Toast | null>(null);
-/** Calls dialed from Terrain whose outcome isn't logged yet (§5.5). */
+/** Calls dialed from Terrain whose outcome isn't logged yet. */
 export const pending = signal<PendingCall[]>([]);
 
 let toastCount = 0;
@@ -56,7 +56,7 @@ export function notify(message: string): void {
   say(message);
 }
 
-/** A short tap of the motor, where the phone has one (§5.4). */
+/** A short tap of the motor, where the phone has one. */
 function buzz(): void {
   if ('vibrate' in navigator) navigator.vibrate(12);
 }
@@ -86,7 +86,7 @@ interface ActionContext {
   now: string;
 }
 
-/** Runs an action; a failed save changes nothing and says so (§6.3). */
+/** Runs an action; a failed save changes nothing and says so. */
 async function run<T>(
   action: (db: TerrainDb, context: ActionContext) => Promise<T>,
 ): Promise<T | null> {
@@ -143,7 +143,7 @@ function statusToast(result: ActionResult, houseKey: string): string {
   return message;
 }
 
-/** A status tap on the house rail (§5.4). A status that asks for a note opens the editor after. */
+/** A status tap on the house rail. A status that asks for a note opens the editor after. */
 export async function tapHouseStatus(houseKey: string, statusId: string): Promise<void> {
   buzz();
   const result = await run((db, context) => markHouse(db, { ...context, houseKey, statusId }));
@@ -154,7 +154,7 @@ export async function tapHouseStatus(houseKey: string, statusId: string): Promis
     sheet.value = { kind: 'note', houseKey, rowId: null };
 }
 
-/** "This row only" (§5.4). */
+/** "This row only". */
 export async function tapRowStatus(
   houseKey: string,
   rowId: string,
@@ -169,12 +169,12 @@ export async function tapRowStatus(
     sheet.value = { kind: 'note', houseKey, rowId };
 }
 
-/** Mark house as to visit (§5.3): every row back to the start status; Visit date keeps the last visit. */
+/** Mark house as to visit: every row back to the start status; Visit date keeps the last visit. */
 export async function reopenHouse(houseKey: string): Promise<void> {
   await tapHouseStatus(houseKey, startStatus(statuses.value).id);
 }
 
-/** Edit info or Edit this row, saved (§5.11). */
+/** Edit info or Edit this row, saved. */
 export async function saveEdits(
   houseKey: string,
   target: 'house' | 'row',
@@ -192,7 +192,7 @@ export async function saveEdits(
   return true;
 }
 
-/** Use my location for this house (§5.11). */
+/** Use my location for this house. */
 export async function pinHouseHere(
   houseKey: string,
   position: LatLng,
@@ -212,7 +212,7 @@ export async function refreshPending(): Promise<void> {
   pending.value = db && loaded ? await pendingCalls(db, loaded.campaign.id) : [];
 }
 
-/** The newest call dialed less than 30 minutes ago that still waits for its outcome (§5.5). */
+/** The newest call dialed less than 30 minutes ago that still waits for its outcome. */
 export function freshPendingCall(now = Date.now()): PendingCall | null {
   const fresh = pending.value.filter(
     (call) => now - Date.parse(call.startedAt) < PENDING_CALL_MINUTES * 60_000,
@@ -220,7 +220,7 @@ export function freshPendingCall(now = Date.now()): PendingCall | null {
   return fresh.at(-1) ?? null;
 }
 
-/** Tapping a number (§5.5): stored before the dialer opens. */
+/** Tapping a number: stored before the dialer opens. */
 export async function dial(houseKey: string, number: HouseNumber): Promise<void> {
   const call = await run((db, context) =>
     startCall(db, {
@@ -252,7 +252,7 @@ export async function dropCall(pendingId: string): Promise<void> {
   await refreshPending();
 }
 
-/** Log call (§5.5): a call made without Terrain's dialer; Call date is now. */
+/** Log call: a call made without Terrain's dialer; Call date is now. */
 export async function logCallOutcome(
   houseKey: string,
   number: string | null,
@@ -273,7 +273,7 @@ export async function logCallOutcome(
   say(strings.toast.callLogged(outcome), result.event.id);
 }
 
-/** A note for every row at the house, or for one row (§5.6). */
+/** A note for every row at the house, or for one row. */
 export async function saveNote(
   houseKey: string,
   rowId: string | null,
@@ -292,7 +292,7 @@ export async function removeNote(noteEventId: string): Promise<void> {
   say(strings.toast.noteDeleted, event.id);
 }
 
-/** The toast's Undo (§5.4). */
+/** The toast's Undo. */
 export async function undoLast(undoneEventId: string): Promise<void> {
   clearTimeout(toastTimer);
   toast.value = null;

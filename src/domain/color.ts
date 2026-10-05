@@ -62,7 +62,7 @@ function luminance(hex: string): number {
   return 0.2126 * channel(16) + 0.7152 * channel(8) + 0.0722 * channel(0);
 }
 
-/** Black or white, whichever reads better on a status color (§9: text on a swatch passes contrast). */
+/** Black or white, whichever reads better on a status color. */
 export function textOn(hex: string): '#000000' | '#FFFFFF' {
   const l = luminance(hex);
   // Contrast with black is (l + 0.05) / 0.05; with white, 1.05 / (l + 0.05).

@@ -30,7 +30,7 @@ export interface EditWrite {
 }
 
 /**
- * Corrections saved together (§5.11): one event with every changed row and field, previous and new
+ * Corrections saved together: one event with every changed row and field, previous and new
  * values. A value equal to the imported one is no correction any more. Returns null when nothing changed.
  */
 export function planEdit(
@@ -78,7 +78,7 @@ export function planEdit(
   return { event, rows: applyToRows(changed, event) };
 }
 
-/** "Use my location for this house" (§5.11): every row at the house moves to the phone's position. */
+/** "Use my location for this house": every row at the house moves to the phone's position. */
 export function planMove(
   context: ActionContext & {
     rows: readonly Row[];
@@ -113,7 +113,7 @@ export function planMove(
   return { event, rows: applyToRows(rows, event) };
 }
 
-/** A call outcome (§5.5): Call date and call result on the rows given, nothing else. */
+/** A call outcome: Call date and call result on the rows given, nothing else. */
 export function planCall(
   context: ActionContext & {
     rows: readonly Row[];
@@ -148,7 +148,7 @@ export function planCall(
   return { event, rows: applyToRows(rows, event) };
 }
 
-/** A note for every row at the house, or for one row (§5.6). An empty note is no note. */
+/** A note for every row at the house, or for one row. An empty note is no note. */
 export function planNote(
   context: ActionContext & {
     rowIds: readonly string[];
@@ -170,7 +170,7 @@ export function planNote(
   };
 }
 
-/** Deleting a note records it; the note leaves every row it covered and stays in the log (§5.6). */
+/** Deleting a note records it; the note leaves every row it covered and stays in the log. */
 export function planNoteDeletion(
   context: Omit<ActionContext, 'houseKey'> & { note: NoteAddedEvent },
 ): NoteDeletedEvent {
@@ -186,7 +186,7 @@ export function planNoteDeletion(
   };
 }
 
-/** Undo (§5.4): a compensating event, and the rows the undone event changed put back exactly. */
+/** Undo: a compensating event, and the rows the undone event changed put back exactly. */
 export function planUndo(
   context: Omit<ActionContext, 'houseKey'> & {
     undone: TerrainEvent;

@@ -33,7 +33,7 @@ describe('text helpers', () => {
   });
 });
 
-describe('address normalization (§6.1, Alex 2026-09-29)', () => {
+describe('address normalization (Alex 2026-09-29)', () => {
   it('reads one address typed two ways as the same street', () => {
     expect(streetKey('123 rue St-Paul')).toBe(streetKey('123, rue Saint-Paul'));
     expect(streetKey('9, Ch. du Grand-Marais')).toBe('9 chemin du grand marais');

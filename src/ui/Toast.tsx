@@ -1,7 +1,7 @@
 import { toast, undoLast } from './actions.ts';
 import { strings } from './strings.ts';
 
-/** The toast after an action (§5.4): what happened, and Undo, until the next action or 6 seconds. */
+/** The toast after an action: what happened, and Undo, until the next action or 6 seconds. */
 export function Toast() {
   const current = toast.value;
   if (!current) return null;

@@ -22,7 +22,7 @@ export interface ExportColumn {
 }
 
 /**
- * The columns of an export (§5.8), in the client's order: the parcel ID first when it is the pin's
+ * The columns of an export, in the client's order: the parcel ID first when it is the pin's
  * title (KMZ), then every original column with current values, corrections included. Terrain fills
  * its own columns: Package status, Visit date and Call date as text in the date format, call result,
  * and Notes per the notes setting. Those the file doesn't have are added at the end, so no work is
@@ -69,13 +69,13 @@ export function exportColumns(input: ExportInput): ExportColumn[] {
   return columns;
 }
 
-/** Rows in the client's order (§6.4: rows missing from the last file come after the others). */
+/** Rows in the client's order. */
 export function inFileOrder(rows: readonly Row[]): Row[] {
   return [...rows].sort((a, b) => a.rowIndex - b.rowIndex);
 }
 
 /**
- * The Parcels sheet (§5.8): the header, then one line per row in the original order. Rows at one
+ * The Parcels sheet: the header, then one line per row in the original order. Rows at one
  * house carry the same status, Visit date and house notes, each on its own line.
  */
 export function parcelsSheet(input: ExportInput): string[][] {

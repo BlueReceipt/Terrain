@@ -162,7 +162,7 @@ describe('a status tap that spreads across the lot', () => {
   });
 });
 
-/** The database as Phase 1 created it. */
+/** The database as version 1 created it. */
 class Phase1Db extends Dexie {
   constructor(name: string) {
     super(name);
@@ -175,8 +175,8 @@ class Phase1Db extends Dexie {
   }
 }
 
-describe('the storage upgrade from Phase 1', () => {
-  it('keeps the campaign, its rows and its import, adds the Phase 2 settings, and puts fixes per owner', async () => {
+describe('the storage upgrade from version 1', () => {
+  it('keeps the campaign, its rows and its import, adds the version 2 settings, and puts fixes per owner', async () => {
     const name = `terrain-test-${randomUUID()}`;
     const plan = importInto(parseFixture('public/cases.kmz'));
     const old = new Phase1Db(name);
@@ -193,7 +193,7 @@ describe('the storage upgrade from Phase 1', () => {
         return copy;
       },
     );
-    // Phase 1 put the address and home phone with the house; version 3 moves them to each owner.
+    // Version 1 put the address and home phone with the house; version 3 moves them to each owner.
     await old.table('campaigns').put({
       ...plan.campaign,
       columnGroups: {

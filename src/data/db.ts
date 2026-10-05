@@ -12,7 +12,7 @@ export type { ImportEvent, TerrainEvent };
 /** An event as stored: `seq` orders a campaign's events, the order they are replayed and undone in. */
 export type StoredEvent = TerrainEvent & { seq: number };
 
-/** A number Alex dialed from Terrain, waiting for its outcome (§5.5). */
+/** A number Alex dialed from Terrain, waiting for its outcome. */
 export interface PendingCall {
   id: string;
   campaignId: string;
@@ -23,7 +23,7 @@ export interface PendingCall {
   startedAt: string;
 }
 
-/** The offline map Alex loaded (§5.9). Metadata only: the file itself lives in OPFS (§6.2). */
+/** The offline map Alex loaded. Metadata only: the file itself lives in OPFS. */
 export interface BasemapInfo {
   id: 'current';
   /** The file name Alex picked. */
@@ -43,10 +43,10 @@ export interface Settings {
   /** Dates Terrain writes (Alex, 2026-10-01: 26.09.2026 14:32). */
   dateFormat: DateFormat;
   notesExportMode: NotesExportMode;
-  /** Rows closed from the lot get Visit date (§5.9; Alex, 2026-10-01: yes). */
+  /** Rows closed from the lot get Visit date (2026-10-01: yes). */
   fillVisitDateViaLot: boolean;
   lastCampaignId: string | null;
-  /** Result of navigator.storage.persist(), asked after the first import (§8). */
+  /** Result of navigator.storage.persist(), asked after the first import. */
   storagePersisted: boolean | null;
 }
 
@@ -83,7 +83,7 @@ export function upgradeStatuses(saved: readonly Partial<Status>[]): Status[] {
 /** The current schema version; a backup records it. */
 export const SCHEMA_VERSION = 4;
 
-// Version 2 set these columns as house fields (BUILD_SPEC Appendix B, plus the town and postal code).
+// Version 2 set these columns as house fields, the town and postal code among them.
 const FORMER_HOUSE_COLUMNS = new Set([
   'adresse',
   'municipalite',
@@ -105,9 +105,9 @@ export function withOwnerFields(campaign: Campaign): Campaign {
   return { ...campaign, columnGroups };
 }
 
-/** Version 1 → 2 (Phase 2): event order, absorbed corrections, imported statuses, new settings. */
+/** Version 1 → 2: event order, absorbed corrections, imported statuses, new settings. */
 async function upgradeToVersion2(tx: Transaction): Promise<void> {
-  // Phase 1 stored only import events, at most one per second per campaign: their time orders them.
+  // Version 1 stored only import events, at most one per second per campaign: their time orders them.
   const events = (await tx.table('events').toArray()) as (ImportEvent & { seq?: number })[];
   events.sort((a, b) => a.at.localeCompare(b.at) || a.id.localeCompare(b.id));
   const lastSeq = new Map<string, number>();
@@ -119,7 +119,7 @@ async function upgradeToVersion2(tx: Transaction): Promise<void> {
   }
   await tx.table('events').bulkPut(events);
 
-  // Phase 1 had no local events, so every status was the one the import gave.
+  // Version 1 had no local events, so every status was the one the import gave.
   await tx
     .table('rows')
     .toCollection()
@@ -173,7 +173,7 @@ export class TerrainDb extends Dexie {
         const campaigns = (await tx.table('campaigns').toArray()) as Campaign[];
         await tx.table('campaigns').bulkPut(campaigns.map(withOwnerFields));
       });
-    // Version 4 (Phase 3): the offline map's metadata. Backups leave it out: the map file stays on the phone.
+    // Version 4: the offline map's metadata. Backups leave it out: the map file stays on the phone.
     this.version(4).stores({ basemaps: 'id' });
   }
 }

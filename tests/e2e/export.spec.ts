@@ -3,7 +3,7 @@ import { expect, test, type Page } from '@playwright/test';
 import * as XLSX from 'xlsx';
 import { closeCard, mark, offlineAfterFirstLoad, openCases, openHouse } from './helpers.ts';
 
-// BUILD_SPEC Phase 5: the day log and the exports, offline, clock at 2026-09-26 14:32.
+// The day log and the exports, offline, clock at 2026-09-26 14:32.
 const TREMPETTE = [-73.6105, 45.2641] as const;
 const RUE_SAINT_PAUL = '123, rue Saint-Paul';
 

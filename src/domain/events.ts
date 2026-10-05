@@ -3,9 +3,9 @@ import { appValue } from './rows.ts';
 import type { AppField, ColumnRoles, LatLng, LocalTouches, Row } from './types.ts';
 
 /**
- * The event log (BUILD_SPEC §6.2). Every action appends one event holding what it changed and every
+ * The event log. Every action appends one event holding what it changed and every
  * previous value. Rows store the result; `foldStates` replays the events over the imported values,
- * and tests check that both always agree (§6.3).
+ * and tests check that both always agree.
  */
 interface EventOf<Type extends string, Payload> {
   id: string;
@@ -53,7 +53,7 @@ export type StatusFields = Pick<
   'statusId' | 'packageStatusText' | 'visitDate' | 'origin' | 'touched'
 >;
 
-/** Who and where a tap reached the rest of its lots from, fixed at the moment of the tap (§5.10). */
+/** Who and where a tap reached the rest of its lots from, fixed at the moment of the tap. */
 export interface LotMark {
   /** 'spread': replaceable rows elsewhere took the status (Given); 'note': rows elsewhere only get a note (To research). */
   mode: 'spread' | 'note';
@@ -79,12 +79,12 @@ export type StatusSetEvent = EventOf<
     targetRowIds: string[];
     /** Target rows the tap wrote: all of them, or on a repeat tap only those closed from the lot. */
     writtenRowIds: string[];
-    /** False for Mark as to visit: Visit date keeps the last visit (§5.3). */
+    /** False for Mark as to visit: Visit date keeps the last visit. */
     stampsVisitDate: boolean;
     lot: LotMark | null;
     /** Rows of the same lots at other houses. Each gets the lot note; replaceable ones change status. */
     lotAffected: { rowId: string; statusChanged: boolean }[];
-    /** Whether rows closed from the lot got Visit date (Settings → Lots, §5.9). */
+    /** Whether rows closed from the lot got Visit date (Settings → Lots). */
     lotVisitDate: boolean;
     /** Each changed row before the tap. */
     previous: Record<string, StatusFields>;
@@ -127,7 +127,7 @@ export type CallLoggedEvent = EventOf<
   {
     number: string;
     outcome: string;
-    /** When the call started (§5.5). */
+    /** When the call started. */
     callDate: string;
     /** 'number': the rows listing the number; 'house': a number not on file, logged on the whole house. */
     scope: 'number' | 'house';
@@ -139,7 +139,7 @@ export type NoteAddedEvent = EventOf<'note_added', { text: string; target: 'hous
 
 export type NoteDeletedEvent = EventOf<'note_deleted', { noteEventId: string }>;
 
-/** A compensating event: the undone event stays in the log (§6.3). */
+/** A compensating event: the undone event stays in the log. */
 export type UndoEvent = EventOf<'undo', { undoneEventId: string }>;
 
 export type TerrainEvent =
@@ -352,13 +352,13 @@ export function undoneIds(events: readonly TerrainEvent[]): Set<string> {
   return undone;
 }
 
-/** The event the toast's Undo takes back: the last one, when it is an action (§5.4). */
+/** The event the toast's Undo takes back: the last one, when it is an action. */
 export function undoable(events: readonly TerrainEvent[]): TerrainEvent | null {
   const last = events.at(-1);
   return last && last.type !== 'import' && last.type !== 'undo' ? last : null;
 }
 
-/** A row as its latest import left it, before any local event (§6.3). */
+/** A row as its latest import left it, before any local event. */
 export function baselineState(row: Row, roles: ColumnRoles): RowState {
   return {
     statusId: row.importedStatusId,

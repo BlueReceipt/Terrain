@@ -1,7 +1,7 @@
 /**
  * Writes fixtures/public/test-basemap.pmtiles: a small synthetic basemap around the test fixtures'
  * first houses, in the Protomaps basemap layers, so tests can load an offline map without
- * downloading one (BUILD_SPEC §10, Phase 3). Its roads, water and places are invented or placed
+ * downloading one. Its roads, water and places are invented or placed
  * roughly; the names carry French accents (É, ç, à) to check labels.
  * Run: npm run test-basemap
  */

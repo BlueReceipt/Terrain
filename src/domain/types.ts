@@ -3,14 +3,14 @@ export interface LatLng {
   lng: number;
 }
 
-/** A status the rail can mark (BUILD_SPEC §5.9). */
+/** A status the rail can mark. */
 export interface Status {
   id: string;
   label: string;
   /** '#RRGGBB', matched against My Maps pin colors. */
   color: string;
   packageStatusText: string;
-  /** 'lot': a tap also marks the same lots' rows at other houses (Given, §5.10). */
+  /** 'lot': a tap also marks the same lots' rows at other houses (Given). */
   scope: 'house' | 'lot';
   /** A whole-lot status marked elsewhere on the lot replaces this one. */
   replaceableByLot: boolean;
@@ -27,7 +27,7 @@ export interface Status {
   order: number;
 }
 
-/** The app-owned columns (§6.4). */
+/** The app-owned columns. */
 export type AppRole = 'packageStatus' | 'visitDate' | 'callDate' | 'callResult' | 'notes';
 
 /** Columns Terrain reads to recognize owners, houses, lots and positions. */
@@ -93,7 +93,7 @@ export interface ParsedFile {
 /** Row cells local events write. Notes are not one: Terrain's notes are events, kept apart from the imported cell. */
 export type AppField = 'status' | Exclude<AppRole, 'notes'>;
 
-/** What local work a re-import must not overwrite (§6.4). */
+/** What local work a re-import must not overwrite. */
 export interface LocalTouches {
   /** App-owned fields changed by a local event (a status tap, a call), sorted. */
   appFields: AppField[];
@@ -101,7 +101,7 @@ export interface LocalTouches {
   moved: boolean;
 }
 
-/** One row of the client's file: one owner on one parcel ID (§5 vocabulary). */
+/** One row of the client's file: one owner on one parcel ID. */
 export interface Row {
   rowId: string;
   campaignId: string;
@@ -123,7 +123,7 @@ export interface Row {
   addressText: string | null;
   pinColor: string | null;
   statusId: string;
-  /** The status the latest import gave this row (its pin color): where local events start from (§6.3). */
+  /** The status the latest import gave this row (its pin color): where local events start from. */
   importedStatusId: string;
   packageStatusText: string;
   visitDate: string;

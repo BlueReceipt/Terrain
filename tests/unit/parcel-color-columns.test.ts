@@ -51,7 +51,7 @@ describe('parcel ID cells', () => {
   });
 });
 
-describe('pin colors (Appendix A)', () => {
+describe('pin colors', () => {
   it('reverses KML aabbggrr', () => {
     expect(kmlColorToHex('ffd18802')).toBe('#0288D1');
     expect(kmlColorToHex('ff589d0f')).toBe('#0F9D58');
@@ -93,7 +93,7 @@ describe('pin colors (Appendix A)', () => {
   });
 });
 
-describe('text on a status color (§9)', () => {
+describe('text on a status color', () => {
   // WCAG 2 contrast, computed here on its own to check the app's choice.
   const luminance = (hex: string) => {
     const [r, g, b] = [1, 3, 5].map((i) => {
@@ -142,7 +142,7 @@ describe('Package status texts', () => {
   });
 });
 
-describe('column matching (§6.4)', () => {
+describe('column matching', () => {
   const alexColumns = [
     'Contact person',
     'Contact number',

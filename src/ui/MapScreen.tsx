@@ -32,7 +32,7 @@ import { strings } from './strings.ts';
 import { Swatch } from './Swatch.tsx';
 import { Toast } from './Toast.tsx';
 
-/** The search field (§5.2): parcel ID, owner, lot number, address; corrected values included. */
+/** The search field: parcel ID, owner, lot number, address; corrected values included. */
 function SearchBox() {
   const query = useSignal('');
   const loaded = current.value;
@@ -87,7 +87,7 @@ function SearchBox() {
   );
 }
 
-/** Status filter chips (§5.2): chip counts are rows; a filter shows houses with that status. */
+/** Status filter chips: chip counts are rows; a filter shows houses with that status. */
 function FilterChips() {
   const loaded = current.value;
   if (!loaded) return null;
@@ -191,13 +191,13 @@ function HouseSheet({
   );
 }
 
-/** The home screen of an open campaign (§5.2): the map, its pins, search, filters, the house card. */
+/** The home screen of an open campaign: the map, its pins, search, filters, the house card. */
 export function MapScreen() {
   const loaded = current.value;
   const askedWhere = useSignal(false);
 
   useEffect(() => {
-    // GPS while the map is on screen only (§5.2). Back from the dialer, the call's outcome (§5.5).
+    // GPS while the map is on screen only. Back from the dialer, the call's outcome.
     const follow = () => {
       if (document.visibilityState !== 'visible') {
         stopLocating();

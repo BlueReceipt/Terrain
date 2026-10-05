@@ -41,7 +41,7 @@ export interface MapViewProps {
   label: string;
 }
 
-/** Half the 56 px touch target (§9): a tap this close to a pin opens it. */
+/** Half the 56 px touch target: a tap this close to a pin opens it. */
 const HIT = 28;
 // Rural Québec, when no row has a position yet.
 const QUEBEC: [number, number] = [-73.6, 45.6];
@@ -69,7 +69,7 @@ function draw(map: MapLibreMap, overlay: Overlay): void {
   void map.getSource<GeoJSONSource>(ME)?.setData(meFeatures(overlay.me));
 }
 
-/** The full-screen map (§5.2): the offline basemap, one pin per house, the lot tether, the GPS dot. */
+/** The full-screen map: the offline basemap, one pin per house, the lot tether, the GPS dot. */
 export function MapView(props: MapViewProps) {
   const container = useRef<HTMLDivElement>(null);
   const map = useRef<MapLibreMap | null>(null);

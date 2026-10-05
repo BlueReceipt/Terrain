@@ -1,7 +1,7 @@
 import { signal } from '@preact/signals';
 import { registerSW } from 'virtual:pwa-register';
 
-/** True when a new version is downloaded and waiting (BUILD_SPEC §8, prompt mode). */
+/** True when a new version is downloaded and waiting (prompt mode). */
 export const updateReady = signal(false);
 
 let applyUpdate: ((reloadPage?: boolean) => Promise<void>) | undefined;

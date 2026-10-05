@@ -1,4 +1,4 @@
-// BUILD_SPEC §6.3: the logic lives in pure functions in src/domain/.
+// The logic lives in pure functions in src/domain/.
 // Time, IDs and randomness come in as parameters (like `now` in planStatusChange).
 
 const CLOCK =

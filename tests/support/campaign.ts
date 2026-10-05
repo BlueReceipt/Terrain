@@ -12,7 +12,7 @@ export function freshDb(): TerrainDb {
   return new TerrainDb(`terrain-test-${randomUUID()}`);
 }
 
-/** The gate fixture saved as a campaign: at 123 rue Saint-Paul, Alain and Marie on P1-216B and Alain on P1-217A; Luc on P1-216B at 12 chemin du Lac. */
+/** The cases fixture saved as a campaign: at 123 rue Saint-Paul, Alain and Marie on P1-216B and Alain on P1-217A; Luc on P1-216B at 12 chemin du Lac. */
 export async function casesCampaign(db: TerrainDb): Promise<ImportPlan> {
   const plan = importInto(parseFixture('public/cases.kmz'));
   await commitImport(db, plan, 'import-1', NOW);

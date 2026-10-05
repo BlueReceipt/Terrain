@@ -2,7 +2,7 @@ import { undoneIds, type LotMark, type TerrainEvent } from './events.ts';
 import { DATE_FORMATS, formatTime, type DateFormat } from './format.ts';
 import type { Row } from './types.ts';
 
-/** Settings → Notes in export (§5.9): every note oldest first, each after its date, or the latest only. */
+/** Settings → Notes in export: every note oldest first, each after its date, or the latest only. */
 export type NotesExportMode = 'joined' | 'latest';
 
 /** The wording of notes, from src/ui/strings.ts: the domain holds no sentences. */
@@ -30,7 +30,7 @@ export interface Note {
   rowIds: string[];
 }
 
-/** A lot note, rendered from the tap that made it: names and address as they were at the tap (§5.10). */
+/** A lot note, rendered from the tap that made it: names and address as they were at the tap. */
 export function lotNoteText(
   mark: LotMark,
   at: string,
@@ -46,7 +46,7 @@ export function lotNoteText(
 }
 
 /**
- * Every row's notes, newest first (§5.6): house and row notes, lot notes rendered from status taps,
+ * Every row's notes, newest first: house and row notes, lot notes rendered from status taps,
  * and last the imported Notes cell. Undone and deleted notes are left out.
  */
 export function notesByRow(
@@ -102,7 +102,7 @@ export function notesByRow(
 }
 
 /**
- * The Notes cell of a row in an export (§5.8, §5.9), from its notes newest first. House and row
+ * The Notes cell of a row in an export, from its notes newest first. House and row
  * notes get their date in front; lot notes already end with theirs, and the imported cell has none.
  */
 export function notesCell(
@@ -158,7 +158,7 @@ export function ownNoteTexts(
 
 /**
  * A Notes cell from a file, without the notes Terrain wrote into it: an export coming back (the
- * client's Excel, or My Maps after Replace all items) shows each note once (§6.4). Whatever else
+ * client's Excel, or My Maps after Replace all items) shows each note once. Whatever else
  * the cell holds is the client's and stays.
  */
 export function withoutOwnNotes(cell: string, own: readonly string[]): string {

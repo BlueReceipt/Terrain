@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'preact/hooks';
 
 /**
- * A sheet or panel over the screen (§9, WCAG): it takes the focus when it opens (its own field if
+ * A sheet or panel over the screen (WCAG): it takes the focus when it opens (its own field if
  * it focuses one, else its title), Escape closes it, and the focus goes back where it was.
  */
 export function useDialog<T extends HTMLElement>(onClose: () => void) {

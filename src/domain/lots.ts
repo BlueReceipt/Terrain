@@ -67,7 +67,7 @@ function statusFields(row: Row): StatusFields {
 }
 
 /**
- * What one tap on a status changes (BUILD_SPEC §5.4 and §5.10, with Alex's rules of 2026-10-01).
+ * What one tap on a status changes (with Alex's rules of 2026-10-01).
  *
  * - The target rows get the status, its Package status text and Visit date; nothing else changes.
  * - A whole-lot status (Given) also marks the same lots' rows at other houses whose status it can

@@ -17,7 +17,7 @@ export const REFERENCE = 'terrain-reference';
 
 /**
  * The file's lines, shapes and routes (boundaries, My Maps directions): a muted drawing under
- * the pins that nothing can tap (§5.2).
+ * the pins that nothing can tap.
  */
 export function referenceFeatures(reference: readonly ReferenceFeature[]): FeatureCollection {
   const ring = (points: readonly LatLng[]) => points.map((p) => [p.lng, p.lat]);
@@ -68,7 +68,7 @@ export function pinFeatures(
   };
 }
 
-/** The lot tether: a thin dashed line from the selected house to each house on its lots (§5.2). */
+/** The lot tether: a thin dashed line from the selected house to each house on its lots. */
 export function tetherFeatures(
   from: LatLng | null,
   to: readonly LatLng[],
@@ -115,7 +115,7 @@ export function meFeatures(me: { position: LatLng; accuracyM: number } | null): 
 const isTrue = (property: string): ExpressionSpecification => ['==', ['get', property], true];
 
 /**
- * Terrain's layers over the basemap (§9 pin styles): solid fill = marked here; thick ring with a
+ * Terrain's layers over the basemap: solid fill = marked here; thick ring with a
  * white center = closed from the lot; count badge = white numeral on ink; the selection ring is
  * 3 px white inside a 2 px ink outline, readable on every pin color, black included.
  */

@@ -2,7 +2,7 @@ import { housesOfRows, spotsOf, type House } from './identity.ts';
 import { startStatus } from './statuses.ts';
 import type { Campaign, LatLng, Row, Status } from './types.ts';
 
-/** One pin on the map: one house, or the houses sharing a spot (§5.2). */
+/** One pin on the map: one house, or the houses sharing a spot. */
 export interface Pin {
   /** The first house's key. */
   id: string;
@@ -11,14 +11,14 @@ export interface Pin {
   /** The badge: the rows of a house, or the houses at a spot. */
   count: number;
   color: string;
-  /** Every row closed from its lot: drawn as a ring with a white center (§5.2, §9). */
+  /** Every row closed from its lot: drawn as a ring with a white center. */
   ring: boolean;
 }
 
 const changedAt = (row: Row) => Date.parse(row.updatedAt) || 0;
 
 /**
- * The status a house shows (§5.2): its rows' status when they all agree; otherwise To visit when any
+ * The status a house shows: its rows' status when they all agree; otherwise To visit when any
  * row is; otherwise the status of the row changed last (the first in file order on a tie).
  */
 export function houseStatus(rows: readonly Row[], statuses: readonly Status[]): Status {
@@ -33,7 +33,7 @@ export function houseStatus(rows: readonly Row[], statuses: readonly Status[]): 
   return byId(latest.statusId);
 }
 
-/** Rows per status, for the filter chips (chip counts are rows, §5.2). */
+/** Rows per status, for the filter chips (chip counts are rows). */
 export function statusCounts(rows: readonly Row[]): Map<string, number> {
   const counts = new Map<string, number>();
   for (const row of rows) counts.set(row.statusId, (counts.get(row.statusId) ?? 0) + 1);
@@ -47,7 +47,7 @@ export interface MapContent {
 }
 
 /**
- * The map's pins (§5.2): one per house, houses within 5 m of each other sharing one. A status filter
+ * The map's pins: one per house, houses within 5 m of each other sharing one. A status filter
  * keeps the houses holding at least one row with that status.
  */
 export function mapContent(
@@ -84,7 +84,7 @@ export function mapContent(
   return { pins, unplaced: houses.filter((house) => !house.position) };
 }
 
-/** Other houses holding rows of this house's lots (§5.2 lot tether, §5.10). */
+/** Other houses holding rows of this house's lots. */
 export function lotNeighbors(rows: readonly Row[], houseKey: string): string[] {
   const keys = new Set(
     rows.filter((row) => row.houseKey === houseKey).flatMap((row) => row.lotKeys),
@@ -98,7 +98,7 @@ export function lotNeighbors(rows: readonly Row[], houseKey: string): string[] {
 }
 
 /**
- * "Copy campaign area" (§5.9): the campaign's bounding box padded by 2 km, as the basemap script
+ * "Copy campaign area": the campaign's bounding box padded by 2 km, as the basemap script
  * takes it: west,south,east,north.
  */
 export function campaignArea(bounds: Campaign['bounds'], padMeters = 2000): string | null {

@@ -9,13 +9,13 @@ export const APP_ROLES: readonly AppRole[] = [
   'notes',
 ];
 
-/** Header matching ignores case, accents, spaces and punctuation (§6.4): "Code postal" = "CODE_POSTAL". */
+/** Header matching ignores case, accents, spaces and punctuation: "Code postal" = "CODE_POSTAL". */
 export function headerKey(header: string): string {
   return fold(header).replace(/ /g, '');
 }
 
 /**
- * Columns Terrain adds to its My Maps update (§5.8). My Maps keeps them as data columns, so a
+ * Columns Terrain adds to its My Maps update. My Maps keeps them as data columns, so a
  * campaign read from My Maps pins gets them back with its next KMZ: Terrain fills them on export,
  * Edit info leaves them out, and their values coming back unchanged are no Import update.
  */
@@ -86,9 +86,9 @@ export function detectRoles(columns: readonly string[]): ColumnRoles {
   return roles;
 }
 
-// BUILD_SPEC Appendix B, with Alex's rule of 2026-10-01: a fix goes on one owner only (changing one
-// co-owner's number must not change the other's). The address and phone columns, house fields in
-// Appendix B, are person fields; only the parcel's own columns are shared by its owners.
+// Alex's rule of 2026-10-01: a fix goes on one owner only (changing one co-owner's number must not
+// change the other's). The address and phone columns are person fields; only the parcel's own
+// columns are shared by its owners.
 const PARCEL_COLUMNS = new Set(['anclot', 'numlot', 'rowlocation']);
 
 /** Default Edit info grouping: parcel columns per parcel, every other column per owner; app-owned columns left out. */

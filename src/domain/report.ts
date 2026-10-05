@@ -53,7 +53,7 @@ export interface ImportReport {
   colors: ColorSummary[];
   referenceFeatures: number;
   layers: string[];
-  /** Most parcel IDs of the file are unknown to the campaign: offer a new campaign instead (§5.1). */
+  /** Most parcel IDs of the file are unknown to the campaign: offer a new campaign instead. */
   mostlyNewParcelIds: boolean;
 }
 

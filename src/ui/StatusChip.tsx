@@ -17,7 +17,7 @@ export function when(visitDate: string): string {
   return visitDate ? chipTime(visitDate, fileDate(nowWithOffset()), format) : '';
 }
 
-/** A status chip (§5.3): color, label, and the time if marked today, the date otherwise. */
+/** A status chip: color, label, and the time if marked today, the date otherwise. */
 export function StatusChip({ row }: { row: Row }) {
   const status = statusOf(row, statuses.value);
   const time = when(row.visitDate);

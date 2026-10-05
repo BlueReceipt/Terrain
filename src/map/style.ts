@@ -35,7 +35,7 @@ function withoutIcons(layer: LayerSpecification): LayerSpecification {
 }
 
 /**
- * The map's style (§8, §9): Protomaps' light flavor, desaturated so the pins own the color, with
+ * The map's style: Protomaps' light flavor, desaturated so the pins own the color, with
  * labels in French in the app's font. Without an offline map, a plain background under the pins.
  */
 export function mapStyle(basemapUrl: string | null, origin: string): StyleSpecification {

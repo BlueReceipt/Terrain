@@ -47,7 +47,7 @@ function FieldValue({ field, rows }: { field: LayoutField; rows: readonly Row[] 
   );
 }
 
-/** The house's fields, grouped the way Edit info groups them (§5.3 full view). */
+/** The house's fields, grouped the way Edit info groups them. */
 export function FieldsView({ rows }: { rows: readonly Row[] }) {
   const loaded = current.value;
   if (!loaded) return null;
@@ -95,7 +95,7 @@ export function FieldsView({ rows }: { rows: readonly Row[] }) {
 }
 
 /**
- * Same parcel at other addresses (§5.10): each other house on this house's lots, every row there
+ * Same parcel at other addresses: each other house on this house's lots, every row there
  * with its status and where it came from, their numbers, Open and Show on map. Houses a whole-lot
  * status can still change come first, then the nearest.
  */
@@ -204,7 +204,7 @@ function coverage(note: Note, rows: readonly Row[], roles: Parameters<typeof nam
   return [...new Set(covered.map((row) => nameOf(row, roles)))].join(', ');
 }
 
-/** A note; pressing and holding a house or row note asks to delete it (§5.6). */
+/** A note; pressing and holding a house or row note asks to delete it. */
 function NoteItem({ note, label }: { note: Note; label: string }) {
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const format = settings.value?.dateFormat ?? DEFAULT_DATE_FORMAT;
@@ -244,7 +244,7 @@ function NoteItem({ note, label }: { note: Note; label: string }) {
   );
 }
 
-/** The house's notes, newest first, each saying which rows it covers (§5.6). */
+/** The house's notes, newest first, each saying which rows it covers. */
 export function NotesList({ rows }: { rows: readonly Row[] }) {
   const loaded = current.value;
   if (!loaded) return null;

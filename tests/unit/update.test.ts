@@ -10,7 +10,7 @@ const idle: WorkInProgress = {
   callWaiting: false,
 };
 
-describe('the update prompt (§8)', () => {
+describe('the update prompt', () => {
   it('shows when nothing is open, on the map, at home or in Settings', () => {
     for (const screen of ['campaign', 'home', 'settings', 'failed'])
       expect(mayOfferUpdate({ ...idle, screen })).toBe(true);

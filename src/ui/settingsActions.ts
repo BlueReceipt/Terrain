@@ -23,7 +23,7 @@ export const editingStatus = signal<string | null>(null);
 
 /** Every campaign on the phone (Settings → Campaign). */
 export const campaigns = signal<CampaignSummary[]>([]);
-/** How much the phone lets Terrain keep (Settings → Storage, §8). */
+/** How much the phone lets Terrain keep (Settings → Storage). */
 export const storageState = signal<{
   persisted: boolean | null;
   usedBytes: number | null;
@@ -36,7 +36,7 @@ export async function refreshCampaigns(): Promise<void> {
   campaigns.value = db ? await listCampaigns(db) : [];
 }
 
-/** A change in Settings, saved at once (§5.9). */
+/** A change in Settings, saved at once. */
 export async function updateSettings(
   change: Partial<
     Pick<
@@ -129,7 +129,7 @@ export async function refreshStorage(): Promise<void> {
   };
 }
 
-/** Settings → Storage → Keep Terrain's data (§8): asks the browser not to clear it. */
+/** Settings → Storage → Keep Terrain's data: asks the browser not to clear it. */
 export async function keepData(): Promise<void> {
   const db = database();
   if (!db || !('storage' in navigator)) return;

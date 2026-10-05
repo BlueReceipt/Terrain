@@ -12,7 +12,7 @@ import { strings } from './strings.ts';
 import { Swatch } from './Swatch.tsx';
 
 /**
- * The day log (§5.7): the day's counts, then one line per action, named by house; a line shows its
+ * The day log: the day's counts, then one line per action, named by house; a line shows its
  * house on the map. Copy as text, Share, and what is still to export.
  */
 export function DayLogPanel() {

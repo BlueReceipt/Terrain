@@ -68,7 +68,7 @@ export const settings = signal<Settings | null>(null);
 export const statuses = computed<readonly Status[]>(() => settings.value?.statuses ?? []);
 /** The file name of the last backup saved in this session. */
 export const lastBackup = signal<string | null>(null);
-/** The offline map, and the URL the map reads it through (§8). */
+/** The offline map, and the URL the map reads it through. */
 export const basemap = signal<{ info: BasemapInfo; url: string } | null>(null);
 export const basemapState = signal<{ loading: boolean; error: BasemapErrorCode | null }>({
   loading: false,
@@ -250,21 +250,21 @@ export async function openCampaign(): Promise<void> {
     screen.value = { ...now, saving: false, saveFailed: true };
     return;
   }
-  // BUILD_SPEC §8: ask for durable storage after the first successful import.
+  // Ask for durable storage after the first successful import.
   const saved = await loadSettings(db);
   if (saved.storagePersisted === null && 'storage' in navigator && 'persist' in navigator.storage) {
     await recordStoragePersistence(db, await navigator.storage.persist());
   }
 }
 
-/** Back up (§5.8): the whole database as one JSON file in the downloads. */
+/** Back up: the whole database as one JSON file in the downloads. */
 export async function backUp(): Promise<void> {
   if (!db) return;
   const now = nowWithOffset();
   const fileName = backupFileName(now);
   saveFile(fileName, JSON.stringify(await makeBackup(db, now)), 'application/json');
   lastBackup.value = fileName;
-  // Exporting resets the "not exported" counter (§5.8): the backup holds every campaign.
+  // Exporting resets the "not exported" counter: the backup holds every campaign.
   for (const campaign of await db.campaigns.toArray()) await markExported(db, campaign.id, now);
 }
 
@@ -279,7 +279,7 @@ export async function pickBackup(file: File): Promise<void> {
   }
 }
 
-/** Restore, after Alex confirms (§5.8): everything on the phone is replaced by the backup. */
+/** Restore, after Alex confirms: everything on the phone is replaced by the backup. */
 export async function confirmRestore(): Promise<void> {
   const now = screen.value;
   if (now.name !== 'restore' || !db) return;

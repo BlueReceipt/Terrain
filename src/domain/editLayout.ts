@@ -4,7 +4,7 @@ import { splitParcelIds } from './parcel.ts';
 import { compactKey, fold } from './text.ts';
 import type { Campaign, ColumnGroup, ColumnRoles, Row } from './types.ts';
 
-/** One field of Edit info (BUILD_SPEC §5.11). */
+/** One field of Edit info. */
 export interface LayoutField {
   column: string;
   value: string;
@@ -107,7 +107,7 @@ function groupBy(rows: readonly Row[], keyOf: (row: Row) => string): Row[][] {
   return [...groups.values()];
 }
 
-/** Which fields Edit info shows once and which per row, and which rows each field writes (§6.3). */
+/** Which fields Edit info shows once and which per row, and which rows each field writes. */
 export function editLayout(houseRows: readonly Row[], campaign: CampaignColumns): EditLayout {
   const rows = [...houseRows].sort((a, b) => a.rowIndex - b.rowIndex);
   const columns = editableColumns(campaign);

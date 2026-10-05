@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <title>Terrain</title>
   <rect width="512" height="512" fill="#000000"/>
-  <!-- A strip of flagging tape with a notched end, the rail's motif (BUILD_SPEC §9). -->
+  <!-- A strip of flagging tape with a notched end, the rail's motif. -->
   <g transform="rotate(-18 256 256)">
     <path d="M104 208 H408 L372 256 L408 304 H104 Z" fill="#FFFFFF"/>
   </g>

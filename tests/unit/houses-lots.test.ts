@@ -31,7 +31,7 @@ const input = (
   address: street ? addressParts((role) => (role === 'street' ? street : '')) : noAddress,
 });
 
-describe('groupHouses (§6.1)', () => {
+describe('groupHouses', () => {
   const home = at(45.2641, -73.6105);
 
   it('joins blank-address rows within 5 m that share a parcel, and only those', () => {
@@ -95,7 +95,7 @@ describe('groupHouses (§6.1)', () => {
   });
 });
 
-describe('Phase 1 gate cases (fixtures/public/cases.kmz)', () => {
+describe('the house and lot cases (fixtures/public/cases.kmz)', () => {
   const plan = importInto(parseFixture('public/cases.kmz'));
   const report = plan.report;
   const houseOf = (parcel: string, lastName?: string) =>

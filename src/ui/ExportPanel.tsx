@@ -18,7 +18,7 @@ import { current } from './flow.ts';
 import { panel } from './mapState.ts';
 import { strings } from './strings.ts';
 
-/** Export (§5.8): Excel for the client, the My Maps update of each layer, and the backup. */
+/** Export: Excel for the client, the My Maps update of each layer, and the backup. */
 export function ExportPanel() {
   useEffect(() => {
     void refreshNotExported();

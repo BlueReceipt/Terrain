@@ -22,7 +22,7 @@ const MY_MAPS_STYLES = `
 
 const parse = (text: string) => parseKml(text, parseXml, 'test.kml');
 
-describe('KML parsing (Appendix A)', () => {
+describe('KML parsing', () => {
   it('reads layers, parcel IDs, columns in order and positions', () => {
     const file = parse(
       kml(`

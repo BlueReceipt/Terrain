@@ -54,7 +54,7 @@ function houseRows(houseKey: string): Row[] {
   return current.value?.rows.filter((row) => row.houseKey === houseKey) ?? [];
 }
 
-/** The note editor (§5.6): for every row at the house, or for one row. Closing it unwritten is fine. */
+/** The note editor: for every row at the house, or for one row. Closing it unwritten is fine. */
 function NoteEditor({ houseKey, rowId }: { houseKey: string; rowId: string | null }) {
   const text = useSignal('');
   const field = useRef<HTMLTextAreaElement>(null);
@@ -99,7 +99,7 @@ function NoteEditor({ houseKey, rowId }: { houseKey: string; rowId: string | nul
   );
 }
 
-/** The number chooser (§5.3): call one, or say which one was called. */
+/** The number chooser: call one, or say which one was called. */
 function NumberChooser({ houseKey, mode }: { houseKey: string; mode: 'call' | 'log' }) {
   const loaded = current.value;
   if (!loaded) return null;
@@ -152,7 +152,7 @@ function NumberChooser({ houseKey, mode }: { houseKey: string; mode: 'call' | 'l
   );
 }
 
-/** The call outcome sheet (§5.5): one tap logs Call date and call result. */
+/** The call outcome sheet: one tap logs Call date and call result. */
 function CallOutcome({
   houseKey,
   pendingId,
@@ -225,7 +225,7 @@ interface FormField extends LayoutField {
 }
 
 /**
- * Edit info and Edit this row (§5.11): every field once where it is shared, per owner otherwise;
+ * Edit info and Edit this row: every field once where it is shared, per owner otherwise;
  * the right keyboard for phones and email; Next goes field to field. Save writes one event.
  */
 function EditForm({ houseKey, rowId }: { houseKey: string; rowId: string | null }) {

@@ -99,7 +99,7 @@ async function busyDb(): Promise<TerrainDb> {
   return store;
 }
 
-describe('backup and restore (§5.8)', () => {
+describe('backup and restore', () => {
   it('reproduces the database exactly: back up, wipe, restore', async () => {
     const store = await busyDb();
     const before = await snapshot(store);

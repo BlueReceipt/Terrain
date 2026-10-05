@@ -30,7 +30,7 @@ import { strings } from '../../src/ui/strings.ts';
 import { casesCampaign, freshDb, rowOf } from '../support/campaign.ts';
 import { importInto, parseFixture } from '../support/import.ts';
 
-// BUILD_SPEC Phase 5 gate. One day at 123 rue Saint-Paul (Alain and Marie Trempette on P1-216B,
+// One day at 123 rue Saint-Paul (Alain and Marie Trempette on P1-216B,
 // Alain on P1-217A), whose lot reaches Luc Trempette at 12 chemin du Lac.
 
 let db: TerrainDb;
@@ -148,7 +148,7 @@ function readSheet(bytes: Uint8Array, name: string): string[][] {
   return XLSX.utils.sheet_to_json<string[]>(sheet, { header: 1, raw: false, defval: '' });
 }
 
-describe('Excel for the client (§5.8)', () => {
+describe('Excel for the client', () => {
   it('round trip: headers, columns and rows as imported; current values; untouched cells unchanged', async () => {
     const day = await fieldDay();
     const parcels = parcelsSheet(exportInput(day));
@@ -297,7 +297,7 @@ describe('Excel for the client (§5.8)', () => {
   });
 });
 
-describe('re-importing after a day in the field (Phase 5 gate)', () => {
+describe('re-importing after a day in the field', () => {
   it('the original KMZ keeps every correction and the moved house, and lists each disagreement', async () => {
     const day = await fieldDay();
     const plan = importInto(day.parsed, { ...dayPlan(day) }, day.rows);
@@ -408,7 +408,7 @@ describe('re-importing after a day in the field (Phase 5 gate)', () => {
     };
     const plan = importInto(back, dayPlan(day), day.rows, ownNoteTexts(day.events, strings.notes));
     expect(plan.merge.conflicts).toEqual([]);
-    // Only the corrections the file now carries, absorbed (§6.4): nothing else changed.
+    // Only the corrections the file now carries, absorbed: nothing else changed.
     expect(new Set(plan.merge.changes.map((change) => change.column))).toEqual(
       new Set(['TEL_RES', 'CELLULAIRE']),
     );
@@ -429,7 +429,7 @@ function dayPlan(day: Day) {
   return { ...importInto(day.parsed), campaign: day.campaign };
 }
 
-describe('My Maps update (§5.8)', () => {
+describe('My Maps update', () => {
   it('one CSV per layer: Parcel ID, the columns, Latitude, Longitude and Location, UTF-8 with BOM', async () => {
     const day = await fieldDay();
     const layer = day.campaign.layers[0] ?? '';
@@ -507,7 +507,7 @@ describe('Terrain’s notes coming back in a Notes cell', () => {
   });
 });
 
-describe('day log (§5.7)', () => {
+describe('day log', () => {
   it('counts the day and names each action by house, the undone mis-tap left out', async () => {
     const day = await fieldDay();
     const log = dayLog({

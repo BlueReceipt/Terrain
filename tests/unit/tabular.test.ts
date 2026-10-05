@@ -79,7 +79,7 @@ describe('spreadsheets with coordinates', () => {
     expect(comma.rows[0]?.position).toEqual({ lat: 45.1, lng: -73.2 });
   });
 
-  it('refuses a file without coordinates, with directions (§5.1)', () => {
+  it('refuses a file without coordinates, with directions', () => {
     expect(() =>
       parseTabular(
         xlsx({

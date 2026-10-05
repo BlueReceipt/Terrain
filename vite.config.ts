@@ -3,8 +3,8 @@ import preact from '@preact/preset-vite';
 import { defineConfig, type Plugin } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
-// BUILD_SPEC §8: the app makes zero runtime network requests beyond its own origin.
-// blob: workers are for MapLibre (Phase 3).
+// The app makes zero runtime network requests beyond its own origin.
+// blob: workers are for MapLibre.
 const CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
   "script-src 'self'",
@@ -20,7 +20,7 @@ const CONTENT_SECURITY_POLICY = [
   "form-action 'none'",
 ].join('; ');
 
-// Cloudflare Pages (Phase 6): the same policy as an HTTP header, which also covers what a meta tag
+// Cloudflare Pages: the same policy as an HTTP header, which also covers what a meta tag
 // can't (frame-ancestors), a few more locks, and caching that lets an update reach the phone: the
 // page, the service worker and the manifest are always revalidated, hashed assets kept a year.
 function cloudflareHeaders(): Plugin {
@@ -54,7 +54,7 @@ function cloudflareHeaders(): Plugin {
   };
 }
 
-// Settings → About (§5.9): the version in package.json and the day of the build.
+// Settings → About: the version in package.json and the day of the build.
 const { version } = JSON.parse(readFileSync(new URL('package.json', import.meta.url), 'utf8')) as {
   version: string;
 };

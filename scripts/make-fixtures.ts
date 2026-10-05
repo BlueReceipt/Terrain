@@ -1,5 +1,5 @@
 /**
- * Writes the synthetic fixtures in fixtures/public/ (BUILD_SPEC §11). Every owner, phone, parcel and
+ * Writes the synthetic fixtures in fixtures/public/. Every owner, phone, parcel and
  * address is invented, in towns that have a poutine place in restaurants.json.
  * Run: npm run fixtures
  */
@@ -79,7 +79,7 @@ const near = (
   lat + northMeters / 111_320,
 ];
 
-/** The house and lot cases of the Phase 1 gate, plus quirks seen in real My Maps exports. */
+/** Every house and lot case Terrain must handle, plus quirks seen in real My Maps exports. */
 export const CASES: CaseRow[] = [
   // Husband and wife on one parcel ID, different cells, shared home line; the owner's second parcel at the same door.
   {

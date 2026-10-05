@@ -11,7 +11,7 @@ import {
   storedRow,
 } from './helpers.ts';
 
-// BUILD_SPEC §2 and the Phase 6 gate, offline: the whole loop of a day at the door, and a phone that
+// Offline: the whole loop of a day at the door, and a phone that
 // dies mid-day losing nothing it confirmed.
 const TREMPETTE = [-73.6105, 45.2641] as const;
 const RUE_SAINT_PAUL = '123, rue Saint-Paul';
@@ -48,7 +48,7 @@ async function editMariesCell(page: Page) {
   return form;
 }
 
-test('the whole loop of a day, offline, ends in an Excel file holding all of it (§2)', async ({
+test('the whole loop of a day, offline, ends in an Excel file holding all of it', async ({
   page,
 }) => {
   // Tap a house, see every row there.

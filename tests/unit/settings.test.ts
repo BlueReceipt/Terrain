@@ -42,7 +42,7 @@ import { counter, NOW } from '../support/import.ts';
 const rail = (statuses: Parameters<typeof railStatuses>[0]) =>
   railStatuses(statuses).map((status) => status.label);
 
-describe('statuses in Settings (§5.9)', () => {
+describe('statuses in Settings', () => {
   it('says what a status does at the lot’s other addresses, and back', () => {
     const behaviors = DEFAULT_STATUSES.map((status) => [status.id, lotBehaviorOf(status)]);
     expect(Object.fromEntries(behaviors)).toEqual({
@@ -135,7 +135,7 @@ function store(): TerrainDb {
   return db;
 }
 
-/** The gate fixture, then a second campaign a day later (the restaurant list's co-owners). */
+/** The cases fixture, then a second campaign a day later (the restaurant list's co-owners). */
 async function twoCampaigns() {
   db = freshDb();
   const cases = await casesCampaign(store());
@@ -157,7 +157,7 @@ async function twoCampaigns() {
   return { cases: cases.campaign.id, second: plan.campaign.id };
 }
 
-describe('campaigns and settings, saved (§5.9)', () => {
+describe('campaigns and settings, saved', () => {
   it('saves only what changed in Settings', async () => {
     db = freshDb();
     const before = await loadSettings(store());

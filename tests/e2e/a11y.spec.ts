@@ -10,7 +10,7 @@ import {
   openSettings,
 } from './helpers.ts';
 
-// BUILD_SPEC Phase 6, accessibility pass: WCAG 2.2 AA on every screen, checked by axe.
+// Accessibility: WCAG 2.2 AA on every screen, checked by axe.
 const TREMPETTE = [-73.6105, 45.2641] as const;
 
 async function problems(page: Page): Promise<string[]> {

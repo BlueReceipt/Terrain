@@ -9,15 +9,15 @@ import { current, statuses } from './flow.ts';
 export const selectedHouseKey = signal<string | null>(null);
 /** The row a search result points at, highlighted on the card. */
 export const highlightedRowId = signal<string | null>(null);
-/** The status filter chip (§5.2): houses holding at least one row with it. */
+/** The status filter chip: houses holding at least one row with it. */
 export const statusFilter = signal<string | null>(null);
-/** The houses sharing the tapped spot, when it holds more than one (§5.2 chooser). */
+/** The houses sharing the tapped spot, when it holds more than one. */
 export const chooserHouseKeys = signal<string[] | null>(null);
 /** A list of houses over the map: the houses with no position yet, or the houses of a lot. */
 export const houseList = signal<{ title: string; houseKeys: string[] } | null>(null);
 export const focus = signal<Focus | null>(null);
 
-/** The card's full view (§5.3), and the row expanded in place (one at a time). */
+/** The card's full view, and the row expanded in place (one at a time). */
 export const cardFull = signal(false);
 export const expandedRowId = signal<string | null>(null);
 
@@ -32,7 +32,7 @@ export type Sheet =
 
 export const sheet = signal<Sheet | null>(null);
 
-/** A full-screen panel over the map: the day log (§5.7) or the exports (§5.8). */
+/** A full-screen panel over the map: the day log or the exports. */
 export const panel = signal<'dayLog' | 'export' | null>(null);
 
 export const content = computed(() =>
@@ -51,7 +51,7 @@ export const selectedPinId = computed(() => {
   return key === null ? null : (pinOfHouse.value.get(key)?.id ?? null);
 });
 
-/** The other houses on the selected house's lots: a small ring and a dashed tether (§5.2). */
+/** The other houses on the selected house's lots: a small ring and a dashed tether. */
 export const linked = computed(() => {
   const key = selectedHouseKey.value;
   const rows = current.value?.rows ?? [];

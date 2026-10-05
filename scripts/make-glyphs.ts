@@ -1,6 +1,6 @@
 /**
  * Writes the map's label glyphs (public/map-assets/glyphs/) from the app's own font, Atkinson
- * Hyperlegible Next (BUILD_SPEC §9: one font for everything), so the offline map downloads nothing.
+ * Hyperlegible Next (one font for everything), so the offline map downloads nothing.
  *
  * MapLibre draws labels from signed distance fields in its glyph protobuf format, the one
  * node-fontnik writes: each glyph rendered at 24 px with a 3 px buffer, radius 8, cutoff 0.25.

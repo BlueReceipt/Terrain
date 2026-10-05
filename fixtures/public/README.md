@@ -3,7 +3,7 @@
 Sample files for the tests, all made of poutine places and their address. 
 
 - `poutine-autour-du-quebec.kml`: a real Google My Maps export, made by Alex from the three spreadsheets in `poutine-map/` (built from `restaurants.json`, then trimmed by hand): 114 casse-croûtes, cantines and poutine shops across Québec in 124 rows and 3 layers, every pin placed by its address. Each layer keeps a different set of columns, as real files do. The spreadsheets are a starting template: add your own columns for your campaigns.
-- `cases.kmz`, `cases-renamed.kmz`, `big-2000.kmz`, `cases.xlsx`, `cases-1252.csv`, `no-coordinates.xlsx`: synthetic, written by `scripts/make-fixtures.ts` (`npm run fixtures`). `cases.kmz` holds every house and lot case of the Phase 1 gate and the quirks seen in real My Maps exports. Their owners (the Trempette, Grains and Poutini families, among others) are invented, in towns that have a poutine place.
+- `cases.kmz`, `cases-renamed.kmz`, `big-2000.kmz`, `cases.xlsx`, `cases-1252.csv`, `no-coordinates.xlsx`: synthetic, written by `scripts/make-fixtures.ts` (`npm run fixtures`). `cases.kmz` holds every house and lot case Terrain must handle and the quirks seen in real My Maps exports. Their owners (the Trempette, Grains and Poutini families, among others) are invented, in towns that have a poutine place.
 - `restaurants.json`: the poutine places above, from OpenStreetMap (`npm run restaurants`).
 - `test-basemap.pmtiles`: a small invented offline map for the map tests (`npm run test-basemap`).
 

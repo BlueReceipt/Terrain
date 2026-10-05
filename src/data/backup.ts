@@ -9,7 +9,7 @@ import {
   type TerrainDb,
 } from './db.ts';
 
-/** The whole database in one file (§5.8). Restore replaces everything on the device with it. */
+/** The whole database in one file. Restore replaces everything on the device with it. */
 export interface Backup {
   format: 'terrain-backup';
   version: number;
@@ -54,7 +54,7 @@ export async function makeBackup(db: TerrainDb, now: string): Promise<Backup> {
   }));
 }
 
-/** "Terrain_backup_2026-10-01.json" (§5.8). */
+/** "Terrain_backup_2026-10-01.json". */
 export function backupFileName(now: string): string {
   return `Terrain_backup_${fileDate(now)}.json`;
 }
@@ -88,7 +88,7 @@ export function parseBackup(text: string): Backup {
     throw new RestoreError('damaged-backup');
   if (data.version > VERSION || data.schema > SCHEMA_VERSION)
     throw new RestoreError('newer-backup');
-  // Backups exist from storage version 2 on (Phase 2).
+  // Backups exist from storage version 2 on.
   if (data.schema < 2) throw new RestoreError('damaged-backup');
   const valid =
     listOf(data, 'campaigns').every((campaign) => isText(campaign.id)) &&

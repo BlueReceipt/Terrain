@@ -51,7 +51,7 @@ export async function loadCampaign(
   return { campaign, rows };
 }
 
-/** The last-used campaign opens on launch (§5.1). */
+/** The last-used campaign opens on launch. */
 export async function loadLastCampaign(db: TerrainDb): Promise<LoadedCampaign | null> {
   const { lastCampaignId } = await loadSettings(db);
   return lastCampaignId === null ? null : loadCampaign(db, lastCampaignId);
@@ -98,7 +98,7 @@ export function importEventOf(plan: ImportPlan, eventId: string, at: string): Im
   };
 }
 
-/** Saves an import in one transaction (§6.3): the campaign, every row and the import event, or nothing. */
+/** Saves an import in one transaction: the campaign, every row and the import event, or nothing. */
 export async function commitImport(
   db: TerrainDb,
   plan: ImportPlan,
@@ -134,7 +134,7 @@ function isRow(row: Row | undefined): row is Row {
   return row !== undefined;
 }
 
-/** Whether saved corrections can move rows between houses or lots (§6.1): address, lot column, position. */
+/** Whether saved corrections can move rows between houses or lots: address, lot column, position. */
 function changesIdentity(campaign: Campaign, event: TerrainEvent): boolean {
   if (event.type !== 'fields_edited') return false;
   if (event.payload.location) return true;
@@ -237,7 +237,7 @@ async function markRows(
   return { event, rows: planned.rows };
 }
 
-/** A status tap on the house rail (§5.4): every row at the house, and the lot for a whole-lot status. */
+/** A status tap on the house rail: every row at the house, and the lot for a whole-lot status. */
 export async function markHouse(
   db: TerrainDb,
   tap: StatusTap & { houseKey: string },
@@ -249,7 +249,7 @@ export async function markHouse(
   });
 }
 
-/** "This row only" (§5.4). */
+/** "This row only". */
 export async function markRow(
   db: TerrainDb,
   tap: StatusTap & { rowId: string },
@@ -268,7 +268,7 @@ interface HouseAction {
   now: string;
 }
 
-/** Edit info or Edit this row, saved (§5.11): one event, every changed row and field. */
+/** Edit info or Edit this row, saved: one event, every changed row and field. */
 export async function editFields(
   db: TerrainDb,
   edit: HouseAction & { target: 'house' | 'row'; writes: readonly EditWrite[] },
@@ -284,7 +284,7 @@ export async function editFields(
   });
 }
 
-/** "Use my location for this house" (§5.11): how a house with no position gets its pin at the door. */
+/** "Use my location for this house": how a house with no position gets its pin at the door. */
 export async function moveHouse(
   db: TerrainDb,
   move: HouseAction & { position: LatLng; accuracyM: number | null },
@@ -301,7 +301,7 @@ export async function moveHouse(
 }
 
 /**
- * A call outcome (§5.5): Call date and call result on every row at the house listing the number.
+ * A call outcome: Call date and call result on every row at the house listing the number.
  * A number no row lists (Log call → Whole house) logs on the whole house.
  */
 export async function logCall(
@@ -332,7 +332,7 @@ export async function logCall(
   });
 }
 
-/** Tapping a number (§5.5): stored before the dialer opens, so its outcome can be asked on return. */
+/** Tapping a number: stored before the dialer opens, so its outcome can be asked on return. */
 export async function startCall(
   db: TerrainDb,
   call: Omit<PendingCall, 'rowIds'>,
@@ -391,7 +391,7 @@ export async function discardCall(db: TerrainDb, pendingId: string): Promise<voi
   await db.pendingCalls.delete(pendingId);
 }
 
-/** A note for every row at the house, or for one row (§5.6). */
+/** A note for every row at the house, or for one row. */
 export async function addNote(
   db: TerrainDb,
   note: HouseAction & { rowId: string | null; text: string },
@@ -406,7 +406,7 @@ export async function addNote(
   });
 }
 
-/** Deleting a note (after Alex confirms): a deletion event; the note stays in the log (§5.6). */
+/** Deleting a note (after Alex confirms): a deletion event; the note stays in the log. */
 export async function deleteNote(
   db: TerrainDb,
   deletion: { campaignId: string; noteEventId: string; eventId: string; now: string },
@@ -430,7 +430,7 @@ export async function deleteNote(
 }
 
 /**
- * The toast's Undo (§5.4): takes back the campaign's last action, if it is still the last one.
+ * The toast's Undo: takes back the campaign's last action, if it is still the last one.
  * Returns null when it isn't (another action came after it) or when there is nothing to undo.
  */
 export async function undo(
@@ -451,7 +451,7 @@ export async function undo(
 }
 
 /**
- * "N changes not exported yet" (§5.7): actions since the last export. An undo counts only when the
+ * "N changes not exported yet": actions since the last export. An undo counts only when the
  * client already received what it took back.
  */
 export async function notExportedCount(db: TerrainDb, campaignId: string): Promise<number> {
@@ -465,7 +465,7 @@ export async function notExportedCount(db: TerrainDb, campaignId: string): Promi
   }).length;
 }
 
-/** After an Excel, CSV or JSON export (§5.8): everything so far counts as exported. */
+/** After an Excel, CSV or JSON export: everything so far counts as exported. */
 export async function markExported(db: TerrainDb, campaignId: string, at: string): Promise<void> {
   await db.events
     .where('campaignId')
@@ -479,7 +479,7 @@ type EditableSettings = Pick<
   'statuses' | 'callOutcomes' | 'dateFormat' | 'notesExportMode' | 'fillVisitDateViaLot'
 >;
 
-/** A change made in Settings (§5.9): statuses, call outcomes, dates, notes in export, lots. */
+/** A change made in Settings: statuses, call outcomes, dates, notes in export, lots. */
 export async function saveSettings(
   db: TerrainDb,
   change: Partial<EditableSettings>,
@@ -498,7 +498,7 @@ export interface CampaignSummary {
   rows: number;
 }
 
-/** Every campaign on the phone, newest first (§5.9 Campaigns). */
+/** Every campaign on the phone, newest first. */
 export async function listCampaigns(db: TerrainDb): Promise<CampaignSummary[]> {
   const campaigns = await db.campaigns.toArray();
   const summaries = await Promise.all(
@@ -512,7 +512,7 @@ export async function listCampaigns(db: TerrainDb): Promise<CampaignSummary[]> {
   return summaries.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
-/** Opens another campaign; it is the one that opens on launch from now on (§5.1). */
+/** Opens another campaign; it is the one that opens on launch from now on. */
 export async function switchCampaign(
   db: TerrainDb,
   campaignId: string,
@@ -537,7 +537,7 @@ export async function renameCampaign(
 }
 
 /**
- * Deletes a campaign and everything in it, after Alex confirms (§5.9): rows, events, waiting calls.
+ * Deletes a campaign and everything in it, after Alex confirms: rows, events, waiting calls.
  * Returns the campaign that opens on launch now: the newest one left, or none.
  */
 export async function deleteCampaign(db: TerrainDb, campaignId: string): Promise<string | null> {
@@ -561,7 +561,7 @@ export async function deleteCampaign(db: TerrainDb, campaignId: string): Promise
   );
 }
 
-/** Settings → Columns (§5.9): which columns Edit info shows once per house, parcel or owner. */
+/** Settings → Columns: which columns Edit info shows once per house, parcel or owner. */
 export async function setColumnGroups(
   db: TerrainDb,
   campaignId: string,
@@ -575,8 +575,8 @@ export async function setColumnGroups(
 }
 
 /**
- * Settings → Lots (§5.9): rows grouped into lots by another column. Every row's lots and houses are
- * recomputed in one transaction; past events keep what they did (§6.4).
+ * Settings → Lots: rows grouped into lots by another column. Every row's lots and houses are
+ * recomputed in one transaction; past events keep what they did.
  */
 export async function setLotColumn(
   db: TerrainDb,

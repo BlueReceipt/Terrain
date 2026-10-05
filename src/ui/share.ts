@@ -3,8 +3,8 @@ import { saveFile } from '../data/files.ts';
 export type Delivery = 'shared' | 'saved' | 'cancelled';
 
 /**
- * Hands files to the phone's share sheet where the browser can share them (§5.8: Web Share with
- * files), otherwise to Downloads. Chrome shares only some file types; the others are saved.
+ * Hands files to the phone's share sheet where the browser can share them (Web Share with files),
+ * otherwise to Downloads. Chrome shares only some file types; the others are saved.
  */
 export async function deliver(files: File[]): Promise<Delivery> {
   if ('canShare' in navigator && navigator.canShare({ files })) {

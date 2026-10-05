@@ -23,7 +23,7 @@ import { numberText, StatusChip, statusOf, when } from './StatusChip.tsx';
 import { Swatch } from './Swatch.tsx';
 
 /**
- * The status rail (§5.4, §9): one swatch per status, drawn like strips of flagging tape, big enough
+ * The status rail: one swatch per status, drawn like strips of flagging tape, big enough
  * for a gloved thumb. Skipped is "an option" (Alex, 2026-10-01): a narrower strip at the end.
  */
 export function StatusRail({
@@ -54,7 +54,7 @@ export function StatusRail({
   );
 }
 
-/** Row detail (§5.3): one row's numbers and email, its own rail, its note and edit. */
+/** Row detail: one row's numbers and email, its own rail, its note and edit. */
 function RowDetail({ row, houseKey }: { row: Row; houseKey: string }) {
   const loaded = current.value;
   if (!loaded) return null;
@@ -116,7 +116,7 @@ function RowDetail({ row, houseKey }: { row: Row; houseKey: string }) {
   );
 }
 
-/** Rows grouped by parcel ID, in file order: each parcel ID once, then its owners (§5.3). */
+/** Rows grouped by parcel ID, in file order: each parcel ID once, then its owners. */
 function byParcel(rows: readonly Row[]): { parcelId: string; rows: Row[] }[] {
   const groups = new Map<string, Row[]>();
   for (const row of rows) {
@@ -128,7 +128,7 @@ function byParcel(rows: readonly Row[]): { parcelId: string; rows: Row[] }[] {
   return [...groups.entries()].map(([parcelId, list]) => ({ parcelId, rows: list }));
 }
 
-/** Use my location for this house (§5.11), with the GPS accuracy on the button. */
+/** Use my location for this house, with the GPS accuracy on the button. */
 export function PinHereButton({ houseKey }: { houseKey: string }) {
   useEffect(() => {
     startLocating();
@@ -148,7 +148,7 @@ export function PinHereButton({ houseKey }: { houseKey: string }) {
   );
 }
 
-/** The house card (§5.3): peek, then the full view; the rail and the actions stay at the bottom. */
+/** The house card: peek, then the full view; the rail and the actions stay at the bottom. */
 export function HouseCard({ houseKey }: { houseKey: string }) {
   const loaded = current.value;
   if (!loaded) return null;
@@ -162,7 +162,7 @@ export function HouseCard({ houseKey }: { houseKey: string }) {
   const placed = rows.some((row) => row.position);
   const position = housesOfRows(rows)[0]?.position ?? null;
 
-  // The lot line: this house's parcels at other houses (§5.3, §5.10).
+  // The lot line: this house's parcels at other houses.
   const elsewhere = lotNeighbors(loaded.rows, houseKey).map((otherKey) => {
     const other = loaded.rows.filter(
       (row) => row.houseKey === otherKey && row.lotKeys.some((key) => keys.has(key)),

@@ -66,7 +66,7 @@ export function withParcelIdColumn(parsed: ParsedFile, column: string): ParsedFi
   };
 }
 
-/** App-owned roles the file doesn't have: the column mapping screen asks about them (§5.1). */
+/** App-owned roles the file doesn't have: the column mapping screen asks about them. */
 export function missingRoles(parsed: ParsedFile, roles: ColumnRoles): (keyof ColumnRoles)[] {
   const missing: (keyof ColumnRoles)[] = [];
   if (parsed.format === 'tabular' && !roles.parcelId) missing.push('parcelId');
@@ -172,7 +172,7 @@ function regroup(plan: ImportPlan, campaign: Campaign, rows: readonly Row[]): Im
   return { ...next, report: reportFor(next) };
 }
 
-/** "Group rows into lots by" changed on the report (§5.1): lots and their counts recompute on the spot. */
+/** "Group rows into lots by" changed on the report: lots and their counts recompute on the spot. */
 export function withLotColumn(plan: ImportPlan, lotColumn: string | null): ImportPlan {
   return regroup(plan, { ...plan.campaign, lotColumn }, plan.merge.rows);
 }

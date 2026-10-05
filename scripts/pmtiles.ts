@@ -1,6 +1,6 @@
 /**
  * Writes PMTiles v3 archives (https://github.com/protomaps/PMTiles/blob/main/spec/v3/spec.md):
- * the offline basemap format (BUILD_SPEC §8). Used by make-basemap.ts and make-test-basemap.ts;
+ * the offline basemap format. Used by make-basemap.ts and make-test-basemap.ts;
  * the official `pmtiles` library reads them back in the tests.
  */
 import { createHash } from 'node:crypto';

@@ -1,5 +1,5 @@
 /**
- * Makes the offline map of a campaign area (BUILD_SPEC §8): copies the area's tiles out of a recent
+ * Makes the offline map of a campaign area: copies the area's tiles out of a recent
  * Protomaps daily build into one .pmtiles file to load in Terrain (Settings → Offline map).
  *
  *   npm run basemap -- <west,south,east,north> [--maxzoom 15] [--out file.pmtiles] [--source url-or-file]

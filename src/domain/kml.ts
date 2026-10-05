@@ -257,7 +257,7 @@ export function parseKml(text: string, parseXml: ParseXml, fileName: string): Pa
       descendants(kml, 'NetworkLink').length > 0 ? 'network-link-only' : 'no-rows',
     );
   }
-  // The parcel ID is each pin's title (Appendix A): no column plays that part in a KMZ.
+  // The parcel ID is each pin's title: no column plays that part in a KMZ.
   const roles = Object.fromEntries(
     Object.entries(detectRoles(columns)).filter(([role]) => role !== 'parcelId'),
   );

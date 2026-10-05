@@ -11,7 +11,7 @@ import {
   storedRows,
 } from './helpers.ts';
 
-// BUILD_SPEC Phase 4 gate: offline, clock at 2026-09-26 14:32. At 123 rue Saint-Paul, Alain and
+// The house card, offline, clock at 2026-09-26 14:32. At 123 rue Saint-Paul, Alain and
 // Marie Trempette on P1-216B and Alain on P1-217A; at 12 chemin du Lac, Luc Trempette on P1-216B.
 const TREMPETTE = [-73.6105, 45.2641] as const;
 const LUC = [-73.59263, 45.272185] as const;

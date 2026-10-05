@@ -89,7 +89,7 @@ describe('phone numbers', () => {
       rows: rowIds.length,
     }));
 
-  it('lists each number at a house once, in file order, with whom it reaches (§5.3 Call)', () => {
+  it('lists each number at a house once, in file order, with whom it reaches', () => {
     const rows = importInto(parseFixture('public/cases.kmz')).merge.rows;
     const house = houseOf(rows, rowOf(rows, 'P1-216B', 'Alain'));
     const numbers = houseNumbers(

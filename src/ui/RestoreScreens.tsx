@@ -4,7 +4,7 @@ import { confirmRestore, leaveImport, settings } from './flow.ts';
 import { RestoreButton } from './ImportButton.tsx';
 import { strings } from './strings.ts';
 
-/** Restore replaces everything, so it asks first (§5.8). */
+/** Restore replaces everything, so it asks first. */
 export function Restore({ backup, restoring }: { backup: Backup; restoring: boolean }) {
   const format = settings.value?.dateFormat ?? DEFAULT_DATE_FORMAT;
   return (

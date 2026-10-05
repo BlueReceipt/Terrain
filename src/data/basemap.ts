@@ -1,7 +1,7 @@
 import { FileSource, PMTiles, TileType } from 'pmtiles';
 import type { BasemapInfo, TerrainDb } from './db.ts';
 
-/** The offline map file in the origin's private file system (OPFS, §8). */
+/** The offline map file in the origin's private file system (OPFS). */
 const FILE_NAME = 'basemap.pmtiles';
 
 export type BasemapErrorCode = 'not-a-map' | 'not-vector' | 'no-room' | 'unsupported';

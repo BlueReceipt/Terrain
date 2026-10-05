@@ -11,7 +11,7 @@ import {
   storedRow,
 } from './helpers.ts';
 
-// BUILD_SPEC Phase 6: every change made in Settings (§5.9) shows where it matters, offline.
+// Every change made in Settings shows where it matters, offline.
 const TREMPETTE = [-73.6105, 45.2641] as const;
 const LUC = [-73.59263, 45.272185] as const;
 const RUE_SAINT_PAUL = '123, rue Saint-Paul';

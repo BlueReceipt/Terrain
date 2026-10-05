@@ -27,17 +27,6 @@ Terrain_*.json
 *.pmtiles
 !fixtures/public/**
 
-# Alex's own notes and his checks against his real export: they stay on his PC, never published
-BUILD_SPEC.md
-HANDOFF.md
-CLAUDE.md
-fixtures/public/real-sanitized.kmz
-scripts/sanitize-kmz.ts
-tests/unit/real-export.test.ts
-tests/e2e/real-export.spec.ts
-tests/support/inspect-real.ts
-tests/support/real.ts
-
 # Logs
 *.log
 

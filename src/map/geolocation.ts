@@ -10,7 +10,7 @@ export interface Fix {
 
 export type LocationState = 'off' | 'waiting' | 'on' | 'denied' | 'unavailable';
 
-/** The phone's position while the map is on screen (§5.2: foreground only). Works without data. */
+/** The phone's position while the map is on screen. Works without data. */
 export const myFix = signal<Fix | null>(null);
 export const locationState = signal<LocationState>('off');
 

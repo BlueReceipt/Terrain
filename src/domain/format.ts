@@ -48,7 +48,7 @@ export function fileDate(iso: string): string {
 }
 
 /**
- * A status chip's time (§5.3): the time when it was today, the date otherwise. Text typed in the
+ * A status chip's time: the time when it was today, the date otherwise. Text typed in the
  * client's file shows as typed.
  */
 export function chipTime(value: string, today: string, format: DateFormat): string {

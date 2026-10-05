@@ -20,7 +20,7 @@ function fileWith(
   return { ...parsed, rows: [...rows, ...extra].map((row, i) => ({ ...row, sourceIndex: i })) };
 }
 
-describe('re-import (§6.4)', () => {
+describe('re-import', () => {
   it('changes nothing when the same file comes back', () => {
     const again = importInto(parseFixture('public/cases.kmz'), first);
     expect(again.report).toMatchObject({

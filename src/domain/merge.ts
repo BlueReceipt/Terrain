@@ -265,7 +265,7 @@ function groupBy<T>(items: readonly T[], keyOf: (item: T) => string): Map<string
   return groups;
 }
 
-/** Merges a file into a campaign by BUILD_SPEC §6.4. A first import is a merge into no rows. */
+/** Merges a file into a campaign. A first import is a merge into no rows. */
 export function mergeImport(input: MergeInput): MergeResult {
   const { campaign, statuses, now, newId } = input;
   const context: RowContext = {

@@ -9,7 +9,7 @@ import type { AppRole, FieldRole } from '../domain/types.ts';
 const count = (n: number, one: string, many: string): string =>
   `${n.toLocaleString('en-CA')} ${n === 1 ? one : many}`;
 
-// Every user-facing string lives here so a French UI can follow (BUILD_SPEC §4).
+// Every user-facing string lives here so a French UI can follow.
 export const strings = {
   appName: 'Terrain',
   rows: (n: number) => count(n, 'row', 'rows'),
@@ -264,7 +264,7 @@ export const strings = {
     noArea: 'No row has a position yet. Pin a house at its door first.',
     campaign: 'Campaign',
     backups: 'Backups',
-    // Campaigns (§5.9).
+    // Campaigns.
     campaignName: 'Campaign name',
     rename: 'Rename',
     save: 'Save',
@@ -276,7 +276,7 @@ export const strings = {
     deleteBody: (rows: number) =>
       `Its ${count(rows, 'row', 'rows')} and every status, correction, call and note made in it are removed from this phone. Back up first if you may need them.`,
     deleteConfirm: 'Delete campaign',
-    // Statuses (§5.9).
+    // Statuses.
     statuses: 'Statuses',
     statusesHelp:
       'Each status has a label, its pin color as in My Maps (#RRGGBB), the text Terrain writes in Package status, and what it does at the lot’s other addresses.',
@@ -304,7 +304,7 @@ export const strings = {
     needLabel: 'A status needs a label.',
     addStatus: 'Add a status',
     newStatus: 'New status',
-    // Columns and lots (§5.9).
+    // Columns and lots.
     columns: 'Columns',
     columnsHelp:
       'How Edit info shows each column: once for the house, once per parcel ID, or once per owner.',
@@ -314,7 +314,7 @@ export const strings = {
     parcelIdColumn: 'Parcel ID',
     lotsAcross: (n: number) => `${count(n, 'lot is', 'lots are')} at more than one house.`,
     lotVisitDate: 'Rows closed from the lot get Visit date',
-    // Calls (§5.9).
+    // Calls.
     callOutcomes: 'Call outcomes',
     callOutcomesHelp: 'The buttons after a call, in this order.',
     outcome: (n: number) => `Outcome ${String(n)}`,
@@ -322,7 +322,7 @@ export const strings = {
     moveOutcomeUp: (outcome: string) => `Move ${outcome || 'this outcome'} up`,
     addOutcome: 'Add an outcome',
     newOutcome: 'New outcome',
-    // Dates and notes (§5.9).
+    // Dates and notes.
     datesAndNotes: 'Dates and notes',
     dateFormat: 'Date format',
     notesInExport: 'Notes in the export',
@@ -330,7 +330,7 @@ export const strings = {
       joined: 'Every note, oldest first, each with its date',
       latest: 'The latest note only',
     },
-    // Storage and About (§5.9, §8).
+    // Storage and About.
     storage: 'Storage',
     persisted: 'Kept: the browser won’t clear Terrain’s data to free space.',
     notPersisted:
@@ -357,7 +357,7 @@ export const strings = {
       n === 0 ? 'Everything is exported.' : `${count(n, 'change', 'changes')} not exported yet`,
     export: 'Export',
     viaLot: (n: number) => `+${n.toLocaleString('en-CA')} via lot`,
-    // The words of the log itself, on screen and in the text it copies (§5.7).
+    // The words of the log itself, on screen and in the text it copies.
     words: {
       rows: (n) => count(n, 'row', 'rows'),
       parcelRows: (parcelId, rows) =>
@@ -422,7 +422,7 @@ export const strings = {
     saved: (fileName: string) => `Saved ${fileName} to your downloads.`,
     failed: 'The file wasn’t made. Nothing changed. Try again.',
   },
-  // The Journal sheet of the Excel export (§5.8), in the client's language for the columns.
+  // The Journal sheet of the Excel export, in the client's language for the columns.
   journal: {
     headers: [
       'Date',
@@ -451,7 +451,7 @@ export const strings = {
     accuracy: (meters) => `GPS, accurate to ${String(Math.round(meters))} m`,
     undid: (action, detail) => (detail ? `${action}: ${detail}` : action),
   } satisfies JournalWords,
-  // Lot notes and dated notes also go into exports, in these words (§5.6, §5.10).
+  // Lot notes and dated notes also go into exports, in these words.
   notes: {
     lotSpread: (status, who, address, when) => `${status} with ${who} at ${address}, ${when}`,
     lotNote: (status, who, address, when) =>

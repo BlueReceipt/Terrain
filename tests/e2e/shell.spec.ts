@@ -11,7 +11,7 @@ async function expectShell(page: Page): Promise<void> {
   await expect(page.getByRole('button', { name: 'Import file' })).toBeVisible();
 }
 
-// Phase 6 deploy: Cloudflare Pages serves the build with dist/_headers. Its policy is the page's own,
+// The deploy: Cloudflare Pages serves the build with dist/_headers. Its policy is the page's own,
 // and the service worker is never cached, so an update always reaches the phone.
 test('the deploy headers carry the page’s security policy', async ({ page }) => {
   await page.goto('/');
@@ -27,7 +27,7 @@ test('the deploy headers carry the page’s security policy', async ({ page }) =
   );
 });
 
-// Phase 0 gate (BUILD_SPEC §10): the production build installs as an app, reloads with the
+// The production build installs as an app, reloads with the
 // network offline showing the shell, and no request leaves the origin.
 test('installs, works offline and never leaves its origin', async ({ baseURL, channel }) => {
   if (!baseURL) {

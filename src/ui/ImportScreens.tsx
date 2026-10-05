@@ -39,7 +39,7 @@ export function Failed({ reason }: { reason: ImportErrorCode | 'unexpected' | 's
   );
 }
 
-/** One screen, shown only when an app-owned column or a spreadsheet's parcel ID can't be matched (§5.1). */
+/** One screen, shown only when an app-owned column or a spreadsheet's parcel ID can't be matched. */
 export function ColumnMapping({
   parsed,
   roles,

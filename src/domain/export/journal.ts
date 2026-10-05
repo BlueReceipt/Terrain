@@ -6,7 +6,7 @@ import { lotNoteText, type NoteWords } from '../notes.ts';
 import type { Campaign, Row, Status } from '../types.ts';
 import { inFileOrder } from './sheet.ts';
 
-/** The Journal's actions (§5.8). */
+/** The Journal's actions. */
 export type JournalAction =
   | 'status'
   | 'statusViaLot'
@@ -54,7 +54,7 @@ export interface JournalInput {
 }
 
 /**
- * The Journal (§5.8): one line per row affected by each event, in the order they happened, rows in
+ * The Journal: one line per row affected by each event, in the order they happened, rows in
  * file order. It is the permanent record: undone actions stay, followed by their Undo lines, and
  * every value something replaced is in its Previous value.
  */

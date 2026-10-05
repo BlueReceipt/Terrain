@@ -38,7 +38,7 @@ import { Swatch } from './Swatch.tsx';
 
 const words = strings.settings;
 
-/** Campaign (§5.9): rename, its summary, import into it, switch to another, delete it. */
+/** Campaign: rename, its summary, import into it, switch to another, delete it. */
 export function CampaignSection() {
   const loaded = current.value;
   const name = useSignal(loaded?.campaign.name ?? '');
@@ -306,7 +306,7 @@ function StatusForm({ status, onDone }: { status: Status; onDone: () => void }) 
   );
 }
 
-/** Statuses (§5.9): edit, reorder, add, archive. A status in use is never deleted. */
+/** Statuses: edit, reorder, add, archive. A status in use is never deleted. */
 export function StatusesSection() {
   const editing = editingStatus;
   const all = [...statuses.value].sort((a, b) => a.order - b.order);
@@ -395,7 +395,7 @@ export function StatusesSection() {
 
 const GROUPS: readonly ColumnGroup[] = ['house', 'parcel', 'person'];
 
-/** Columns (§5.9): how Edit info shows each column. */
+/** Columns: how Edit info shows each column. */
 export function ColumnsSection() {
   const loaded = current.value;
   if (!loaded) return null;
@@ -432,7 +432,7 @@ export function ColumnsSection() {
   );
 }
 
-/** Lots (§5.9): the column rows are grouped into lots by; Visit date on rows closed from the lot. */
+/** Lots: the column rows are grouped into lots by; Visit date on rows closed from the lot. */
 export function LotsSection() {
   const loaded = current.value;
   const saved = settings.value;
@@ -472,7 +472,7 @@ export function LotsSection() {
   );
 }
 
-/** Call outcomes (§5.9): the buttons after a call, in order. */
+/** Call outcomes: the buttons after a call, in order. */
 export function CallOutcomesSection() {
   const saved = settings.value;
   if (!saved) return null;
@@ -536,7 +536,7 @@ export function CallOutcomesSection() {
   );
 }
 
-/** Dates and notes (§5.9): the date format Terrain writes, and the Notes cell of the export. */
+/** Dates and notes: the date format Terrain writes, and the Notes cell of the export. */
 export function DatesSection() {
   const saved = settings.value;
   if (!saved) return null;
@@ -583,7 +583,7 @@ function size(bytes: number): string {
   return `${megabytes.toFixed(megabytes < 10 ? 1 : 0)} MB`;
 }
 
-/** Storage (§5.9, §8): whether the browser keeps Terrain's data, and the space used. */
+/** Storage: whether the browser keeps Terrain's data, and the space used. */
 export function StorageSection() {
   useEffect(() => {
     void refreshStorage();
@@ -612,7 +612,7 @@ export function StorageSection() {
   );
 }
 
-/** About (§5.9): version and build date. */
+/** About: version and build date. */
 export function AboutSection() {
   const format = settings.value?.dateFormat ?? DEFAULT_DATE_FORMAT;
   return (

@@ -20,7 +20,7 @@ export function layerRows(rows: readonly Row[], layer: string): Row[] {
 }
 
 /**
- * The My Maps update for one layer (§5.8, §3): Parcel ID (the pin's title), every original column
+ * The My Maps update for one layer: Parcel ID (the pin's title), every original column
  * in order with current values, then Latitude, Longitude and Location, for Reimport and merge →
  * Replace all items. UTF-8 with a byte-order mark so accents survive, lines ending in CRLF.
  */

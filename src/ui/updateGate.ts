@@ -14,12 +14,12 @@ export interface WorkInProgress {
   panelOpen: boolean;
   editingStatus: boolean;
   exporting: boolean;
-  /** A call dialed in the last 30 minutes still waits for its outcome (§5.5). */
+  /** A call dialed in the last 30 minutes still waits for its outcome. */
   callWaiting: boolean;
 }
 
 /**
- * Whether "Update ready" may show (§8, prompt mode): only when no sheet, panel or edit is open, no
+ * Whether "Update ready" may show (prompt mode): only when no sheet, panel or edit is open, no
  * import or export is under way and no call waits, so Reload never interrupts work.
  */
 export function mayOfferUpdate(work: WorkInProgress): boolean {

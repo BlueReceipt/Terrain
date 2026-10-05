@@ -16,7 +16,7 @@ async function ruleIds(code: string, filePath = 'src/domain/probe.ts'): Promise<
   return (result?.messages ?? []).map((message) => message.ruleId ?? 'parse-error');
 }
 
-describe('domain purity rule (BUILD_SPEC §6.3)', () => {
+describe('domain purity rule', () => {
   it.each([
     [
       'a database library',

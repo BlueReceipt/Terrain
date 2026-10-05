@@ -8,7 +8,7 @@ function safe(part: string): string {
 }
 
 /**
- * Export file names (§5.8): `Terrain_<campaign>_<YYYY-MM-DD>.xlsx`, and for My Maps
+ * Export file names: `Terrain_<campaign>_<YYYY-MM-DD>.xlsx`, and for My Maps
  * `Terrain_<campaign>_<layer>_<YYYY-MM-DD>.csv`.
  */
 export function exportFileName(parts: readonly string[], date: string, extension: string): string {

@@ -14,7 +14,7 @@ export interface RowResult {
   match: 'parcel' | 'owner' | 'address';
 }
 
-/** A lot number: it lists every house of that lot (§5.2). */
+/** A lot number: it lists every house of that lot. */
 export interface LotResult {
   kind: 'lot';
   column: string;
@@ -43,7 +43,7 @@ function score(text: string, query: string): number {
 }
 
 /**
- * The search field (§5.2): parcel ID, owner name, lot number and address, corrected values
+ * The search field: parcel ID, owner name, lot number and address, corrected values
  * included. Accents, case, spaces and punctuation don't matter.
  */
 export function search(

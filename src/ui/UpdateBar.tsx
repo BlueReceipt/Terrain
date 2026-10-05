@@ -7,7 +7,7 @@ import { editingStatus } from './settingsActions.ts';
 import { strings } from './strings.ts';
 import { mayOfferUpdate } from './updateGate.ts';
 
-/** Update ready (§8, prompt mode), held back while work is open (`mayOfferUpdate`). */
+/** Update ready (prompt mode), held back while work is open (`mayOfferUpdate`). */
 export function UpdateBar() {
   const free = mayOfferUpdate({
     screen: screen.value.name,

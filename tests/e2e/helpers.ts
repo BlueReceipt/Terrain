@@ -15,7 +15,7 @@ export async function swActive(page: Page): Promise<void> {
     .toBe('activated');
 }
 
-/** Loads the app, waits for the service worker to take over, then cuts the network (§11). */
+/** Loads the app, waits for the service worker to take over, then cuts the network. */
 export async function offlineAfterFirstLoad(page: Page): Promise<void> {
   await page.goto('/');
   await swActive(page);
@@ -27,7 +27,7 @@ export async function importFile(page: Page, name: string): Promise<void> {
   await page.locator('input[type=file][accept*=".kmz"]').setInputFiles(join(FIXTURES, name));
 }
 
-/** Imports the gate fixture into a new campaign and opens it on the map. */
+/** Imports the cases fixture into a new campaign and opens it on the map. */
 export async function openCases(page: Page): Promise<void> {
   await importFile(page, 'cases.kmz');
   await page.getByRole('button', { name: 'Continue' }).click();

@@ -1,7 +1,7 @@
 import { editDistance, fold } from './text.ts';
 import type { ColumnRoles } from './types.ts';
 
-// BUILD_SPEC §6.1, plus "ave" seen in Alex's files.
+// Street and town abbreviations, with "ave" seen in Alex's files.
 const ABBREVIATIONS: Readonly<Record<string, string>> = {
   st: 'saint',
   ste: 'sainte',

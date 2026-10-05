@@ -22,13 +22,13 @@
     U+A720-A7FF;
 }
 
-/* Design tokens (BUILD_SPEC §9). The chrome has no hue of its own: only statuses carry color. */
+/* Design tokens. The chrome has no hue of its own: only statuses carry color. */
 :root {
   --ink: #000000;
   --sheet: #ffffff;
   --graphite: #52564f;
 
-  /* §5.9 defaults, until Alex supplies his exact My Maps hexes (§14.3). */
+  /* Default status colors, until Alex supplies his exact My Maps hexes. */
   --status-to-visit: #1f6fd1;
   --status-validated: #1e9e4a;
   --status-callback: #f2c230;
@@ -351,7 +351,7 @@ select {
   font-weight: 700;
 }
 
-/* The map screen (§5.2, §9): full-screen map, one row on top, the card or the chips at the bottom. */
+/* The map screen: full-screen map, one row on top, the card or the chips at the bottom. */
 .map-screen {
   position: fixed;
   inset: 0;
@@ -616,7 +616,7 @@ select {
   width: calc(100% + 12px);
 }
 
-/* The card in two heights (§5.3): the rail and the actions stay at the bottom, the rest scrolls. */
+/* The card in two heights: the rail and the actions stay at the bottom, the rest scrolls. */
 .card {
   display: flex;
   flex-direction: column;
@@ -640,7 +640,7 @@ select {
   anchor-name: --card-footer;
 }
 
-/* The status rail (§9): strips of flagging tape, big enough for a gloved thumb. */
+/* The status rail: strips of flagging tape, big enough for a gloved thumb. */
 .rail {
   display: grid;
   grid-template-columns: repeat(3, 1fr) 0.75fr;
@@ -921,7 +921,7 @@ select {
   margin: 12px 0;
 }
 
-/* The toast (§5.4): under the search field, out of the thumb's way. */
+/* The toast: under the search field, out of the thumb's way. */
 .toast {
   position: absolute;
   top: calc(var(--touch) + 20px + env(safe-area-inset-top));
@@ -987,7 +987,7 @@ select {
   cursor: pointer;
 }
 
-/* The day log and the exports (§5.7, §5.8): full-screen panels over the map, the map kept alive. */
+/* The day log and the exports: full-screen panels over the map, the map kept alive. */
 .bottom-row {
   display: flex;
   align-items: center;
@@ -1129,7 +1129,7 @@ select {
   margin: 4px 0 0;
 }
 
-/* Settings (§5.9). */
+/* Settings. */
 .check {
   display: flex;
   align-items: center;

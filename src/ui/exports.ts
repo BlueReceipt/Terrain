@@ -14,7 +14,7 @@ import { strings } from './strings.ts';
 
 const XLSX_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
-/** Changes made since the last export (§5.7). */
+/** Changes made since the last export. */
 export const notExported = signal(0);
 /** An export is being made: its buttons wait for it. */
 export const exporting = signal(false);
@@ -40,7 +40,7 @@ function exportInput(): ExportInput | null {
 }
 
 /**
- * Makes the files, hands them over, and counts everything so far as exported (§5.8). A share sheet
+ * Makes the files, hands them over, and counts everything so far as exported. A share sheet
  * closed without sharing exports nothing.
  */
 async function run(make: (input: ExportInput, now: string) => Promise<File[]>): Promise<void> {
@@ -65,7 +65,7 @@ async function run(make: (input: ExportInput, now: string) => Promise<File[]>): 
   }
 }
 
-/** Excel for the client (§5.8): Parcels and Journal. */
+/** Excel for the client: Parcels and Journal. */
 export function exportExcel(): Promise<void> {
   return run(async (input, now) => {
     // SheetJS is most of the bundle: it loads only when a spreadsheet is made or read.
@@ -90,7 +90,7 @@ export function exportExcel(): Promise<void> {
   });
 }
 
-/** The My Maps update of one layer (§5.8). */
+/** The My Maps update of one layer. */
 export function exportLayer(layer: string): Promise<void> {
   return run((input, now) => {
     const name = exportFileName([input.campaign.name, layer], fileDate(now), 'csv');
@@ -100,7 +100,7 @@ export function exportLayer(layer: string): Promise<void> {
   });
 }
 
-/** Backup (§5.8): every campaign on the phone, to restore here or on a new phone. */
+/** Backup: every campaign on the phone, to restore here or on a new phone. */
 export function exportBackup(): Promise<void> {
   return run(async (_input, now) => {
     const db = database();

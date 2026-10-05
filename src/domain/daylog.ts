@@ -35,7 +35,7 @@ export interface DayLogWords {
   nothing: string;
 }
 
-/** One action of the day, named by the house it was made at (§5.7). */
+/** One action of the day, named by the house it was made at. */
 export interface DayLine {
   eventId: string;
   at: string;
@@ -89,7 +89,7 @@ export function activeDays(events: readonly TerrainEvent[]): string[] {
   return [...new Set(actions(events).map((event) => fileDate(event.at)))].sort();
 }
 
-/** The day log of one day (§5.7): counts, then one line per action in the order they happened. */
+/** The day log of one day: counts, then one line per action in the order they happened. */
 export function dayLog(input: DayLogInput): DayLog {
   const { campaign, rows, events, statuses, words } = input;
   const byId = new Map(rows.map((row) => [row.rowId, row]));
@@ -267,7 +267,7 @@ export function formatDay(day: string, format: string): string {
   return formatTime(`${day}T00:00Z`, datePart);
 }
 
-/** The day log as text, to copy or share (§5.7). */
+/** The day log as text, to copy or share. */
 export function dayLogText(
   log: DayLog,
   campaignName: string,

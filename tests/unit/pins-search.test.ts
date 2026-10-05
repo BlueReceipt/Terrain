@@ -24,7 +24,7 @@ function as(row: Row, statusId: string, updatedAt: string): Row {
   return { ...row, statusId, updatedAt };
 }
 
-describe('pins (§5.2)', () => {
+describe('pins', () => {
   it('show a house’s status: the one its rows share, else To visit, else the row changed last', () => {
     const [a, b, c] = houseOf(rows, alain);
     if (!a || !b || !c) throw new Error('The Trempette house has 3 rows');
@@ -102,7 +102,7 @@ describe('pins (§5.2)', () => {
   });
 });
 
-describe('search (§5.2)', () => {
+describe('search', () => {
   it('finds parcel IDs however they are typed', () => {
     const found = search(rows, campaign, 'p1-216b');
     expect(found.filter((result) => result.kind === 'row').map((result) => result.match)).toEqual([
@@ -140,7 +140,7 @@ describe('search (§5.2)', () => {
   });
 });
 
-describe('the basemap colors (§9: light flavor, desaturated)', () => {
+describe('the basemap colors (desaturated)', () => {
   it('turns each color to the gray of its lightness', () => {
     expect(gray('#80deea')).toBe('#cbcbcb');
     expect(gray('#ffffff')).toBe('#ffffff');

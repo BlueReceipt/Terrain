@@ -4,7 +4,7 @@ import type { ParsedFile } from '../domain/types.ts';
 
 const parseXml: ParseXml = (text) => new DOMParser().parseFromString(text, 'application/xml');
 
-/** Reads a file Alex picked: KMZ or KML from My Maps, or a spreadsheet with coordinates (§5.1). */
+/** Reads a file Alex picked: KMZ or KML from My Maps, or a spreadsheet with coordinates. */
 export async function readImportFile(file: File): Promise<ParsedFile> {
   const bytes = new Uint8Array(await file.arrayBuffer());
   const name = file.name;

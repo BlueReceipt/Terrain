@@ -2,8 +2,8 @@ import { fold } from './text.ts';
 import type { Status } from './types.ts';
 
 /**
- * Alex's statuses, read from his My Maps pin colors (Phase 1 plan, decision B, 2026-09-30), with his
- * Phase 2 answers (2026-10-01): Given closes the lot and replaces To visit, At door and Skipped
+ * Alex's statuses, read from his My Maps pin colors (2026-09-30), with his
+ * answers of 2026-10-01: Given closes the lot and replaces To visit, At door and Skipped
  * elsewhere on it; To research notes the co-owners at other addresses; the rail is Given, At door,
  * To research and Skipped. Not given stays for black pins already on his maps, off the rail.
  */
@@ -118,7 +118,7 @@ export function statusForPackageText(text: string, statuses: readonly Status[]):
   return null;
 }
 
-/** What a status does to the same lots' rows at other houses (§5.10), as Settings offers it. */
+/** What a status does to the same lots' rows at other houses, as Settings offers it. */
 export type LotBehavior = 'house' | 'closes' | 'notes';
 
 export function lotBehaviorOf(status: Pick<Status, 'scope' | 'notesLot'>): LotBehavior {
@@ -130,7 +130,7 @@ export function lotFields(behavior: LotBehavior): Pick<Status, 'scope' | 'notesL
   return { scope: behavior === 'closes' ? 'lot' : 'house', notesLot: behavior === 'notes' };
 }
 
-/** '#RRGGBB', the form pin colors are matched in (Alex enters his My Maps hexes, §5.9). */
+/** '#RRGGBB', the form pin colors are matched in (Alex enters his My Maps hexes). */
 export function isHexColor(value: string): boolean {
   return /^#[0-9a-f]{6}$/i.test(value.trim());
 }
@@ -151,7 +151,7 @@ export type StatusChange = Partial<
 >;
 
 /**
- * A status edited in Settings (§5.9). The start status (To visit) keeps its part: only its label
+ * A status edited in Settings. The start status (To visit) keeps its part: only its label
  * and color change, it is never archived and never on the rail.
  */
 export function editStatus(

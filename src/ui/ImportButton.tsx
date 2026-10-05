@@ -15,7 +15,7 @@ export function ImportButton({ label, primary = true }: { label: string; primary
   );
 }
 
-/** Restore lives in Settings (§5.8); until Settings exists, it sits next to Import file. */
+/** Restore lives in Settings; until Settings exists, it sits next to Import file. */
 export function RestoreButton() {
   return (
     <FilePicker

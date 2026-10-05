@@ -18,7 +18,7 @@ function widths(lines: Sheet['lines']): { wch: number }[] {
   return longest.map((width) => ({ wch: Math.min(Math.max(width + 2, 8), 60) }));
 }
 
-/** An .xlsx workbook of text cells (§5.8). SheetJS loads with this module, only when exporting. */
+/** An .xlsx workbook of text cells. SheetJS loads with this module, only when exporting. */
 export function workbookBytes(sheets: readonly Sheet[]): Uint8Array<ArrayBuffer> {
   const book = XLSX.utils.book_new();
   for (const sheet of sheets) {

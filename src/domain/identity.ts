@@ -4,7 +4,7 @@ import { lotKeysOf } from './parcel.ts';
 import { compactKey, fold } from './text.ts';
 import type { ColumnRoles, FieldRole, LatLng, Row } from './types.ts';
 
-/** The correction if there is one, otherwise the imported value (§6.1). */
+/** The correction if there is one, otherwise the imported value. */
 export function currentValue(
   row: Pick<Row, 'sourceFields' | 'edits'>,
   column: string | undefined,
@@ -13,7 +13,7 @@ export function currentValue(
   return row.edits[column] ?? row.sourceFields[column] ?? '';
 }
 
-/** Where a row is, for My Maps (§5.8): its coordinates, else the address My Maps placed it from. */
+/** Where a row is, for My Maps: its coordinates, else the address My Maps placed it from. */
 export function locationOf(
   row: Pick<Row, 'position' | 'addressText' | 'sourceFields' | 'edits'>,
   roles: ColumnRoles,
@@ -26,7 +26,7 @@ export function locationOf(
     .join(', ');
 }
 
-/** What Terrain writes in one of its My Maps columns for a row (§5.8). */
+/** What Terrain writes in one of its My Maps columns for a row. */
 export function myMapsValue(row: Row, column: MyMapsColumn, roles: ColumnRoles): string {
   switch (column) {
     case 'parcelId':
@@ -59,13 +59,13 @@ export function currentReader(
   return (role) => currentValue(row, roles[role]);
 }
 
-/** PRENOM NOM, else the company in Propriétaire, else APPEL (Appendix B, plus companies from Alex's files). */
+/** PRENOM NOM, else the company in Propriétaire, else APPEL. */
 export function displayName(read: FieldReader): string {
   const person = `${read('firstName')} ${read('lastName')}`.replace(/\s+/g, ' ').trim();
   return person || read('company').trim() || read('salutation').trim();
 }
 
-/** Matches rows across re-imports; built from imported values only, never corrections (§6.1). */
+/** Matches rows across re-imports; built from imported values only, never corrections. */
 export function fingerprintOf(parcelIdRaw: string, imported: FieldReader): string {
   return [compactKey(parcelIdRaw), fold(displayName(imported)), fold(imported('street'))].join('|');
 }
@@ -195,7 +195,7 @@ function housePosition(
 }
 
 /**
- * Houses (§6.1, with Alex's address rule): rows are one house when their addresses match
+ * Houses (with Alex's address rule): rows are one house when their addresses match
  * (see sameAddress), or when they sit within 5 m of each other and share a lot. Transitive.
  */
 export function groupHouses(rows: readonly IdentityInput[]): House[] {
@@ -269,7 +269,7 @@ export function housesOfRows(
 }
 
 /**
- * Houses by spot: houses within 5 m of each other share one pin on the map (§5.2), usually a
+ * Houses by spot: houses within 5 m of each other share one pin on the map, usually a
  * geocoding fallback such as a village center. Houses with no position are left out.
  */
 export function spotsOf(houses: readonly House[]): House[][] {
@@ -318,7 +318,7 @@ export function spreadHouses(
   });
 }
 
-/** Lots whose rows live at more than one house: co-owners at other addresses (§5.10). */
+/** Lots whose rows live at more than one house: co-owners at other addresses. */
 export function lotsAcrossHouses(rows: readonly Row[]): { lotKey: string; houseKeys: string[] }[] {
   const housesByLot = new Map<string, Set<string>>();
   for (const row of rows) {

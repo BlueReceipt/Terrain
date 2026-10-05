@@ -26,7 +26,7 @@ import {
 import { editingStatus } from './settingsActions.ts';
 import { strings } from './strings.ts';
 
-/** Settings → Offline map (§5.9): load or remove the map file; copy the campaign area for the script. */
+/** Settings → Offline map: load or remove the map file; copy the campaign area for the script. */
 function OfflineMap() {
   const copied = useSignal<'yes' | 'failed' | null>(null);
   const map = basemap.value;
@@ -99,7 +99,7 @@ function OfflineMap() {
   );
 }
 
-/** Settings (§5.9), in the order of use: the campaign, how statuses and fields behave, files. */
+/** Settings, in the order of use: the campaign, how statuses and fields behave, files. */
 export function SettingsScreen() {
   const loaded = current.value;
   const saved = lastBackup.value;
