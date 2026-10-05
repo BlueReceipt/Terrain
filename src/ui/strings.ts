@@ -22,6 +22,9 @@ export const strings = {
   home: {
     noCampaign: 'Import a KMZ export from My Maps to start a campaign.',
     importFile: 'Import file',
+    sampleSentence:
+      'Try Terrain with 124 poutine places across Québec, or import a KMZ export from My Maps.',
+    trySample: 'Try the poutine sample',
   },
   reading: (fileName: string) => `Reading ${fileName}…`,
   failed: {

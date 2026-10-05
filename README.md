@@ -2,24 +2,23 @@
 
 A field book for land-contact campaigns, on the phone and offline. Your My Maps pins come in from a KMZ; Terrain shows one pin per house, every row of the house on one card, and writes what you do at the door (status, Visit date, corrections, calls, notes) into the client's own columns. Everything stays on the phone until you export it.
 
+**Try it:** https://terrain.ederer.digital. Its first screen offers a sample, 124 poutine places across Québec, built into the app. What you do there stays in your browser. (The sample is offered only on the addresses listed in `src/ui/sample.ts`.)
+
 ## 1. Put Terrain online (once, on the PC)
 
-Terrain is a set of files with no server and no account behind it. Cloudflare Pages hosts them for free at an `https://` address, which the phone needs to install the app.
+Terrain is a set of files with no server and no account behind it. Cloudflare hosts them for free at an `https://` address, which the phone needs to install the app.
 
 1. In the Terrain folder, run `npm run build`. It makes the `dist` folder (about 40 files, 3 MB).
 2. Make a free Cloudflare account at dash.cloudflare.com, if you don't have one.
-3. In the dashboard: **Workers & Pages** → **Create application** → **Get started** under *Looking to deploy Pages?* → **Drag and drop your files**.
-4. Name the project `landagentfriend`. The name becomes the free address, `https://landagentfriend.pages.dev`, and must be free on all of Cloudflare: if it is taken, add something, like `landagentfriend-ae`. Then **Create project**.
-5. Upload the **contents** of `dist`: drag the folder in, or **select from computer → upload folder** and pick `dist`. The file list must show `index.html` at the top, not inside a `dist` folder.
-6. **Deploy site**. After a minute Cloudflare shows the address.
-7. Open the address in Chrome on the PC: Terrain's first screen says *Import a KMZ export from My Maps to start a campaign.*
-8. Its own address: in the project, **Custom domains** → `landagentfriend.ederer.digital` (the steps for the domain, email kept, are in the README of the `ederer.digital` folder). Install the app on the phone from that address only: the phone keeps Terrain's data per address.
+3. In the dashboard: **Compute → Workers & Pages** → **Create application**, then the option to upload your own files.
+4. Name it, drag in the `dist` folder (the file list must show `index.html` at the top, not inside a `dist` folder), and deploy. Cloudflare gives it a free address ending in `.workers.dev`.
+5. Open that address in Chrome on the PC: Terrain's first screen says *Import a KMZ export from My Maps to start a campaign.*
+6. Its own address, on a domain in the same Cloudflare account: in the Worker, **Domains** → **Add Domain** (a custom domain, not a route), for example `landagentfriend.ederer.digital`. Install the app on the phone from one address only: the phone keeps Terrain's data per address.
+7. On a free account, Cloudflare adds its Web Analytics script to your domain's pages. Terrain's security policy blocks it, but turn it off at the source: search the dashboard for **Web Analytics** → **Manage site** → **Disable**.
 
 The site is public, but it only holds the app: no campaign, name or phone number ever goes to Cloudflare. Your data stays on the phone.
 
-To update Terrain later: run `npm run build` again, then in the project choose **Create a new deployment** (Production) and upload the new `dist` the same way. On the phone, Terrain shows **Update ready** with **Reload** once nothing is open (no card sheet, no export, no call waiting).
-
-A project made by drag and drop can't be switched to deploying from GitHub later; that would be a new project, which is fine since Terrain's data lives on the phone, not on the site.
+To update Terrain later: run `npm run build` again, then in the Worker choose **New deployment** and upload the new `dist` the same way. On the phone, Terrain shows **Update ready** with **Reload** once nothing is open (no card sheet, no export, no call waiting).
 
 ## 2. Install it on the phone
 

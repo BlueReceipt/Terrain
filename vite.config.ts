@@ -20,7 +20,7 @@ const CONTENT_SECURITY_POLICY = [
   "form-action 'none'",
 ].join('; ');
 
-// Cloudflare Pages: the same policy as an HTTP header, which also covers what a meta tag
+// Cloudflare (Workers static assets or Pages): the same policy as an HTTP header, which also covers what a meta tag
 // can't (frame-ancestors), a few more locks, and caching that lets an update reach the phone: the
 // page, the service worker and the manifest are always revalidated, hashed assets kept a year.
 function cloudflareHeaders(): Plugin {
@@ -118,8 +118,9 @@ export default defineConfig({
         ],
       },
       injectManifest: {
-        // .pbf: the map's label glyphs. MapLibre and its worker are over Workbox's 2 MB default.
-        globPatterns: ['**/*.{js,css,html,woff2,png,svg,ico,webmanifest,pbf}'],
+        // .pbf: the map's label glyphs; .kmz: the poutine sample, so the demo works offline too.
+        // MapLibre and its worker are over Workbox's 2 MB default.
+        globPatterns: ['**/*.{js,css,html,woff2,png,svg,ico,webmanifest,pbf,kmz}'],
         maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
       },
     }),
@@ -133,5 +134,7 @@ export default defineConfig({
   preview: {
     port: 4173,
     strictPort: true,
+    // The e2e tests reach the build as the public demo address too (tests/e2e/sample.spec.ts).
+    allowedHosts: ['terrain.ederer.digital'],
   },
 });

@@ -19,6 +19,7 @@ import {
 import { nowWithOffset } from '../data/clock.ts';
 import { TerrainDb, type BasemapInfo, type Settings, type StoredEvent } from '../data/db.ts';
 import { readImportFile, saveFile } from '../data/files.ts';
+import { SAMPLE_NAME, sampleFile } from './sample.ts';
 import {
   campaignEvents,
   commitImport,
@@ -149,6 +150,19 @@ function rolesFor(parsed: ParsedFile): ColumnRoles {
     if (roles[role] === undefined && parsed.columns.includes(column)) roles[role] = column;
   }
   return roles;
+}
+
+/** The poutine sample on the public demo's first screen, read like a file the user picked. */
+export async function pickSample(): Promise<void> {
+  screen.value = { name: 'reading', fileName: SAMPLE_NAME };
+  let file: File;
+  try {
+    file = await sampleFile();
+  } catch {
+    screen.value = { name: 'failed', reason: 'unexpected' };
+    return;
+  }
+  await pickFile(file);
 }
 
 export async function pickFile(file: File): Promise<void> {
