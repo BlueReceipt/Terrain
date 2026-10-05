@@ -556,7 +556,7 @@ describe('day log', () => {
 
 describe('a real My Maps export: the poutine sample', () => {
   it('exports every row of every layer and every column, Excel and My Maps alike', () => {
-    const plan = importInto(parseFixture('public/poutine-autour-du-quebec.kml'));
+    const plan = importInto(parseFixture('public/poutine-autour-du-quebec.kmz'));
     const rows = plan.merge.rows;
     const input = exportInput({ campaign: plan.campaign, rows, events: [] });
     const parcels = parcelsSheet(input);
@@ -585,10 +585,9 @@ describe('a real My Maps export: the poutine sample', () => {
       total += lines.length - 1;
     }
     expect(total).toBe(rows.length);
-    // My Maps placed all 124 pins from their address and exported no coordinates: each one goes
-    // back to My Maps by that address.
+    // My Maps placed all 124 pins by their Latitude and Longitude: each one comes in with its position.
     expect(rows).toHaveLength(124);
-    expect(rows.filter((row) => !row.position && row.addressText)).toHaveLength(124);
+    expect(rows.filter((row) => row.position)).toHaveLength(124);
     expect(unplaced).toBe(0);
   }, 60_000);
 });

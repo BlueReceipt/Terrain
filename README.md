@@ -74,7 +74,7 @@ Landowner names, phones and addresses are personal information (Quebec's Law 25)
 
 `npm run check` runs everything (format, lint, types, unit tests, build, end-to-end tests).
 
-The sample files are in `fixtures/public/`, all made of poutine places: `poutine-autour-du-quebec.kml` is a real My Maps export, made from the spreadsheets in `fixtures/public/poutine-map/`, a starting template you can add your own columns to; the other files are synthetic (`npm run fixtures`). Your own files go in `fixtures/private/`, which git ignores.
+The sample files are in `fixtures/public/`, all made of poutine places: `poutine-autour-du-quebec.kmz` is a real My Maps export, made from the spreadsheets in `fixtures/public/poutine-map/`, a starting template you can add your own columns to; the other files are synthetic (`npm run fixtures`). Your own files go in `fixtures/private/`, which git ignores.
 
 ## License
 
