@@ -1,0 +1,11 @@
+* text=auto eol=lf
+
+*.png binary
+*.ico binary
+*.woff2 binary
+*.pmtiles binary
+*.pbf binary
+*.kmz binary
+*.xlsx binary
+# Fixture CSVs keep Excel's exact bytes: Windows-1252 and CRLF.
+*.csv binary

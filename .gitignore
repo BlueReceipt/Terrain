@@ -1,0 +1,55 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dev-dist/
+*.tsbuildinfo
+
+# Test output
+coverage/
+playwright-report/
+test-results/
+blob-report/
+
+# Real landowner data never goes in git
+fixtures/private/*
+!fixtures/private/README.md
+
+# Campaign files dropped anywhere else are kept out too; the sample files in fixtures/public are the only exception
+*.kmz
+*.kml
+*.xlsx
+*.xls
+*.csv
+Terrain_*.json
+# Offline basemaps made by npm run basemap: large, and remade from Protomaps any time
+*.pmtiles
+!fixtures/public/**
+
+# Alex's own notes and his checks against his real export: they stay on his PC, never published
+BUILD_SPEC.md
+HANDOFF.md
+CLAUDE.md
+fixtures/public/real-sanitized.kmz
+scripts/sanitize-kmz.ts
+tests/unit/real-export.test.ts
+tests/e2e/real-export.spec.ts
+tests/support/inspect-real.ts
+tests/support/real.ts
+
+# Logs
+*.log
+
+# OS, OneDrive and Office clutter
+.DS_Store
+Thumbs.db
+desktop.ini
+~$*
+
+# Editors and local tool settings
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.claude/settings.local.json
+*.local

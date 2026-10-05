@@ -1,0 +1,1283 @@
+/* Atkinson Hyperlegible Next, self-hosted (SIL OFL 1.1, see public/fonts/OFL.txt). */
+@font-face {
+  font-family: 'Atkinson Hyperlegible Next';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url('/fonts/atkinson-hyperlegible-next-latin-wght-normal.woff2') format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Atkinson Hyperlegible Next';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url('/fonts/atkinson-hyperlegible-next-latin-ext-wght-normal.woff2') format('woff2');
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
+
+/* Design tokens (BUILD_SPEC §9). The chrome has no hue of its own: only statuses carry color. */
+:root {
+  --ink: #000000;
+  --sheet: #ffffff;
+  --graphite: #52564f;
+
+  /* §5.9 defaults, until Alex supplies his exact My Maps hexes (§14.3). */
+  --status-to-visit: #1f6fd1;
+  --status-validated: #1e9e4a;
+  --status-callback: #f2c230;
+  --status-research: #d3243b;
+  --status-tc-follow-up: #000000;
+
+  --text: 17px;
+  --text-secondary: 15px;
+  --text-address: 24px;
+  --touch: 56px;
+  --space: 16px;
+
+  color-scheme: light;
+  font-family: 'Atkinson Hyperlegible Next', system-ui, sans-serif;
+  font-size: var(--text);
+  line-height: 1.4;
+  color: var(--ink);
+  background: var(--sheet);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--sheet);
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+/* Focus and selection ring: 3 px white inside a 2 px ink outline, readable on every pin color. */
+:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px var(--sheet),
+    0 0 0 5px var(--ink);
+}
+
+@media (forced-colors: active) {
+  :focus-visible {
+    outline: 2px solid CanvasText;
+  }
+}
+
+.button {
+  min-width: var(--touch);
+  min-height: var(--touch);
+  padding: 0 24px;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  background: var(--sheet);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.button.primary {
+  background: var(--ink);
+  color: var(--sheet);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Home: the sentence and the one button sit in the thumb zone at the bottom. */
+.home {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: var(--space);
+  padding: var(--space);
+  padding-bottom: calc(var(--space) * 2 + env(safe-area-inset-bottom));
+}
+
+.home-sentence {
+  max-width: 28ch;
+  margin: 0;
+  font-size: var(--text-address);
+  line-height: 1.3;
+}
+
+/* Import screens and the campaign screen. */
+.screen {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space);
+  padding: var(--space);
+  padding-bottom: calc(var(--space) * 2 + env(safe-area-inset-bottom));
+}
+
+.screen.centered {
+  justify-content: center;
+}
+
+.screen h1 {
+  margin: 0;
+  font-size: var(--text-address);
+  line-height: 1.25;
+}
+
+.screen header p {
+  margin: 4px 0 0;
+}
+
+.lead {
+  margin: 0;
+  font-size: var(--text);
+}
+
+.muted {
+  margin: 0;
+  color: var(--graphite);
+  font-size: var(--text-secondary);
+}
+
+.strong {
+  margin: 0;
+  font-weight: 700;
+}
+
+.grow {
+  flex: 1;
+  min-width: 0;
+}
+
+.notice {
+  margin: 0;
+  padding: 12px;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  font-weight: 700;
+}
+
+.counts {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin: 0;
+}
+
+.counts div {
+  padding: 8px 12px;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+}
+
+.counts dt {
+  color: var(--graphite);
+  font-size: var(--text-secondary);
+}
+
+.counts dd {
+  margin: 0;
+  font-size: var(--text-address);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 700;
+}
+
+select {
+  min-height: var(--touch);
+  padding: 0 12px;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  background: var(--sheet);
+  color: var(--ink);
+  font: inherit;
+}
+
+.sections {
+  border-bottom: 2px solid var(--ink);
+}
+
+.section {
+  border-top: 2px solid var(--ink);
+}
+
+.section > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space);
+  min-height: var(--touch);
+  font-weight: 700;
+  list-style: none;
+  cursor: pointer;
+}
+
+.section > summary::-webkit-details-marker {
+  display: none;
+}
+
+.section-count {
+  font-variant-numeric: tabular-nums;
+}
+
+.section > .muted {
+  margin-bottom: 12px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 0 0 var(--space);
+  list-style: none;
+}
+
+.list p {
+  margin: 0;
+}
+
+.rows {
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.parcel {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.color-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.color-row select {
+  width: 100%;
+  margin-top: 6px;
+}
+
+.swatch {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  margin-top: 2px;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+}
+
+.id-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* An ID marked old reads crossed out, the way the client's file shows it. */
+.id-toggle[aria-pressed='true'] {
+  background: var(--ink);
+  color: var(--sheet);
+  text-decoration: line-through;
+}
+
+.actions {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: var(--space);
+  padding-bottom: env(safe-area-inset-bottom);
+  background: var(--sheet);
+}
+
+.facts {
+  font-size: var(--text);
+}
+
+.update-bar {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space);
+  padding: 8px var(--space);
+  padding-top: calc(8px + env(safe-area-inset-top));
+  border-bottom: 2px solid var(--ink);
+  background: var(--sheet);
+  font-weight: 700;
+}
+
+/* The map screen (§5.2, §9): full-screen map, one row on top, the card or the chips at the bottom. */
+.map-screen {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+
+.map {
+  position: absolute;
+  inset: 0;
+}
+
+.map-top {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 12px;
+  padding-top: calc(8px + env(safe-area-inset-top));
+}
+
+.search {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.search-input {
+  width: 100%;
+  min-height: var(--touch);
+  padding: 0 14px;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  background: var(--sheet);
+  color: var(--ink);
+  font: inherit;
+}
+
+.search-results,
+.sheet-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.search-results {
+  position: absolute;
+  top: calc(var(--touch) + 4px);
+  right: 0;
+  left: 0;
+  max-height: 60vh;
+  overflow-y: auto;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  background: var(--sheet);
+}
+
+.search-results > li.muted {
+  padding: 16px;
+}
+
+.result {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: var(--touch);
+  padding: 8px 14px;
+  border: 0;
+  border-bottom: 1px solid var(--graphite);
+  background: var(--sheet);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.result .swatch {
+  width: 22px;
+  height: 22px;
+  margin: 0;
+}
+
+.icon-button {
+  flex: none;
+  min-width: var(--touch);
+  min-height: var(--touch);
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  background: var(--sheet);
+  color: var(--ink);
+  font: inherit;
+  font-size: 22px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.banner {
+  position: absolute;
+  top: calc(var(--touch) + 24px + env(safe-area-inset-top));
+  right: 12px;
+  left: 12px;
+  z-index: 1;
+  margin: 0;
+  padding: 10px 14px;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  background: var(--sheet);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+}
+
+/* The map's attribution ("© OpenStreetMap") stays above the filter chips. */
+.map-screen .maplibregl-ctrl-bottom-right,
+.map-screen .maplibregl-ctrl-bottom-left {
+  bottom: calc(var(--touch) + 24px + env(safe-area-inset-bottom));
+}
+
+.map-bottom {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.chips {
+  display: flex;
+  gap: 8px;
+  padding: 8px 12px 12px;
+  overflow-x: auto;
+}
+
+.chip {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--touch);
+  padding: 0 16px;
+  border: 2px solid var(--ink);
+  border-radius: 28px;
+  background: var(--sheet);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.chip[aria-pressed='true'] {
+  background: var(--ink);
+  color: var(--sheet);
+}
+
+.chip .swatch {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+}
+
+.chip[aria-pressed='true'] .swatch {
+  border-color: var(--sheet);
+}
+
+/* The house card and the house lists: bottom sheets over the map. */
+.card,
+.sheet {
+  max-height: 62vh;
+  padding: 12px var(--space) var(--space);
+  overflow-y: auto;
+  border-top: 2px solid var(--ink);
+  border-radius: 16px 16px 0 0;
+  background: var(--sheet);
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.card-head .swatch {
+  margin: 0;
+}
+
+.card-address,
+.sheet-title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: var(--text-address);
+  line-height: 1.2;
+}
+
+.sheet-title {
+  font-size: var(--text);
+}
+
+.card-count {
+  flex: none;
+  color: var(--graphite);
+  font-weight: 700;
+}
+
+.card-parcels {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Each parcel ID once, its owners under it at full width, so an open row has room for its rail. */
+.card-parcels > li {
+  padding: 6px 0 0;
+  border-top: 1px solid var(--graphite);
+}
+
+.card-owners {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.owner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 12px;
+  width: 100%;
+  min-height: var(--touch);
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.owner-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.owner .status-chip {
+  flex: none;
+}
+
+.highlighted > .owner {
+  margin: 0 -6px;
+  padding: 4px 6px;
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  width: calc(100% + 12px);
+}
+
+/* The card in two heights (§5.3): the rail and the actions stay at the bottom, the rest scrolls. */
+.card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.card.full {
+  max-height: 92vh;
+}
+
+.card-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.card-footer {
+  flex: none;
+  padding-top: 10px;
+  border-top: 2px solid var(--ink);
+  anchor-name: --card-footer;
+}
+
+/* The status rail (§9): strips of flagging tape, big enough for a gloved thumb. */
+.rail {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr) 0.75fr;
+  gap: 8px;
+}
+
+.tape {
+  min-height: 64px;
+  padding: 6px 6px 16px;
+  border: 0;
+  border-radius: 4px 4px 0 0;
+  font: inherit;
+  font-size: var(--text-secondary);
+  font-weight: 700;
+  line-height: 1.15;
+  cursor: pointer;
+  touch-action: manipulation;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
+}
+
+.tape:active {
+  transform: translateY(2px);
+}
+
+.rail-row .tape {
+  min-height: var(--touch);
+}
+
+.row-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 4px 0 12px;
+  padding: 10px;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+}
+
+.link-button {
+  display: flex;
+  align-items: center;
+  min-height: var(--touch);
+  padding: 0 12px;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  background: var(--sheet);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.status-line {
+  margin: 8px 0 0;
+  font-weight: 700;
+}
+
+.pending-chip {
+  margin-top: 8px;
+}
+
+.unplaced {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.card-actions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--touch);
+  padding: 0 4px;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  background: var(--sheet);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-secondary);
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.action:disabled,
+.button:disabled,
+.icon-button:disabled {
+  border-color: var(--graphite);
+  color: var(--graphite);
+  cursor: default;
+}
+
+/* The full view's sections. */
+.card-section {
+  margin-top: var(--space);
+  padding-top: 8px;
+  border-top: 2px solid var(--ink);
+}
+
+.card-section h3,
+.card-section h4 {
+  margin: 4px 0;
+}
+
+.card-section h4 {
+  font-size: var(--text);
+}
+
+.fields {
+  margin: 0 0 8px;
+}
+
+.field-view {
+  display: grid;
+  grid-template-columns: minmax(7em, 40%) 1fr;
+  gap: 8px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--graphite);
+}
+
+.field-view dt {
+  color: var(--graphite);
+  font-size: var(--text-secondary);
+}
+
+.field-view dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* An edited value is a button the size of the field: a tap shows the imported value. */
+.edited-value {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  width: 100%;
+  min-height: var(--touch);
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.lot-house {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--graphite);
+}
+
+.lot-house p {
+  margin: 0;
+}
+
+.lot-owner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  align-items: center;
+  min-height: 40px;
+}
+
+.notes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.note {
+  min-height: var(--touch);
+  padding: 8px 0;
+  border-bottom: 1px solid var(--graphite);
+  user-select: none;
+}
+
+.note p {
+  margin: 0;
+}
+
+.mark {
+  margin-right: 6px;
+  padding: 0 6px;
+  border: 1px solid var(--ink);
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* Sheets over the card: note editor, number chooser, call outcome, Edit info. */
+.overlay-sheet {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 5;
+  max-height: 88vh;
+  padding-bottom: calc(var(--space) + env(safe-area-inset-bottom));
+  box-shadow: 0 -2px 0 var(--ink);
+}
+
+.edit-form {
+  top: 0;
+  max-height: none;
+  padding-bottom: 0;
+  border-radius: 0;
+}
+
+/* Save and Cancel stay at the very bottom: nothing scrolls past under them. */
+.edit-form .actions {
+  padding-bottom: calc(var(--space) + env(safe-area-inset-bottom));
+}
+
+.edit-form form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.edit-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 10px 0 0;
+  border: 0;
+  border-top: 2px solid var(--ink);
+}
+
+.edit-section legend {
+  padding: 0;
+  font-weight: 700;
+}
+
+.text-input,
+.note-field {
+  width: 100%;
+  min-height: var(--touch);
+  padding: 8px 12px;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  background: var(--sheet);
+  color: var(--ink);
+  font: inherit;
+}
+
+.note-field {
+  margin-top: 12px;
+  resize: vertical;
+}
+
+.outcomes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+/* The toast (§5.4): under the search field, out of the thumb's way. */
+.toast {
+  position: absolute;
+  top: calc(var(--touch) + 20px + env(safe-area-inset-top));
+  right: 12px;
+  left: 12px;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 8px 8px 14px;
+  border-radius: 8px;
+  background: var(--ink);
+  color: var(--sheet);
+  font-weight: 700;
+}
+
+/* At full height the card covers the map: the toast moves just above its rail, off its header. */
+.map-screen:has(.card.full) .toast {
+  top: auto;
+  bottom: calc(anchor(--card-footer top) + 8px);
+}
+
+/* Over a panel, the toast sits at the bottom, above the panel's buttons, off its date and headings. */
+.map-screen:has(.panel) .toast {
+  top: auto;
+  bottom: calc(var(--space) + env(safe-area-inset-bottom));
+}
+
+.map-screen:has(.panel-footer) .toast {
+  bottom: calc(anchor(--panel-footer top) + 8px);
+}
+
+.toast-undo {
+  flex: none;
+  border-color: var(--sheet);
+}
+
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.status-chip .swatch {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+}
+
+.lot-line {
+  display: block;
+  width: 100%;
+  min-height: var(--touch);
+  margin-top: 8px;
+  padding: 8px 12px;
+  border: 2px dashed var(--ink);
+  border-radius: 8px;
+  background: var(--sheet);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* The day log and the exports (§5.7, §5.8): full-screen panels over the map, the map kept alive. */
+.bottom-row {
+  display: flex;
+  align-items: center;
+}
+
+.bottom-row .chips {
+  flex: 1;
+  min-width: 0;
+  padding-left: 8px;
+}
+
+/* A square button beside the round filter chips: it opens something, it doesn't filter. */
+.day-log-button {
+  flex: none;
+  min-height: var(--touch);
+  margin: 8px 0 12px 12px;
+  padding: 0 16px;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  background: var(--sheet);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.panel {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  padding: calc(8px + env(safe-area-inset-top)) var(--space)
+    calc(var(--space) + env(safe-area-inset-bottom));
+  background: var(--sheet);
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 8px;
+}
+
+.panel-title {
+  margin: 0;
+  font-size: var(--text-address);
+}
+
+.panel-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.panel-footer {
+  flex: none;
+  padding-top: 8px;
+  border-top: 2px solid var(--ink);
+  anchor-name: --panel-footer;
+}
+
+.panel-footer p {
+  margin: 0 0 4px;
+}
+
+.day-picker {
+  display: grid;
+  grid-template-columns: var(--touch) 1fr var(--touch);
+  gap: 8px;
+  padding-bottom: 8px;
+}
+
+.day-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 0;
+  padding: 8px 0 12px;
+  border-bottom: 1px solid var(--graphite);
+  list-style: none;
+}
+
+.day-counts li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.day-counts .swatch {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+}
+
+.log-lines {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.log-line {
+  display: grid;
+  grid-template-columns: 3.2em 1fr;
+  gap: 8px;
+  width: 100%;
+  min-height: var(--touch);
+  padding: 8px 0;
+  border: 0;
+  border-bottom: 1px solid var(--graphite);
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.log-time {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.log-detail {
+  display: block;
+  color: var(--graphite);
+  font-size: var(--text-secondary);
+}
+
+.export-layers {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.export-layers p {
+  margin: 4px 0 0;
+}
+
+/* Settings (§5.9). */
+.check {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: var(--touch);
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.check input {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  margin: 0;
+  accent-color: var(--ink);
+}
+
+.choices {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.choices legend {
+  padding: 0 0 4px;
+  font-weight: 700;
+}
+
+.status-list,
+.column-list,
+.outcome-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.status-item,
+.outcome-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--touch);
+  padding: 4px 0;
+  border-bottom: 1px solid var(--graphite);
+}
+
+.status-item .swatch {
+  margin: 0;
+}
+
+.outcome-item .text-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.status-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 8px 0 12px;
+  padding: 12px;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+}
+
+.color-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.color-field .swatch {
+  margin: 0;
+}
+
+.column-choice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: var(--touch);
+  border-bottom: 1px solid var(--graphite);
+}
+
+.column-choice select {
+  flex: none;
+  width: 9em;
+}
+
+.confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+}
+
+/* Settings. */
+.settings-head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: var(--space);
+  border-top: 2px solid var(--ink);
+}
+
+.settings-section h2,
+.settings-section h3,
+.settings-section p {
+  margin: 0;
+}
+
+.settings-section h2 {
+  font-size: 20px;
+}
+
+.settings-section h3 {
+  font-size: var(--text);
+}
+
+.settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.area code {
+  font-size: var(--text-secondary);
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

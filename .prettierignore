@@ -1,0 +1,13 @@
+dist
+dev-dist
+coverage
+playwright-report
+test-results
+blob-report
+package-lock.json
+public/icons
+fixtures
+reference
+
+# Markdown is prose (BUILD_SPEC.md above all): never reflow it.
+*.md
