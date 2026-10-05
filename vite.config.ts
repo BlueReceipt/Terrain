@@ -20,9 +20,11 @@ const CONTENT_SECURITY_POLICY = [
   "form-action 'none'",
 ].join('; ');
 
-// Cloudflare (Workers static assets or Pages): the same policy as an HTTP header, which also covers what a meta tag
-// can't (frame-ancestors), a few more locks, and caching that lets an update reach the phone: the
-// page, the service worker and the manifest are always revalidated, hashed assets kept a year.
+// Cloudflare (Workers static assets or Pages): the same policy as an HTTP header, which also covers
+// what a meta tag can't (frame-ancestors), a few more locks, and caching that lets an update reach
+// the phone: the page, the service worker and the manifest are always revalidated, hashed assets
+// kept a year. no-transform keeps Cloudflare from editing the page: on a free plan it would add its
+// Web Analytics script, a request to another origin.
 function cloudflareHeaders(): Plugin {
   const rules: Record<string, string[]> = {
     '/*': [
@@ -32,8 +34,8 @@ function cloudflareHeaders(): Plugin {
       'Permissions-Policy: camera=(), microphone=(), payment=(), usb=(), geolocation=(self)',
       'Cross-Origin-Opener-Policy: same-origin',
     ],
-    '/': ['Cache-Control: no-cache'],
-    '/index.html': ['Cache-Control: no-cache'],
+    '/': ['Cache-Control: no-cache, no-transform'],
+    '/index.html': ['Cache-Control: no-cache, no-transform'],
     '/sw.js': ['Cache-Control: no-cache'],
     '/manifest.webmanifest': ['Cache-Control: no-cache'],
     '/assets/*': ['Cache-Control: public, max-age=31536000, immutable'],

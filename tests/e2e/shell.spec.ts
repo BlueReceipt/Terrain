@@ -11,8 +11,9 @@ async function expectShell(page: Page): Promise<void> {
   await expect(page.getByRole('button', { name: 'Import file' })).toBeVisible();
 }
 
-// The deploy: Cloudflare Pages serves the build with dist/_headers. Its policy is the page's own,
-// and the service worker is never cached, so an update always reaches the phone.
+// The deploy: Cloudflare serves the build with dist/_headers. Its policy is the page's own, the
+// page itself is never edited on the way (no injected analytics), and the service worker is never
+// cached, so an update always reaches the phone.
 test('the deploy headers carry the page’s security policy', async ({ page }) => {
   await page.goto('/');
   const policy = await page
@@ -21,6 +22,7 @@ test('the deploy headers carry the page’s security policy', async ({ page }) =
   expect(policy).toContain("connect-src 'self'");
   const headers = await readFile(join(import.meta.dirname, '..', '..', 'dist', '_headers'), 'utf8');
   expect(headers).toContain(`Content-Security-Policy: ${policy ?? ''}; frame-ancestors 'none'`);
+  expect(headers).toMatch(/^\/\n {2}Cache-Control: no-cache, no-transform$/m);
   expect(headers).toMatch(/^\/sw\.js\n {2}Cache-Control: no-cache$/m);
   expect(headers).toMatch(
     /^\/assets\/\*\n {2}Cache-Control: public, max-age=31536000, immutable$/m,
