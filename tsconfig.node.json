@@ -31,6 +31,7 @@
     "eslint.config.js",
     "eslint.domain-purity.js",
     "tests",
-    "scripts"
+    "scripts",
+    "relay"
   ]
 }

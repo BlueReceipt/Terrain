@@ -1,7 +1,15 @@
 import { useState } from 'preact/hooks';
 import type { ImportErrorCode } from '../domain/errors.ts';
 import type { ColumnRoles, FieldRole, ParsedFile } from '../domain/types.ts';
-import { confirmMapping, current, leaveImport, showReport, statuses } from './flow.ts';
+import type { MyMapsProblem } from './demo.ts';
+import {
+  confirmMapping,
+  current,
+  leaveImport,
+  showReport,
+  statuses,
+  type FailedReason,
+} from './flow.ts';
 import { ImportButton } from './ImportButton.tsx';
 import { strings } from './strings.ts';
 import { Swatch } from './Swatch.tsx';
@@ -14,21 +22,32 @@ export function Reading({ fileName }: { fileName: string }) {
   );
 }
 
-export function Failed({ reason }: { reason: ImportErrorCode | 'unexpected' | 'storage' }) {
-  const message =
-    reason === 'unexpected'
+export function Failed({ reason }: { reason: FailedReason }) {
+  const link = reason.startsWith('mymaps-')
+    ? (reason.slice('mymaps-'.length) as MyMapsProblem)
+    : null;
+  const message = link
+    ? strings.failed.myMaps[link]
+    : reason === 'unexpected'
       ? strings.failed.unexpected
       : reason === 'storage'
         ? strings.failed.storage
-        : strings.failed.reasons[reason];
+        : strings.failed.reasons[reason as ImportErrorCode];
   return (
     <main class="screen">
-      <h1>{strings.failed.title}</h1>
+      <h1>{link ? strings.failed.myMapsTitle : strings.failed.title}</h1>
       <p class="lead" role="alert">
         {message}
       </p>
       <div class="actions">
-        {reason !== 'storage' && <ImportButton label={strings.failed.chooseAnother} />}
+        {link && !current.value && (
+          <button type="button" class="button primary" onClick={leaveImport}>
+            {strings.failed.anotherLink}
+          </button>
+        )}
+        {reason !== 'storage' && (
+          <ImportButton label={strings.failed.chooseAnother} primary={!link} />
+        )}
         {current.value && (
           <button type="button" class="button" onClick={leaveImport}>
             {strings.cancel}

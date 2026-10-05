@@ -19,7 +19,6 @@ import {
 import { nowWithOffset } from '../data/clock.ts';
 import { TerrainDb, type BasemapInfo, type Settings, type StoredEvent } from '../data/db.ts';
 import { readImportFile, saveFile } from '../data/files.ts';
-import { SAMPLE_NAME, sampleFile } from './sample.ts';
 import {
   campaignEvents,
   commitImport,
@@ -39,16 +38,28 @@ import {
   withParcelIdColumn,
   type ImportPlan,
 } from '../domain/importPlan.ts';
+import { myMapsId } from '../domain/mymaps.ts';
 import { ownNoteTexts } from '../domain/notes.ts';
 import type { ColumnRoles, FieldRole, ParsedFile, Status } from '../domain/types.ts';
 import { registerBasemap } from '../map/maplibre.ts';
+import {
+  isPublicDemo,
+  MyMapsError,
+  myMapsFile,
+  SAMPLE_NAME,
+  sampleFile,
+  type MyMapsProblem,
+} from './demo.ts';
 import { strings } from './strings.ts';
+
+/** Why an import stopped: the file, the device's storage, or a My Maps link on the demo. */
+export type FailedReason = ImportErrorCode | 'unexpected' | 'storage' | `mymaps-${MyMapsProblem}`;
 
 export type Screen =
   | { name: 'starting' }
   | { name: 'home' }
   | { name: 'reading'; fileName: string }
-  | { name: 'failed'; reason: ImportErrorCode | 'unexpected' | 'storage' }
+  | { name: 'failed'; reason: FailedReason }
   | { name: 'mapping'; parsed: ParsedFile; roles: ColumnRoles; missing: FieldRole[] }
   | {
       name: 'colors';
@@ -165,6 +176,22 @@ export async function pickSample(): Promise<void> {
   await pickFile(file);
 }
 
+/** A My Maps map by its link, on the public demo: fetched through the relay, then read like a file. */
+export async function pickMyMapsLink(id: string): Promise<void> {
+  screen.value = { name: 'reading', fileName: strings.home.linkReading };
+  let file: File;
+  try {
+    file = await myMapsFile(id);
+  } catch (error) {
+    screen.value = {
+      name: 'failed',
+      reason: error instanceof MyMapsError ? `mymaps-${error.problem}` : 'mymaps-unexpected',
+    };
+    return;
+  }
+  await pickFile(file);
+}
+
 export async function pickFile(file: File): Promise<void> {
   screen.value = { name: 'reading', fileName: file.name };
   try {
@@ -174,6 +201,17 @@ export async function pickFile(file: File): Promise<void> {
     if (missing.length > 0) screen.value = { name: 'mapping', parsed, roles, missing };
     else showColors(parsed, roles);
   } catch (error) {
+    // On the demo, a file that only links to its map online opens that map through the relay.
+    const linked =
+      error instanceof ImportError &&
+      error.code === 'network-link-only' &&
+      isPublicDemo(location.hostname)
+        ? myMapsId(error.link ?? '')
+        : null;
+    if (linked) {
+      await pickMyMapsLink(linked);
+      return;
+    }
     screen.value = {
       name: 'failed',
       reason: error instanceof ImportError ? error.code : 'unexpected',

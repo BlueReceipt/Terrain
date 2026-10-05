@@ -25,6 +25,13 @@ export const strings = {
     sampleSentence:
       'Try Terrain with 124 poutine places across Québec, or import a KMZ export from My Maps.',
     trySample: 'Try the poutine sample',
+    openLink: 'Open a My Maps link',
+    linkLabel: 'My Maps link',
+    linkHint:
+      'Paste the map’s link, or its “Embed on my site” code. The map must be shared: Anyone with the link can view.',
+    linkOpen: 'Open the map',
+    linkInvalid: 'This isn’t a My Maps link. In My Maps, choose Share, then copy the map’s link.',
+    linkReading: 'your My Maps map',
   },
   reading: (fileName: string) => `Reading ${fileName}…`,
   failed: {
@@ -49,6 +56,18 @@ export const strings = {
       'unreadable-spreadsheet':
         'This spreadsheet can’t be read. Save it again as .xlsx or .csv and import that.',
     } satisfies Record<ImportErrorCode, string>,
+    myMapsTitle: 'This map can’t be opened',
+    anotherLink: 'Try another link',
+    myMaps: {
+      'not-shared':
+        'This map isn’t shared. In My Maps, choose Share and set the link to “Anyone with the link can view”, then try again. Or export the map as a KMZ file and import that.',
+      'not-found':
+        'Google has no map at this link. Check the link, or export the map as a KMZ file and import that.',
+      offline:
+        'Opening a My Maps link needs a connection. Try again with signal, or import a KMZ file.',
+      unexpected:
+        'Google didn’t send the map. Try again in a moment, or export the map as a KMZ file and import that.',
+    },
   },
   mapping: {
     title: 'Match the columns',

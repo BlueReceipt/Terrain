@@ -11,10 +11,13 @@ export type ImportErrorCode =
 
 export class ImportError extends Error {
   readonly code: ImportErrorCode;
+  /** For network-link-only: where the file's link points (a My Maps export, to its map online). */
+  readonly link: string | undefined;
 
-  constructor(code: ImportErrorCode) {
+  constructor(code: ImportErrorCode, link?: string) {
     super(code);
     this.name = 'ImportError';
     this.code = code;
+    this.link = link;
   }
 }

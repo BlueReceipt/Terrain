@@ -154,8 +154,12 @@ P1-097</name>${data({ TEL_BUR: '', CELLULAIRE: '514 555-0144\nNathalie (gérante
     const linkOnly = kml(
       '<NetworkLink><name>Poutine sample</name><Link><href>https://www.google.com/maps/d/kml?mid=x</href></Link></NetworkLink>',
     );
+    // The link goes along: on the public demo, Terrain opens that map through its relay.
     expect(() => parse(linkOnly)).toThrow(
-      expect.objectContaining({ code: 'network-link-only' }) as Error,
+      expect.objectContaining({
+        code: 'network-link-only',
+        link: 'https://www.google.com/maps/d/kml?mid=x',
+      }) as Error,
     );
   });
 

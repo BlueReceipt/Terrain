@@ -2,7 +2,7 @@
 
 A field book for land-contact campaigns, on the phone and offline. Your My Maps pins come in from a KMZ; Terrain shows one pin per house, every row of the house on one card, and writes what you do at the door (status, Visit date, corrections, calls, notes) into the client's own columns. Everything stays on the phone until you export it.
 
-**Try it:** https://terrain.ederer.digital. Its first screen offers a sample, 124 poutine places across Québec, built into the app. What you do there stays in your browser. (The sample is offered only on the addresses listed in `src/ui/sample.ts`.)
+**Try it:** https://terrain.ederer.digital. Its first screen offers a sample, 124 poutine places across Québec, built into the app, and opens your own My Maps map by its link if the map is shared with *Anyone with the link*. What you do there stays in your browser. (Both are offered only on the addresses listed in `src/ui/demo.ts`; see "The demo’s My Maps relay" below.)
 
 ## 1. Put Terrain online (once, on the PC)
 
@@ -19,6 +19,15 @@ Terrain is a set of files with no server and no account behind it. Cloudflare ho
 The site is public, but it only holds the app: no campaign, name or phone number ever goes to Cloudflare. Your data stays on the phone.
 
 To update Terrain later: run `npm run build` again, then in the Worker choose **New deployment** and upload the new `dist` the same way. On the phone, Terrain shows **Update ready** with **Reload** once nothing is open (no card sheet, no export, no call waiting).
+
+### The demo’s My Maps relay
+
+Google doesn't let other sites read a My Maps export, so the demo asks its own address and a second, small Worker fetches the map from Google: `relay/mymaps.js`, which only fetches one map's KMZ export, only for a map shared with *Anyone with the link*, and logs or keeps nothing. On any other address there is no relay, and Terrain never fetches a map online. To set it up for your own demo address:
+
+1. **Compute → Workers & Pages → Create application → Start with Hello World**. Name it (Alex's is `terrain-mymaps`) and deploy.
+2. **Edit code**: replace everything with the contents of `relay/mymaps.js`, and deploy.
+3. In that Worker: **Domains → Add Route**. Zone: your domain. Route: your demo address followed by `/mymaps*`, for example `terrain.ederer.digital/mymaps*`. Failure mode: *Fail closed*.
+4. List your demo address in `DEMO_HOSTS` in `src/ui/demo.ts`, then build and upload `dist` to the app's Worker.
 
 ## 2. Install it on the phone
 

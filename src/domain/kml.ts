@@ -253,9 +253,13 @@ export function parseKml(text: string, parseXml: ParseXml, fileName: string): Pa
   if (layers.includes('')) layers.splice(layers.indexOf(''), 1, layerNameForLooseRows);
 
   if (rows.length === 0) {
-    throw new ImportError(
-      descendants(kml, 'NetworkLink').length > 0 ? 'network-link-only' : 'no-rows',
-    );
+    const networkLinks = descendants(kml, 'NetworkLink');
+    if (networkLinks.length === 0) throw new ImportError('no-rows');
+    const link = networkLinks
+      .flatMap((networkLink) => descendants(networkLink, 'href'))
+      .map((href) => textOf(href).trim())
+      .find(Boolean);
+    throw new ImportError('network-link-only', link);
   }
   // The parcel ID is each pin's title: no column plays that part in a KMZ.
   const roles = Object.fromEntries(
