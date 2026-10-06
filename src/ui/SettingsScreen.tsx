@@ -20,6 +20,7 @@ import {
   CampaignSection,
   ColumnsSection,
   DatesSection,
+  LanguageSection,
   LotsSection,
   OnlineSection,
   StatusesSection,
@@ -40,7 +41,7 @@ function OfflineMap() {
       <h2 id="offline-map">{strings.settings.offlineMap}</h2>
       {map ? (
         <p>
-          {strings.settings.mapInfo(map.info.name, (map.info.size / 1_048_576).toFixed(1))}
+          {strings.settings.mapInfo(map.info.name, map.info.size)}
           <br />
           <span class="muted">{strings.settings.mapZooms(map.info.minZoom, map.info.maxZoom)}</span>
         </p>
@@ -129,6 +130,7 @@ export function SettingsScreen() {
         </button>
         <h1>{strings.settings.title}</h1>
       </header>
+      <LanguageSection />
       {loaded && <CampaignSection key={loaded.campaign.id} />}
       <StatusesSection />
       {loaded && <ColumnsSection />}

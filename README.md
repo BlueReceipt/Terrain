@@ -40,6 +40,7 @@ The addresses with a relay are listed in `src/ui/online.ts`, and **Settings → 
 1. Open the address in Chrome or Brave on the Pixel.
 2. In the browser menu, choose **Install app** (or **Add to Home screen**).
 3. Open Terrain from the home screen. In **Settings → Storage**, if it says *Not kept yet*, tap **Keep Terrain's data**.
+4. Terrain speaks the phone's language, English or French. **Settings → Language · Langue** changes it. The files for the client stay in English, like their template.
 
 ## 3. Start a campaign
 

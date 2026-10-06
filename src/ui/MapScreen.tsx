@@ -55,7 +55,7 @@ function SearchBox() {
       <input
         type="search"
         class="search-input"
-        placeholder={strings.map.search}
+        placeholder={strings.map.searchHint}
         aria-label={strings.map.search}
         value={query.value}
         onInput={(event) => {

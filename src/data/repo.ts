@@ -513,7 +513,14 @@ export async function markExported(db: TerrainDb, campaignId: string, at: string
 
 type EditableSettings = Pick<
   Settings,
-  'statuses' | 'callOutcomes' | 'dateFormat' | 'notesExportMode' | 'fillVisitDateViaLot'
+  | 'statuses'
+  | 'callOutcomes'
+  | 'dateFormat'
+  | 'notesExportMode'
+  | 'fillVisitDateViaLot'
+  | 'lookUpAddresses'
+  | 'onlineMap'
+  | 'language'
 >;
 
 /** A change made in Settings: statuses, call outcomes, dates, notes in export, lots. */

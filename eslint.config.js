@@ -38,6 +38,8 @@ export default defineConfig(
     rules: {
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'error',
+      // French puts a non-breaking space before a colon, in the words of src/ui/strings.ts.
+      'no-irregular-whitespace': ['error', { skipStrings: true, skipTemplates: true }],
     },
   },
   domainPurity,

@@ -36,10 +36,8 @@ import {
   storageState,
   updateSettings,
 } from './settingsActions.ts';
-import { strings } from './strings.ts';
+import { language, strings } from './strings.ts';
 import { Swatch } from './Swatch.tsx';
-
-const words = strings.settings;
 
 /** Campaign: rename, its summary, import into it (on the demo, a My Maps link too), switch, delete. */
 export function CampaignSection() {
@@ -55,9 +53,9 @@ export function CampaignSection() {
   const renamed = name.value.trim();
   return (
     <section class="settings-section" aria-labelledby="campaign">
-      <h2 id="campaign">{words.campaign}</h2>
+      <h2 id="campaign">{strings.settings.campaign}</h2>
       <label class="field">
-        {words.campaignName}
+        {strings.settings.campaignName}
         <input
           class="text-input"
           value={name.value}
@@ -73,7 +71,7 @@ export function CampaignSection() {
           disabled={renamed === '' || renamed === campaign.name}
           onClick={() => void renameOpenCampaign(renamed)}
         >
-          {words.rename}
+          {strings.settings.rename}
         </button>
       </div>
       <p>{strings.campaign.summary(rows.length, new Set(rows.map((row) => row.houseKey)).size)}</p>
@@ -87,17 +85,17 @@ export function CampaignSection() {
       </div>
       {others.length > 0 && (
         <>
-          <h3>{words.otherCampaigns}</h3>
+          <h3>{strings.settings.otherCampaigns}</h3>
           <ul class="sheet-list">
             {others.map((other) => (
               <li key={other.id}>
                 <button
                   type="button"
                   class="result"
-                  aria-label={words.openCampaign(other.name)}
+                  aria-label={strings.settings.openCampaign(other.name)}
                   onClick={() => void openOtherCampaign(other.id)}
                 >
-                  {words.campaignRows(other.name, other.rows)}
+                  {strings.settings.campaignRows(other.name, other.rows)}
                 </button>
               </li>
             ))}
@@ -107,16 +105,16 @@ export function CampaignSection() {
       {confirming.value ? (
         <div class="confirm" role="group" aria-labelledby="delete-title">
           <p id="delete-title" class="strong">
-            {words.deleteTitle(campaign.name)}
+            {strings.settings.deleteTitle(campaign.name)}
           </p>
-          <p>{words.deleteBody(rows.length)}</p>
+          <p>{strings.settings.deleteBody(rows.length)}</p>
           <div class="settings-actions">
             <button
               type="button"
               class="button primary"
               onClick={() => void removeCampaign(campaign.id)}
             >
-              {words.deleteConfirm}
+              {strings.settings.deleteConfirm}
             </button>
             <button
               type="button"
@@ -138,7 +136,7 @@ export function CampaignSection() {
               confirming.value = true;
             }}
           >
-            {words.deleteCampaign}
+            {strings.settings.deleteCampaign}
           </button>
         </div>
       )}
@@ -189,9 +187,9 @@ function StatusForm({ status, onDone }: { status: Status; onDone: () => void }) 
         void save();
       }}
     >
-      {start && <p class="muted">{words.startStatus}</p>}
+      {start && <p class="muted">{strings.settings.startStatus}</p>}
       <label class="field">
-        {words.label}
+        {strings.settings.label}
         <input
           class="text-input"
           value={value.label}
@@ -202,11 +200,11 @@ function StatusForm({ status, onDone }: { status: Status; onDone: () => void }) 
       </label>
       {!labelOk && (
         <p class="notice" role="alert">
-          {words.needLabel}
+          {strings.settings.needLabel}
         </p>
       )}
       <label class="field">
-        {words.color}
+        {strings.settings.color}
         <span class="color-field">
           <Swatch color={colorOk ? value.color : '#FFFFFF'} />
           <input
@@ -222,13 +220,13 @@ function StatusForm({ status, onDone }: { status: Status; onDone: () => void }) 
       </label>
       {!colorOk && (
         <p class="notice" role="alert">
-          {words.badColor}
+          {strings.settings.badColor}
         </p>
       )}
       {!start && (
         <>
           <label class="field">
-            {words.packageText}
+            {strings.settings.packageText}
             <input
               class="text-input"
               value={value.packageStatusText}
@@ -238,7 +236,7 @@ function StatusForm({ status, onDone }: { status: Status; onDone: () => void }) 
             />
           </label>
           <fieldset class="choices">
-            <legend>{words.lotBehavior}</legend>
+            <legend>{strings.settings.lotBehavior}</legend>
             {BEHAVIORS.map((behavior) => (
               <label key={behavior} class="check">
                 <input
@@ -249,7 +247,7 @@ function StatusForm({ status, onDone }: { status: Status; onDone: () => void }) 
                     set({ behavior });
                   }}
                 />
-                {words.lotBehaviors[behavior]}
+                {strings.settings.lotBehaviors[behavior]}
               </label>
             ))}
           </fieldset>
@@ -261,7 +259,7 @@ function StatusForm({ status, onDone }: { status: Status; onDone: () => void }) 
                 set({ replaceableByLot: event.currentTarget.checked });
               }}
             />
-            {words.replaceable}
+            {strings.settings.replaceable}
           </label>
           <label class="check">
             <input
@@ -271,7 +269,7 @@ function StatusForm({ status, onDone }: { status: Status; onDone: () => void }) 
                 set({ asksForNote: event.currentTarget.checked });
               }}
             />
-            {words.asksForNote}
+            {strings.settings.asksForNote}
           </label>
           <label class="check">
             <input
@@ -281,13 +279,13 @@ function StatusForm({ status, onDone }: { status: Status; onDone: () => void }) 
                 set({ onRail: event.currentTarget.checked });
               }}
             />
-            {words.onRail}
+            {strings.settings.onRail}
           </label>
         </>
       )}
       <div class="settings-actions">
         <button type="submit" class="button primary" disabled={!colorOk || !labelOk}>
-          {words.save}
+          {strings.settings.save}
         </button>
         <button type="button" class="button" onClick={onDone}>
           {strings.cancel}
@@ -302,7 +300,7 @@ function StatusForm({ status, onDone }: { status: Status; onDone: () => void }) 
               }).then(onDone);
             }}
           >
-            {status.archived ? words.restore : words.archive}
+            {status.archived ? strings.settings.restore : strings.settings.archive}
           </button>
         )}
       </div>
@@ -317,14 +315,14 @@ export function StatusesSection() {
   const save = (next: Status[]) => void updateSettings({ statuses: next });
   return (
     <section class="settings-section" aria-labelledby="statuses">
-      <h2 id="statuses">{words.statuses}</h2>
-      <p class="muted">{words.statusesHelp}</p>
+      <h2 id="statuses">{strings.settings.statuses}</h2>
+      <p class="muted">{strings.settings.statusesHelp}</p>
       <ul class="status-list">
         {all.map((status, i) => {
           const open = editing.value === status.id;
           const notes = [
-            ...(status.archived ? [words.archived] : []),
-            ...(!status.onRail && !status.isStartStatus ? [words.notOnRail] : []),
+            ...(status.archived ? [strings.settings.archived] : []),
+            ...(!status.onRail && !status.isStartStatus ? [strings.settings.notOnRail] : []),
           ];
           return (
             <li key={status.id}>
@@ -337,7 +335,7 @@ export function StatusesSection() {
                 <button
                   type="button"
                   class="icon-button"
-                  aria-label={words.moveUp(status.label)}
+                  aria-label={strings.settings.moveUp(status.label)}
                   disabled={i === 0}
                   onClick={() => {
                     save(moveStatus(all, status.id, -1));
@@ -348,7 +346,7 @@ export function StatusesSection() {
                 <button
                   type="button"
                   class="icon-button"
-                  aria-label={words.moveDown(status.label)}
+                  aria-label={strings.settings.moveDown(status.label)}
                   disabled={i === all.length - 1}
                   onClick={() => {
                     save(moveStatus(all, status.id, 1));
@@ -359,7 +357,7 @@ export function StatusesSection() {
                 <button
                   type="button"
                   class="button"
-                  aria-label={words.editStatus(status.label)}
+                  aria-label={strings.settings.editStatus(status.label)}
                   aria-expanded={open}
                   onClick={() => {
                     editing.value = open ? null : status.id;
@@ -386,11 +384,11 @@ export function StatusesSection() {
           class="button"
           onClick={() => {
             const id = ulid();
-            save(addStatus(all, id, words.newStatus, '#757575'));
+            save(addStatus(all, id, strings.settings.newStatus, '#757575'));
             editing.value = id;
           }}
         >
-          {words.addStatus}
+          {strings.settings.addStatus}
         </button>
       </div>
     </section>
@@ -406,8 +404,8 @@ export function ColumnsSection() {
   const { campaign } = loaded;
   return (
     <section class="settings-section" aria-labelledby="columns">
-      <h2 id="columns">{words.columns}</h2>
-      <p class="muted">{words.columnsHelp}</p>
+      <h2 id="columns">{strings.settings.columns}</h2>
+      <p class="muted">{strings.settings.columnsHelp}</p>
       <ul class="column-list">
         {editableColumns(campaign).map(({ column, group }) => (
           <li key={column}>
@@ -424,7 +422,7 @@ export function ColumnsSection() {
               >
                 {GROUPS.map((candidate) => (
                   <option key={candidate} value={candidate}>
-                    {words.groups[candidate]}
+                    {strings.settings.groups[candidate]}
                   </option>
                 ))}
               </select>
@@ -446,15 +444,15 @@ export function LotsSection() {
   const columns = campaign.columnOrder.filter((column) => !appColumns.has(column));
   return (
     <section class="settings-section" aria-labelledby="lots">
-      <h2 id="lots">{words.lots}</h2>
+      <h2 id="lots">{strings.settings.lots}</h2>
       <label class="field">
-        {words.lotColumn}
+        {strings.settings.lotColumn}
         <select
           value={campaign.lotColumn ?? ''}
           onChange={(event) => void regroupLots(event.currentTarget.value || null)}
         >
           <option value="">
-            {words.parcelIdColumn(lotNumberColumns(campaign.columnOrder)[0])}
+            {strings.settings.parcelIdColumn(lotNumberColumns(campaign.columnOrder)[0])}
           </option>
           {columns.map((column) => (
             <option key={column} value={column}>
@@ -463,7 +461,7 @@ export function LotsSection() {
           ))}
         </select>
       </label>
-      <p class="muted">{words.lotsAcross(lotsAcrossHouses(rows).length)}</p>
+      <p class="muted">{strings.settings.lotsAcross(lotsAcrossHouses(rows).length)}</p>
       <label class="check">
         <input
           type="checkbox"
@@ -472,7 +470,7 @@ export function LotsSection() {
             void updateSettings({ fillVisitDateViaLot: event.currentTarget.checked })
           }
         />
-        {words.lotVisitDate}
+        {strings.settings.lotVisitDate}
       </label>
     </section>
   );
@@ -487,8 +485,8 @@ export function OnlineSection() {
   if (!saved || !hasRelay(location.hostname)) return null;
   return (
     <section class="settings-section" aria-labelledby="online">
-      <h2 id="online">{words.online}</h2>
-      <p class="muted">{words.onlineIntro}</p>
+      <h2 id="online">{strings.settings.online}</h2>
+      <p class="muted">{strings.settings.onlineIntro}</p>
       <label class="check">
         <input
           type="checkbox"
@@ -498,10 +496,10 @@ export function OnlineSection() {
             void updateSettings({ lookUpAddresses: event.currentTarget.checked })
           }
         />
-        {words.lookUpAddresses}
+        {strings.settings.lookUpAddresses}
       </label>
       <p id="look-up-help" class="muted">
-        {words.lookUpAddressesHelp}
+        {strings.settings.lookUpAddressesHelp}
       </p>
       <label class="check">
         <input
@@ -510,10 +508,10 @@ export function OnlineSection() {
           aria-describedby="online-map-help"
           onChange={(event) => void updateSettings({ onlineMap: event.currentTarget.checked })}
         />
-        {words.onlineMap}
+        {strings.settings.onlineMap}
       </label>
       <p id="online-map-help" class="muted">
-        {words.onlineMapHelp}
+        {strings.settings.onlineMapHelp}
       </p>
     </section>
   );
@@ -527,14 +525,14 @@ export function CallOutcomesSection() {
   const save = (next: string[]) => void updateSettings({ callOutcomes: next });
   return (
     <section class="settings-section" aria-labelledby="call-outcomes">
-      <h2 id="call-outcomes">{words.callOutcomes}</h2>
-      <p class="muted">{words.callOutcomesHelp}</p>
+      <h2 id="call-outcomes">{strings.settings.callOutcomes}</h2>
+      <p class="muted">{strings.settings.callOutcomesHelp}</p>
       <ol class="outcome-list">
         {outcomes.map((outcome, i) => (
           <li key={`${String(i)}:${outcome}`} class="outcome-item">
             <input
               class="text-input"
-              aria-label={words.outcome(i + 1)}
+              aria-label={strings.settings.outcome(i + 1)}
               value={outcome}
               onChange={(event) => {
                 const text = event.currentTarget.value.trim();
@@ -544,7 +542,7 @@ export function CallOutcomesSection() {
             <button
               type="button"
               class="icon-button"
-              aria-label={words.moveOutcomeUp(outcome)}
+              aria-label={strings.settings.moveOutcomeUp(outcome)}
               disabled={i === 0}
               onClick={() => {
                 const next = [...outcomes];
@@ -557,7 +555,7 @@ export function CallOutcomesSection() {
             <button
               type="button"
               class="icon-button"
-              aria-label={words.removeOutcome(outcome)}
+              aria-label={strings.settings.removeOutcome(outcome)}
               disabled={outcomes.length === 1}
               onClick={() => {
                 save(outcomes.filter((_, k) => k !== i));
@@ -573,12 +571,39 @@ export function CallOutcomesSection() {
           type="button"
           class="button"
           onClick={() => {
-            save([...outcomes, words.newOutcome]);
+            save([...outcomes, strings.settings.newOutcome]);
           }}
         >
-          {words.addOutcome}
+          {strings.settings.addOutcome}
         </button>
       </div>
+    </section>
+  );
+}
+
+/**
+ * Language (Alex, 2026-10-06): the screens in English or in French; until one is chosen, the
+ * phone's. The files for the client stay in English.
+ */
+export function LanguageSection() {
+  const languages = ['en', 'fr'] as const;
+  return (
+    <section class="settings-section" aria-labelledby="language">
+      <h2 id="language">{strings.settings.language}</h2>
+      <fieldset class="choices">
+        <legend class="visually-hidden">{strings.settings.language}</legend>
+        {languages.map((choice) => (
+          <label key={choice} class="check" lang={choice}>
+            <input
+              type="radio"
+              name="language"
+              checked={language.value === choice}
+              onChange={() => void updateSettings({ language: choice })}
+            />
+            {strings.settings.languages[choice]}
+          </label>
+        ))}
+      </fieldset>
     </section>
   );
 }
@@ -591,9 +616,9 @@ export function DatesSection() {
   const modes = ['joined', 'latest'] as const;
   return (
     <section class="settings-section" aria-labelledby="dates">
-      <h2 id="dates">{words.datesAndNotes}</h2>
+      <h2 id="dates">{strings.settings.datesAndNotes}</h2>
       <fieldset class="choices">
-        <legend>{words.dateFormat}</legend>
+        <legend>{strings.settings.dateFormat}</legend>
         {DATE_FORMATS.map((format) => (
           <label key={format} class="check">
             <input
@@ -607,7 +632,7 @@ export function DatesSection() {
         ))}
       </fieldset>
       <fieldset class="choices">
-        <legend>{words.notesInExport}</legend>
+        <legend>{strings.settings.notesInExport}</legend>
         {modes.map((mode) => (
           <label key={mode} class="check">
             <input
@@ -616,18 +641,12 @@ export function DatesSection() {
               checked={saved.notesExportMode === mode}
               onChange={() => void updateSettings({ notesExportMode: mode })}
             />
-            {words.notesModes[mode]}
+            {strings.settings.notesModes[mode]}
           </label>
         ))}
       </fieldset>
     </section>
   );
-}
-
-function size(bytes: number): string {
-  const megabytes = bytes / 1_048_576;
-  if (megabytes >= 1024) return `${(megabytes / 1024).toFixed(1)} GB`;
-  return `${megabytes.toFixed(megabytes < 10 ? 1 : 0)} MB`;
 }
 
 /** Storage: whether the browser keeps Terrain's data, and the space used. */
@@ -638,22 +657,27 @@ export function StorageSection() {
   const state = storageState.value;
   return (
     <section class="settings-section" aria-labelledby="storage">
-      <h2 id="storage">{words.storage}</h2>
-      <p>{state.persisted ? words.persisted : words.notPersisted}</p>
+      <h2 id="storage">{strings.settings.storage}</h2>
+      <p>{state.persisted ? strings.settings.persisted : strings.settings.notPersisted}</p>
       {state.persisted === false && (
         <div class="settings-actions">
           <button type="button" class="button" onClick={() => void keepData()}>
-            {words.keepData}
+            {strings.settings.keepData}
           </button>
         </div>
       )}
       {state.refused && (
         <p class="notice" role="alert">
-          {words.keepRefused}
+          {strings.settings.keepRefused}
         </p>
       )}
       {state.usedBytes !== null && state.quotaBytes !== null && (
-        <p class="muted">{words.used(size(state.usedBytes), size(state.quotaBytes))}</p>
+        <p class="muted">
+          {strings.settings.used(
+            strings.settings.size(state.usedBytes),
+            strings.settings.size(state.quotaBytes),
+          )}
+        </p>
       )}
     </section>
   );
@@ -667,14 +691,14 @@ export function AboutSection() {
   const format = settings.value?.dateFormat ?? DEFAULT_DATE_FORMAT;
   return (
     <section class="settings-section" aria-labelledby="about">
-      <h2 id="about">{words.about}</h2>
-      <p>{words.version(__TERRAIN_VERSION__, formatDay(__TERRAIN_BUILT__, format))}</p>
-      <p>{words.madeBy}</p>
-      <p>{words.license}</p>
+      <h2 id="about">{strings.settings.about}</h2>
+      <p>{strings.settings.version(__TERRAIN_VERSION__, formatDay(__TERRAIN_BUILT__, format))}</p>
+      <p>{strings.settings.madeBy}</p>
+      <p>{strings.settings.license}</p>
       <a class="link-button" href={SOURCE_CODE} target="_blank" rel="noopener noreferrer">
         {SOURCE_CODE.replace('https://', '')}
       </a>
-      <p>{words.questions}</p>
+      <p>{strings.settings.questions}</p>
       <a class="link-button" href={`mailto:${CONTACT}`}>
         {CONTACT}
       </a>

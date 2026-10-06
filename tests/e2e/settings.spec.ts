@@ -1,4 +1,6 @@
+import { readFile } from 'node:fs/promises';
 import { expect, test, type Page } from '@playwright/test';
+import * as XLSX from 'xlsx';
 import {
   closeCard,
   importFile,
@@ -27,6 +29,12 @@ test.beforeEach(async ({ page }) => {
 async function backToMap(page: Page) {
   await page.getByRole('button', { name: '← Map' }).click();
   await mapReady(page);
+}
+
+/** Settings from the map, by its button's name in the screen's language. */
+async function openSettingsIn(page: Page, title: string) {
+  await page.getByRole('button', { name: title, exact: true }).click();
+  await expect(page.getByRole('heading', { name: title, level: 1 })).toBeVisible();
 }
 
 test('a status edited in Settings is on the rail and in Package status', async ({ page }) => {
@@ -64,6 +72,78 @@ test('About names who made Terrain, its license and code, and where to write', a
     'href',
     'mailto:alex@ederer.digital',
   );
+});
+
+test('Français switches every screen to French, stays after a reload, and the export stays English', async ({
+  page,
+}) => {
+  // Files go to Downloads, not to Windows' share sheet.
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'canShare', { configurable: true, value: () => false });
+  });
+  await openSettings(page);
+  await page.getByRole('radio', { name: 'Français' }).check();
+  await expect(page.getByRole('heading', { name: 'Paramètres', level: 1 })).toBeVisible();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
+  await expect(page.getByRole('region', { name: 'À propos' })).toContainText(
+    'Conçu par Alex Ederer, avec l’aide de Claude d’Anthropic.',
+  );
+
+  // The map and the card, in French; the status names are Alex's, as he set them.
+  await page.getByRole('button', { name: '← Carte' }).click();
+  await mapReady(page);
+  await expect(page.getByRole('button', { name: 'Journal du jour' })).toBeVisible();
+  const card = await openHouse(page, TREMPETTE, RUE_SAINT_PAUL);
+  await expect(card.getByText('3 fiches')).toBeVisible();
+  await card
+    .getByRole('group', { name: 'Marquer la maison' })
+    .getByRole('button', { name: 'Given' })
+    .click();
+  await expect(
+    page.getByRole('status').filter({ hasText: 'Given : 3 fiches au 123, rue Saint-Paul' }),
+  ).toBeVisible();
+  await card.getByRole('button', { name: 'Fermer', exact: true }).click();
+
+  // The choice is kept.
+  await page.reload();
+  await mapReady(page);
+  await expect(page.getByRole('button', { name: 'Journal du jour' })).toBeVisible();
+
+  // The client's files stay in English: the Journal, as its template has it.
+  await page.getByRole('button', { name: 'Journal du jour' }).click();
+  await expect(page.getByRole('list', { name: 'La journée en chiffres' })).toContainText(
+    'Given : 3 fiches',
+  );
+  await page.getByRole('button', { name: 'Exporter', exact: true }).click();
+  const [download] = await Promise.all([
+    page.waitForEvent('download'),
+    page.getByRole('button', { name: 'Exporter l’Excel' }).click(),
+  ]);
+  const book = XLSX.read(await readFile(await download.path()), { type: 'buffer' });
+  expect(book.SheetNames).toEqual(['Parcels', 'Journal']);
+  const sheet = book.Sheets.Journal;
+  if (!sheet) throw new Error('No Journal');
+  const journal = XLSX.utils.sheet_to_json<string[]>(sheet, { header: 1, defval: '' });
+  expect(journal[0]).toEqual([
+    'Date',
+    'Time',
+    'Parcel ID',
+    'Owner',
+    'Address',
+    'Action',
+    'Detail',
+    'Previous value',
+    'New value',
+  ]);
+  expect(journal[1]?.[5]).toBe('Status');
+
+  // Back to English.
+  await page.keyboard.press('Escape');
+  await page.keyboard.press('Escape');
+  await openSettingsIn(page, 'Paramètres');
+  await page.getByRole('radio', { name: 'English' }).check();
+  await expect(page.getByRole('heading', { name: 'Settings', level: 1 })).toBeVisible();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
 });
 
 test('the date format and the call outcomes follow Settings', async ({ page }) => {

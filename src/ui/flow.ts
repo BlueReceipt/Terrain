@@ -61,7 +61,7 @@ import {
   type MyMapsProblem,
 } from './demo.ts';
 import { hasRelay } from './online.ts';
-import { strings } from './strings.ts';
+import { clientWords, phoneLanguage, setLanguage, strings } from './strings.ts';
 
 /** Why an import stopped: the file, the device's storage, or a My Maps link on the demo. */
 export type FailedReason = ImportErrorCode | 'unexpected' | 'storage' | `mymaps-${MyMapsProblem}`;
@@ -118,6 +118,8 @@ async function loadEvents(store: TerrainDb): Promise<void> {
 
 async function openLast(store: TerrainDb): Promise<void> {
   settings.value = await loadSettings(store);
+  // The language chosen in Settings, else the phone's, before the first screen shows.
+  setLanguage(settings.value.language ?? phoneLanguage());
   current.value = await loadLastCampaign(store);
   await loadEvents(store);
   screen.value = current.value ? { name: 'campaign' } : { name: 'home' };
@@ -333,9 +335,9 @@ export async function showReport(
     now: nowWithOffset(),
     newId: ulid,
     // An export coming back carries Terrain's notes in its Notes cells: recognized, not doubled.
-    ownNotes: target ? ownNoteTexts(events.value, strings.notes) : undefined,
+    ownNotes: target ? ownNoteTexts(events.value, clientWords.notes) : undefined,
     previousInfo: {
-      words: strings.previousInfo,
+      words: clientWords.previousInfo,
       format: settings.value?.dateFormat ?? DEFAULT_DATE_FORMAT,
     },
   });

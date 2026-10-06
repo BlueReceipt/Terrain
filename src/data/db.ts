@@ -56,6 +56,8 @@ export interface Settings {
   lookUpAddresses: boolean;
   /** The background map from the internet while online, where Terrain has a relay (2026-10-05). */
   onlineMap: boolean;
+  /** The screens' language (Alex, 2026-10-06); null, or absent before, follows the phone. */
+  language?: 'en' | 'fr' | null;
 }
 
 export function defaultSettings(): Settings {

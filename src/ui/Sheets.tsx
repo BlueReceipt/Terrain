@@ -34,7 +34,7 @@ import { PinHereButton } from './HouseCard.tsx';
 import { sheet, type Sheet } from './mapState.ts';
 import { addressOf, nameOf } from './rowText.ts';
 import { numberText } from './StatusChip.tsx';
-import { strings } from './strings.ts';
+import { clientWords, strings } from './strings.ts';
 
 function close(): void {
   sheet.value = null;
@@ -326,7 +326,7 @@ function EditForm({ houseKey, rowId }: { houseKey: string; rowId: string | null 
     const columns = [...new Set(ownerFields(section).map((field) => field.column))];
     const startsOver = visitWasBefore(owner, statuses.value, today);
     const visit = startsOver
-      ? previousVisit(owner, statuses.value, strings.previousInfo, format)
+      ? previousVisit(owner, statuses.value, clientWords.previousInfo, format)
       : '';
     const details = [ownerDetails(owner, columns, roles), visit].filter(Boolean).join(', ');
     return { details, startsOver };
@@ -379,7 +379,7 @@ function EditForm({ houseKey, rowId }: { houseKey: string; rowId: string | null 
         const { details, startsOver } = goingOf(section, id);
         if (startsOver) startOver.push(id);
         if (!details) continue;
-        const entry = strings.previousInfo.previousOwner(details, until);
+        const entry = clientWords.previousInfo.previousOwner(details, until);
         previous.push({
           rowIds: [id],
           column: previousColumn,

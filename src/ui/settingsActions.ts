@@ -17,6 +17,7 @@ import type { Campaign } from '../domain/types.ts';
 import { refreshPending } from './actions.ts';
 import { current, database, events, screen, settings } from './flow.ts';
 import { closeCard, panel, sheet, statusFilter } from './mapState.ts';
+import { phoneLanguage, setLanguage } from './strings.ts';
 
 /** The status whose form is open in Settings: an edit in progress holds back the update prompt. */
 export const editingStatus = signal<string | null>(null);
@@ -48,12 +49,14 @@ export async function updateSettings(
       | 'fillVisitDateViaLot'
       | 'lookUpAddresses'
       | 'onlineMap'
+      | 'language'
     >
   >,
 ): Promise<void> {
   const db = database();
   if (!db) return;
   settings.value = await saveSettings(db, change);
+  if (change.language !== undefined) setLanguage(change.language ?? phoneLanguage());
 }
 
 export async function renameOpenCampaign(name: string): Promise<void> {

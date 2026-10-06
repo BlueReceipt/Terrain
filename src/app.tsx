@@ -1,3 +1,4 @@
+import { Fragment } from 'preact';
 import { screen } from './ui/flow.ts';
 import { Home } from './ui/Home.tsx';
 import { ImportReport } from './ui/ImportReport.tsx';
@@ -5,6 +6,7 @@ import { ColumnMapping, Failed, PinColors, Placing, Reading } from './ui/ImportS
 import { MapScreen } from './ui/MapScreen.tsx';
 import { Restore, RestoreFailed } from './ui/RestoreScreens.tsx';
 import { SettingsScreen } from './ui/SettingsScreen.tsx';
+import { language } from './ui/strings.ts';
 import { UpdateBar } from './ui/UpdateBar.tsx';
 
 function Screen() {
@@ -52,10 +54,11 @@ function Screen() {
 }
 
 export function App() {
+  // A change of language draws every screen again, in the new words.
   return (
-    <>
+    <Fragment key={language.value}>
       <UpdateBar />
       <Screen />
-    </>
+    </Fragment>
   );
 }

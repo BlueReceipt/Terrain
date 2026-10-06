@@ -10,7 +10,7 @@ import { DEFAULT_DATE_FORMAT, fileDate } from '../domain/format.ts';
 import { notify } from './actions.ts';
 import { current, database, events, settings, statuses } from './flow.ts';
 import { deliver } from './share.ts';
-import { strings } from './strings.ts';
+import { clientWords, strings } from './strings.ts';
 
 const XLSX_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
@@ -32,8 +32,8 @@ function exportInput(): ExportInput | null {
     campaign: loaded.campaign,
     rows: loaded.rows,
     events: events.value,
-    words: strings.notes,
-    appHeaders: strings.exports.appHeaders,
+    words: clientWords.notes,
+    appHeaders: clientWords.exports.appHeaders,
     format: settings.value?.dateFormat ?? DEFAULT_DATE_FORMAT,
     notesMode: settings.value?.notesExportMode ?? 'joined',
   };
@@ -71,16 +71,16 @@ export function exportExcel(): Promise<void> {
     // SheetJS is most of the bundle: it loads only when a spreadsheet is made or read.
     const { workbookBytes } = await import('../domain/export/xlsx.ts');
     const bytes = workbookBytes([
-      { name: strings.exports.parcelsSheet, lines: parcelsSheet(input) },
+      { name: clientWords.exports.parcelsSheet, lines: parcelsSheet(input) },
       {
-        name: strings.exports.journalSheet,
+        name: clientWords.exports.journalSheet,
         lines: journalSheet({
           campaign: input.campaign,
           rows: input.rows,
           events: input.events,
           statuses: statuses.value,
-          noteWords: strings.notes,
-          words: strings.journal,
+          noteWords: clientWords.notes,
+          words: clientWords.journal,
           format: input.format,
         }),
       },
