@@ -75,6 +75,7 @@ Without either, the pins still show on a plain background.
   - **To research** asks for a note and leaves "Co-owner to research" on the co-owners elsewhere.
 - One row only: tap the owner, then use the small rail **This row only**.
 - **Edit info** (full card) corrects names, phones and addresses, each owner's once. **Use my location** pins the house where you stand.
+  - **New owner** (in an owner's part of Edit info): someone else owns it now. The owner's name and numbers move to a **Previous info** column, shown on the card and kept in the export, and you type the new owner's.
 - **Call** opens the dialer; back in Terrain, *How did the call go?* asks for the outcome. **Log call** records a call made outside Terrain.
 - **Note** writes a note for every row at the house. Press and hold a note to delete it.
 - **Navigate** opens Google Maps directions to the house.

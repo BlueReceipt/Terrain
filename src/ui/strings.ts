@@ -195,6 +195,7 @@ export const strings = {
     alsoAt: (parcelId: string, address: string, owners: string) =>
       `${parcelId} also at ${address}: ${owners}`,
     ownerStatus: (name: string, status: string) => `${name}, ${status.toLowerCase()}`,
+    previousInfo: 'Previous info',
     noAddress: 'No address',
     noName: 'No name',
     noPosition: 'Not on the map yet',
@@ -265,6 +266,13 @@ export const strings = {
     differs: 'differs',
     save: 'Save changes',
     nothing: 'Nothing changed.',
+    newOwner: 'New owner',
+    newOwnerHelp: (previous: string) =>
+      previous
+        ? `${previous} goes to Previous info when you save. Type the new owner’s name and numbers.`
+        : 'Type the new owner’s name and numbers.',
+    // What Previous info keeps of an owner, also in the export.
+    previousOwner: (details: string, until: string) => `${details} (until ${until})`,
   },
   toast: {
     undo: 'Undo',
@@ -278,6 +286,7 @@ export const strings = {
     alsoNoted: (houses: number) =>
       `, noted at ${count(houses, 'other address', 'other addresses')}`,
     infoUpdated: (rows: number) => `Info updated: ${count(rows, 'row', 'rows')}`,
+    newOwner: (name: string) => (name ? `New owner: ${name}` : 'New owner saved'),
     moved: 'House pinned where you are',
     callLogged: (outcome: string) => `Call logged: ${outcome}`,
     noteAdded: 'Note added',
@@ -435,6 +444,7 @@ export const strings = {
           : `pinned where you were (${String(Math.round(accuracyM))} m)`,
       call: (number, outcome) => `call ${number}: ${outcome}`,
       otherNumber: 'another number',
+      newOwner: (name, previous) => `new owner: ${name} (was ${previous})`,
       note: (text) => `note: ${text}`,
       noteDeleted: (text) => `note deleted: ${text}`,
       forWhom: (text, whom) => `${text} (${whom})`,
@@ -505,6 +515,7 @@ export const strings = {
       statusViaLot: 'Status via lot',
       lotNote: 'Lot note',
       fieldEdited: 'Field edited',
+      newOwner: 'New owner',
       pinMoved: 'Pin moved',
       importUpdate: 'Import update',
       call: 'Call',

@@ -1,6 +1,7 @@
 import { APP_ROLES, MY_MAPS_COLUMNS, myMapsColumnOf } from './columns.ts';
 import { DATE_FORMATS, formatTime, isTerrainTime } from './format.ts';
 import { fingerprintOf, myMapsValue, readerFor, samePosition, type House } from './identity.ts';
+import { isPreviousInfoColumn } from './newOwner.ts';
 import { withoutOwnNotes } from './notes.ts';
 import { splitParcelIds } from './parcel.ts';
 import {
@@ -153,9 +154,14 @@ function mergeRow(
     });
   }
 
-  // Local wins wherever Alex acted; a correction the file now agrees with is absorbed.
+  // Local wins wherever Alex acted; a correction the file now agrees with is absorbed. A file
+  // without Previous info, Terrain's own column, says nothing about it.
   const edits: Record<string, string> = {};
   for (const [column, local] of Object.entries(existing.edits)) {
+    if (isPreviousInfoColumn(column) && !(column in incoming.fields)) {
+      edits[column] = local;
+      continue;
+    }
     const fileValue = incoming.fields[column] ?? '';
     if (fileValue === local) {
       absorbed.push({ rowId, column });

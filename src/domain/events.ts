@@ -109,6 +109,13 @@ export interface LocationChange {
   accuracyM: number | null;
 }
 
+/** New owner in Edit info: whose rows, and the owner's name before and after. */
+export interface NewOwner {
+  rowIds: string[];
+  previous: string;
+  next: string;
+}
+
 export type FieldsEditedEvent = EventOf<
   'fields_edited',
   {
@@ -117,6 +124,8 @@ export type FieldsEditedEvent = EventOf<
     changes: FieldChange[];
     /** "Use my location for this house". */
     location: LocationChange | null;
+    /** Owners replaced by a new one; their changes are among the others. Absent before 2026-10-06. */
+    newOwners?: NewOwner[];
   }
 >;
 

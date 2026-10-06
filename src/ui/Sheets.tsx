@@ -1,10 +1,20 @@
 import { useSignal } from '@preact/signals';
 import type { ComponentChildren } from 'preact';
 import { useEffect, useRef } from 'preact/hooks';
+import { nowWithOffset } from '../data/clock.ts';
 import type { EditWrite } from '../domain/actions.ts';
 import { houseNumbers, phoneColumns } from '../domain/calls.ts';
+import { formatDay } from '../domain/daylog.ts';
 import { editableColumns, editLayout, type LayoutField } from '../domain/editLayout.ts';
-import { currentValue } from '../domain/identity.ts';
+import type { NewOwner } from '../domain/events.ts';
+import { DEFAULT_DATE_FORMAT, fileDate } from '../domain/format.ts';
+import { currentReader, currentValue, displayName } from '../domain/identity.ts';
+import {
+  ownerColumns,
+  ownerDetails,
+  previousInfoColumn,
+  withPreviousOwner,
+} from '../domain/newOwner.ts';
 import type { Row } from '../domain/types.ts';
 import {
   answerCall,
@@ -224,25 +234,40 @@ interface FormField extends LayoutField {
   key: string;
 }
 
+interface FormSection {
+  id: string;
+  title: string;
+  fields: FormField[];
+  /** An owner's rows: New owner can replace them. Null for the house's and a parcel's fields. */
+  ownerRowIds: string[] | null;
+}
+
 /**
  * Edit info and Edit this row: every field once where it is shared, per owner otherwise;
  * the right keyboard for phones and email; Next goes field to field. Save writes one event.
+ * New owner (Alex, 2026-10-06) empties an owner's name and numbers for the new owner's; on Save,
+ * the old ones go to Previous info.
  */
 function EditForm({ houseKey, rowId }: { houseKey: string; rowId: string | null }) {
   const values = useSignal<Record<string, string>>({});
+  const replacing = useSignal<ReadonlySet<string>>(new Set());
   const ref = useDialog<HTMLElement>(close);
   const loaded = current.value;
   if (!loaded) return null;
   const { campaign } = loaded;
+  const { roles } = campaign;
   const rows = houseRows(houseKey);
   const row = rows.find((candidate) => candidate.rowId === rowId);
-  const phones = new Set(phoneColumns(campaign.columnOrder, campaign.roles));
+  const phones = new Set(phoneColumns(campaign.columnOrder, roles));
+  const owned = new Set(ownerColumns(campaign.columnOrder, roles));
+  const previousColumn = previousInfoColumn(campaign.columnOrder);
   const keyOf = (field: LayoutField) => `${field.column}\u0000${field.rowIds.join()}`;
 
-  const sections: { title: string; fields: FormField[] }[] = [];
+  const sections: FormSection[] = [];
   if (row) {
     sections.push({
-      title: nameOf(row, campaign.roles),
+      id: `row:${row.rowId}`,
+      title: nameOf(row, roles),
       fields: editableColumns(campaign).map((entry) => {
         const field: LayoutField = {
           column: entry.column,
@@ -253,22 +278,70 @@ function EditForm({ houseKey, rowId }: { houseKey: string; rowId: string | null 
         };
         return { ...field, key: keyOf(field) };
       }),
+      ownerRowIds: [row.rowId],
     });
   } else {
     const layout = editLayout(rows, campaign);
     const withKey = (fields: readonly LayoutField[]) =>
       fields.map((field) => ({ ...field, key: keyOf(field) }));
     if (layout.house.length > 0)
-      sections.push({ title: strings.edit.house, fields: withKey(layout.house) });
+      sections.push({
+        id: 'house',
+        title: strings.edit.house,
+        fields: withKey(layout.house),
+        ownerRowIds: null,
+      });
     for (const owner of layout.people)
-      sections.push({ title: owner.name || strings.noName, fields: withKey(owner.fields) });
+      sections.push({
+        id: `owner:${owner.rowIds.join()}`,
+        title: owner.name || strings.noName,
+        fields: withKey(owner.fields),
+        ownerRowIds: owner.rowIds,
+      });
     for (const parcel of layout.parcels)
       sections.push({
+        id: `parcel:${parcel.rowIds.join()}`,
         title: strings.edit.parcel(parcel.parcelId),
         fields: withKey(parcel.fields),
+        ownerRowIds: null,
       });
   }
   const all = sections.flatMap((section) => section.fields);
+  const ownerFields = (section: FormSection) =>
+    section.fields.filter((field) => owned.has(field.column));
+  const rowOf = (id: string | undefined) => rows.find((candidate) => candidate.rowId === id);
+  /** The owner's name and numbers as they are, before New owner empties them. */
+  const detailsOf = (section: FormSection, id: string | undefined) => {
+    const owner = rowOf(id);
+    const columns = [...new Set(ownerFields(section).map((field) => field.column))];
+    return owner ? ownerDetails(owner, columns, roles) : '';
+  };
+  /** A field's value in the form, typed or as it was. */
+  const valueIn = (id: string, column: string) => {
+    const field = all.find(
+      (candidate) => candidate.column === column && candidate.rowIds.includes(id),
+    );
+    if (field) return values.value[field.key] ?? field.value;
+    const owner = rowOf(id);
+    return owner ? currentValue(owner, column) : '';
+  };
+
+  const toggleNewOwner = (section: FormSection, fieldset: HTMLFieldSetElement | null) => {
+    const on = !replacing.value.has(section.id);
+    const next = new Set(replacing.value);
+    const cleared = ownerFields(section);
+    // On, the owner's fields empty for the new owner's; off, they show what they held again.
+    const keys = new Set(cleared.map((field) => field.key));
+    const kept = Object.entries(values.value).filter(([key]) => !keys.has(key));
+    const emptied = on ? cleared.map((field) => [field.key, ''] as const) : [];
+    if (on) next.add(section.id);
+    else next.delete(section.id);
+    replacing.value = next;
+    values.value = Object.fromEntries([...kept, ...emptied]);
+    // The first name first, ready to type.
+    const first = cleared.find((field) => field.column === roles.firstName) ?? cleared[0];
+    if (on && first) fieldset?.querySelectorAll('input')[section.fields.indexOf(first)]?.focus();
+  };
   // A shared field the rows disagree on shows once per row: say whose value each one is.
   const differsFor = (field: LayoutField) => {
     const owner = rows.find((candidate) => candidate.rowId === field.rowIds[0]);
@@ -281,18 +354,54 @@ function EditForm({ houseKey, rowId }: { houseKey: string; rowId: string | null 
     : strings.edit.title(addressOf(rows, campaign.roles));
 
   const save = async () => {
-    const writes: EditWrite[] = all
-      .filter((field) => field.key in values.value && values.value[field.key] !== field.value)
-      .map((field) => ({
-        rowIds: field.rowIds,
-        column: field.column,
-        value: values.value[field.key] ?? field.value,
-      }));
+    const format = settings.value?.dateFormat ?? DEFAULT_DATE_FORMAT;
+    const until = formatDay(fileDate(nowWithOffset()), format);
+    const newOwners: NewOwner[] = [];
+    const previous: EditWrite[] = [];
+    for (const section of sections) {
+      if (!section.ownerRowIds || !replacing.value.has(section.id)) continue;
+      for (const id of section.ownerRowIds) {
+        const details = detailsOf(section, id);
+        if (!details) continue;
+        const entry = strings.edit.previousOwner(details, until);
+        previous.push({
+          rowIds: [id],
+          column: previousColumn,
+          value: withPreviousOwner(valueIn(id, previousColumn), entry),
+        });
+      }
+      const first = section.ownerRowIds[0] ?? '';
+      const owner = rowOf(first);
+      newOwners.push({
+        rowIds: section.ownerRowIds,
+        previous: owner ? displayName(currentReader(owner, roles)) : '',
+        next: displayName((role) => {
+          const column = roles[role];
+          return column === undefined ? '' : valueIn(first, column);
+        }),
+      });
+    }
+    // Previous info typed in the form is kept, with the owner just replaced after it.
+    const withPrevious = new Set(previous.flatMap((write) => write.rowIds));
+    const writes: EditWrite[] = [
+      ...previous,
+      ...all
+        .filter((field) => field.key in values.value && values.value[field.key] !== field.value)
+        .filter(
+          (field) =>
+            field.column !== previousColumn || !field.rowIds.some((id) => withPrevious.has(id)),
+        )
+        .map((field) => ({
+          rowIds: field.rowIds,
+          column: field.column,
+          value: values.value[field.key] ?? field.value,
+        })),
+    ];
     if (writes.length === 0) {
       close();
       return;
     }
-    if (await saveEdits(houseKey, row ? 'row' : 'house', writes)) close();
+    if (await saveEdits(houseKey, row ? 'row' : 'house', writes, newOwners)) close();
   };
 
   return (
@@ -319,8 +428,27 @@ function EditForm({ houseKey, rowId }: { houseKey: string; rowId: string | null 
       >
         {!row && <PinHereButton houseKey={houseKey} />}
         {sections.map((section) => (
-          <fieldset key={section.title} class="edit-section">
+          <fieldset key={section.id} class="edit-section">
             <legend>{section.title}</legend>
+            {section.ownerRowIds && ownerFields(section).length > 0 && (
+              <div class="new-owner">
+                <button
+                  type="button"
+                  class="button"
+                  aria-pressed={replacing.value.has(section.id)}
+                  onClick={(event) => {
+                    toggleNewOwner(section, event.currentTarget.closest('fieldset'));
+                  }}
+                >
+                  {strings.edit.newOwner}
+                </button>
+                {replacing.value.has(section.id) && (
+                  <p class="muted">
+                    {strings.edit.newOwnerHelp(detailsOf(section, section.ownerRowIds[0]))}
+                  </p>
+                )}
+              </div>
+            )}
             {section.fields.map((field, i) => {
               const last = field === all.at(-1);
               const isPhone = phones.has(field.column);

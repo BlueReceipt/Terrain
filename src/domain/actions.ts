@@ -5,6 +5,7 @@ import {
   type CallLoggedEvent,
   type FieldChange,
   type FieldsEditedEvent,
+  type NewOwner,
   type NoteAddedEvent,
   type NoteDeletedEvent,
   type TerrainEvent,
@@ -38,6 +39,7 @@ export function planEdit(
     target: 'house' | 'row';
     rows: readonly Row[];
     writes: readonly EditWrite[];
+    newOwners?: readonly NewOwner[];
   },
 ): Planned<FieldsEditedEvent> | null {
   const byId = new Map(context.rows.map((row) => [row.rowId, row]));
@@ -64,6 +66,10 @@ export function planEdit(
   }
   if (changes.length === 0) return null;
   const rowIds = [...new Set(changes.map((change) => change.rowId))];
+  // A new owner is recorded on the rows the save changed.
+  const newOwners = (context.newOwners ?? [])
+    .map((owner) => ({ ...owner, rowIds: owner.rowIds.filter((id) => rowIds.includes(id)) }))
+    .filter((owner) => owner.rowIds.length > 0);
   const event: FieldsEditedEvent = {
     id: context.eventId,
     campaignId: context.campaignId,
@@ -71,7 +77,12 @@ export function planEdit(
     at: context.now,
     rowIds,
     houseKey: context.houseKey,
-    payload: { target: context.target, changes, location: null },
+    payload: {
+      target: context.target,
+      changes,
+      location: null,
+      ...(newOwners.length > 0 ? { newOwners } : {}),
+    },
     exportedAt: null,
   };
   const changed = context.rows.filter((row) => rowIds.includes(row.rowId));

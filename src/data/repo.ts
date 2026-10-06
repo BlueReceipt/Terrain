@@ -9,7 +9,13 @@ import {
   type EditWrite,
 } from '../domain/actions.ts';
 import { phoneColumns, rowsListingNumber } from '../domain/calls.ts';
-import { undoable, undoneIds, type ImportEvent, type TerrainEvent } from '../domain/events.ts';
+import {
+  undoable,
+  undoneIds,
+  type ImportEvent,
+  type NewOwner,
+  type TerrainEvent,
+} from '../domain/events.ts';
 import { lotNumberColumns } from '../domain/identity.ts';
 import { boundsOf, type ImportPlan } from '../domain/importPlan.ts';
 import { planStatusChange } from '../domain/lots.ts';
@@ -32,6 +38,8 @@ export interface LoadedCampaign {
 export interface ActionResult {
   event: StoredEvent;
   rows: Row[];
+  /** The campaign, when the action changed it (the first New owner adds Previous info). */
+  campaign?: Campaign;
 }
 
 export async function loadSettings(db: TerrainDb): Promise<Settings> {
@@ -274,19 +282,40 @@ interface HouseAction {
   now: string;
 }
 
-/** Edit info or Edit this row, saved: one event, every changed row and field. */
+/**
+ * Edit info or Edit this row, saved: one event, every changed row and field. A write in a column
+ * the campaign doesn't have yet (Previous info, after New owner) adds it at the end, per owner.
+ */
 export async function editFields(
   db: TerrainDb,
-  edit: HouseAction & { target: 'house' | 'row'; writes: readonly EditWrite[] },
+  edit: HouseAction & {
+    target: 'house' | 'row';
+    writes: readonly EditWrite[];
+    newOwners?: readonly NewOwner[];
+  },
 ): Promise<ActionResult | null> {
   return db.transaction('rw', ACTION_TABLES(db), async () => {
-    const campaign = await campaignOf(db, edit.campaignId);
+    let campaign = await campaignOf(db, edit.campaignId);
     const rows = await houseRows(db, edit.campaignId, edit.houseKey);
     const planned = planEdit({ ...edit, rows });
     if (!planned) return null;
+    const added = [...new Set(planned.event.payload.changes.map((change) => change.column))].filter(
+      (column) => !campaign.columnOrder.includes(column),
+    );
+    if (added.length > 0) {
+      campaign = {
+        ...campaign,
+        columnOrder: [...campaign.columnOrder, ...added],
+        columnGroups: {
+          ...campaign.columnGroups,
+          ...Object.fromEntries(added.map((column) => [column, 'person' as const])),
+        },
+      };
+      await db.campaigns.put(campaign);
+    }
     const event = await append(db, planned.event);
     const saved = await saveRows(db, campaign, planned.rows, changesIdentity(campaign, event));
-    return { event, rows: saved };
+    return { event, rows: saved, ...(added.length > 0 ? { campaign } : {}) };
   });
 }
 

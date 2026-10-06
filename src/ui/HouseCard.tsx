@@ -2,6 +2,7 @@ import { useEffect } from 'preact/hooks';
 import { houseNumbers } from '../domain/calls.ts';
 import { textOn } from '../domain/color.ts';
 import { currentValue, housesOfRows } from '../domain/identity.ts';
+import { previousInfoColumn } from '../domain/newOwner.ts';
 import { houseStatus, lotNeighbors } from '../domain/pins.ts';
 import { railStatuses, startStatus } from '../domain/statuses.ts';
 import type { Row, Status } from '../domain/types.ts';
@@ -187,6 +188,8 @@ export function HouseCard({ houseKey }: { houseKey: string }) {
 
   const status = houseStatus(rows, statuses.value);
   const shared = rows.every((row) => row.statusId === rows[0]?.statusId);
+  // Who the owner replaced by New owner was: under the owner's name.
+  const previousColumn = previousInfoColumn(campaign.columnOrder);
   const numbers = houseNumbers(rows, campaign.columnOrder, roles, (row) => nameOf(row, roles));
   const calls = pending.value.filter((call) => call.houseKey === houseKey);
 
@@ -238,6 +241,7 @@ export function HouseCard({ houseKey }: { houseKey: string }) {
               <ul class="card-owners">
                 {group.rows.map((row) => {
                   const open = expandedRowId.value === row.rowId;
+                  const previous = currentValue(row, previousColumn).trim();
                   return (
                     <li
                       key={row.rowId}
@@ -254,6 +258,11 @@ export function HouseCard({ houseKey }: { houseKey: string }) {
                         <span class="owner-name">{nameOf(row, roles)}</span>
                         <StatusChip row={row} />
                       </button>
+                      {previous && (
+                        <p class="owner-previous">
+                          {strings.card.previousInfo}: {previous}
+                        </p>
+                      )}
                       {open && <RowDetail row={row} houseKey={houseKey} />}
                     </li>
                   );

@@ -226,6 +226,56 @@ test('Edit info writes each correction on the rows it belongs to, and Given keep
     });
 });
 
+test('New owner: the owner met at the door takes the row, the one on file goes to Previous info', async ({
+  page,
+}) => {
+  const card = await openHouse(page, TREMPETTE, RUE_SAINT_PAUL);
+  await card.getByRole('button', { name: 'Show everything' }).click();
+  await card.getByRole('button', { name: 'Edit info' }).click();
+  const form = page.getByRole('dialog', { name: 'Edit info: 123, rue Saint-Paul' });
+  const marie = form.locator('fieldset', {
+    has: page.locator('legend', { hasText: 'Marie Trempette' }),
+  });
+  const newOwner = marie.getByRole('button', { name: 'New owner' });
+  await newOwner.click();
+  await expect(newOwner).toHaveAttribute('aria-pressed', 'true');
+  await expect(marie).toContainText(
+    'Marie Trempette, 450 555-0100, 514 555-0199 goes to Previous info when you save.',
+  );
+  // Her name and numbers wait for the new owner's; the address stays, and so does the renter.
+  await expect(marie.getByLabel('PRENOM')).toBeFocused();
+  for (const column of ['APPEL', 'PRENOM', 'NOM', 'TEL_RES', 'CELLULAIRE'])
+    await expect(marie.getByLabel(column, { exact: true })).toHaveValue('');
+  await expect(marie.getByLabel('ADRESSE')).toHaveValue(RUE_SAINT_PAUL);
+  await marie.getByLabel('PRENOM').fill('Rosalie');
+  await marie.getByLabel('NOM', { exact: true }).fill('Frite');
+  await marie.getByLabel('CELLULAIRE').fill('418 555-0150');
+  await form.getByRole('button', { name: 'Save changes' }).click();
+  const toast = page.getByRole('status').filter({ hasText: 'New owner: Rosalie Frite' });
+  await expect(toast).toBeVisible();
+
+  const previous = 'Marie Trempette, 450 555-0100, 514 555-0199 (until 26.09.2026)';
+  await expect(owner(card, 'Rosalie Frite').locator('.owner-previous')).toHaveText(
+    `Previous info: ${previous}`,
+  );
+  expect((await storedRow(page, 'P1-216B', 'Marie')).edits).toEqual({
+    'Previous info': previous,
+    APPEL: '',
+    PRENOM: 'Rosalie',
+    NOM: 'Frite',
+    TEL_RES: '',
+    CELLULAIRE: '418 555-0150',
+  });
+  // Alain, on the same parcel, is untouched.
+  expect((await storedRow(page, 'P1-216B', 'Alain')).edits).toEqual({});
+
+  // The toast's Undo: Marie is back.
+  await toast.getByRole('button', { name: 'Undo' }).click();
+  await expect(owner(card, 'Marie Trempette')).toBeVisible();
+  await expect(card.locator('.owner-previous')).toHaveCount(0);
+  await expect.poll(async () => (await storedRow(page, 'P1-216B', 'Marie')).edits).toEqual({});
+});
+
 test('a call to a cell logs on its owner’s row; the home line on every row listing it', async ({
   page,
 }) => {

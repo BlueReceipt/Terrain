@@ -1,4 +1,4 @@
-import type { TerrainEvent } from '../events.ts';
+import { undoneIds, type TerrainEvent } from '../events.ts';
 import { formatTime, type DateFormat } from '../format.ts';
 import { currentReader, currentValue, displayName } from '../identity.ts';
 import { formatPosition } from '../merge.ts';
@@ -12,6 +12,7 @@ export type JournalAction =
   | 'statusViaLot'
   | 'lotNote'
   | 'fieldEdited'
+  | 'newOwner'
   | 'pinMoved'
   | 'importUpdate'
   | 'call'
@@ -114,10 +115,17 @@ export function journalLines(input: JournalInput): JournalLine[] {
         const changes = [...event.payload.changes].sort(
           (a, b) => (order.get(a.rowId) ?? 0) - (order.get(b.rowId) ?? 0),
         );
+        const replaced = new Set((event.payload.newOwners ?? []).flatMap((owner) => owner.rowIds));
         const lines = changes
           .filter((change) => order.has(change.rowId))
           .map((change) =>
-            line(change.rowId, 'fieldEdited', change.column, change.previous, change.next),
+            line(
+              change.rowId,
+              replaced.has(change.rowId) ? 'newOwner' : 'fieldEdited',
+              change.column,
+              change.previous,
+              change.next,
+            ),
           );
         const location = event.payload.location;
         if (location) {
@@ -177,20 +185,37 @@ export function journalLines(input: JournalInput): JournalLine[] {
   return events.flatMap(linesOf);
 }
 
-/** The Journal sheet: Date and Time in the date format, the row's current parcel ID, owner and address. */
+/**
+ * The Journal sheet: Date and Time in the date format, the row's current parcel ID and address,
+ * and its owner: the current one, or before a New owner, the one replaced (Alex, 2026-10-06).
+ */
 export function journalSheet(input: JournalInput): string[][] {
   const { campaign, words, format } = input;
   const byId = new Map(input.rows.map((row) => [row.rowId, row]));
   const [datePart = format] = format.split(' ');
+  const undone = undoneIds(input.events);
+  const position = new Map(input.events.map((event, i) => [event.id, i]));
+  const handovers = new Map<string, { index: number; previous: string }[]>();
+  input.events.forEach((event, index) => {
+    if (event.type !== 'fields_edited' || undone.has(event.id)) return;
+    for (const owner of event.payload.newOwners ?? [])
+      for (const rowId of owner.rowIds)
+        handovers.set(rowId, [
+          ...(handovers.get(rowId) ?? []),
+          { index, previous: owner.previous },
+        ]);
+  });
   const lines = journalLines(input).map((line) => {
     const row = byId.get(line.rowId);
     const reader = row ? currentReader(row, campaign.roles) : () => '';
     const street = row ? currentValue(row, campaign.roles.street) : '';
+    const index = position.get(line.eventId) ?? Infinity;
+    const later = handovers.get(line.rowId)?.find((handover) => handover.index > index);
     return [
       formatTime(line.at, datePart),
       formatTime(line.at, 'HH:mm'),
       row?.parcelIdRaw ?? '',
-      displayName(reader),
+      later ? later.previous : displayName(reader),
       street.split(/\r?\n/)[0]?.trim() ?? '',
       words.actions[line.action],
       line.detail,

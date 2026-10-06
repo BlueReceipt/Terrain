@@ -19,6 +19,7 @@ import {
 } from '../data/repo.ts';
 import type { EditWrite } from '../domain/actions.ts';
 import { PENDING_CALL_MINUTES, type HouseNumber } from '../domain/calls.ts';
+import type { NewOwner } from '../domain/events.ts';
 import { boundsOf } from '../domain/importPlan.ts';
 import { startStatus } from '../domain/statuses.ts';
 import type { LatLng } from '../domain/types.ts';
@@ -70,7 +71,7 @@ function apply(result: ActionResult): void {
   const follow = loaded.rows.find((row) => row.houseKey === selected);
   const rows = loaded.rows.map((row) => changed.get(row.rowId) ?? row);
   current.value = {
-    campaign: { ...loaded.campaign, bounds: boundsOf(rows) },
+    campaign: { ...(result.campaign ?? loaded.campaign), bounds: boundsOf(rows) },
     rows,
   };
   events.value = [...events.value, result.event];
@@ -179,14 +180,18 @@ export async function saveEdits(
   houseKey: string,
   target: 'house' | 'row',
   writes: readonly EditWrite[],
+  newOwners: readonly NewOwner[] = [],
 ): Promise<boolean> {
   const result = await run((db, context) =>
-    editFields(db, { ...context, houseKey, target, writes }),
+    editFields(db, { ...context, houseKey, target, writes, newOwners }),
   );
   if (result === null) return false;
   apply(result);
+  const named = newOwners.map((owner) => owner.next).filter(Boolean);
   say(
-    strings.toast.infoUpdated(new Set(result.rows.map((row) => row.rowId)).size),
+    newOwners.length > 0
+      ? strings.toast.newOwner(named.join(', '))
+      : strings.toast.infoUpdated(new Set(result.rows.map((row) => row.rowId)).size),
     result.event.id,
   );
   return true;

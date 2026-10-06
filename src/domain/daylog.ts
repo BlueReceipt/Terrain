@@ -16,6 +16,8 @@ export interface DayLogWords {
   /** "call 514 555-0199: Voicemail" */
   call: (number: string, outcome: string) => string;
   otherNumber: string;
+  /** "new owner: Rosalie Frite (was Marie Trempette)" */
+  newOwner: (name: string, previous: string) => string;
   note: (text: string) => string;
   noteDeleted: (text: string) => string;
   /** An action on some rows of the house only: "note: Rappeler (Marie Trempette)". */
@@ -199,12 +201,22 @@ export function dayLog(input: DayLogInput): DayLog {
         break;
       }
       case 'fields_edited': {
-        const { changes, location } = event.payload;
+        const { location } = event.payload;
+        const newOwners = event.payload.newOwners ?? [];
         reached = existing([
-          ...new Set([...changes.map((change) => change.rowId), ...(location?.rowIds ?? [])]),
+          ...new Set([
+            ...event.payload.changes.map((change) => change.rowId),
+            ...(location?.rowIds ?? []),
+          ]),
         ]);
         const house = reached[0]?.houseKey ?? '';
-        const parts: string[] = [];
+        const parts = newOwners.map((owner) =>
+          words.newOwner(owner.next || words.someone, owner.previous || words.someone),
+        );
+        corrections += newOwners.length;
+        // A new owner's own changes are said by "new owner"; any other fix is listed.
+        const replaced = new Set(newOwners.flatMap((owner) => owner.rowIds));
+        const changes = event.payload.changes.filter((change) => !replaced.has(change.rowId));
         if (changes.length > 0) {
           const columns = new Map<string, string[]>();
           for (const change of changes)
