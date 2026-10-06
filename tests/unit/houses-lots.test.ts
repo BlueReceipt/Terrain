@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { addressParts } from '../../src/domain/address.ts';
 import {
   groupHouses,
+  lotKeysForRow,
+  lotLabel,
+  lotNumberColumns,
   metersBetween,
   sharedPoints,
   spreadHouses,
@@ -155,10 +158,25 @@ describe('the house and lot cases (fixtures/public/cases.kmz)', () => {
   it('counts the houses, and the lots at more than one house', () => {
     expect(report.houseCount).toBe(20);
     expect(report.housesWithSeveralRows).toHaveLength(7);
-    expect(report.lotsAcrossHouses.map((lot) => lot.lotKey).sort()).toEqual([
-      'P08-132A',
-      'P1-216B',
+    // P08-132A is at two addresses on two lot numbers: not one plot (Alex, 2026-10-06).
+    expect(report.lotsAcrossHouses.map((lot) => lot.lotKey).sort()).toEqual(['P1-216B|1234500']);
+  });
+
+  it('links co-owners of one plot: the same parcel ID and the same lot number', () => {
+    expect(rowByParcel(plan, 'P1-216B', 'Trempette').lotKeys).toEqual(['P1-216B|1234500']);
+    expect(rowByParcel(plan, 'P08-132A').lotKeys).toEqual(['P08-132A|1235141']);
+    expect(rowByParcel(plan, 'P08-132A\nP08-132').lotKeys).toEqual([
+      'P08-132A|1235140',
+      'P08-132|1235140',
     ]);
+    // Anc_lot, the former lot, isn't a lot number; a file without one links by the parcel ID.
+    expect(lotNumberColumns(['NUM_LOT', 'Anc_lot', 'Designation'])).toEqual([
+      'NUM_LOT',
+      'Designation',
+    ]);
+    const bare = { parcelIdRaw: 'P1-216B', oldParcelIds: [], sourceFields: {}, edits: {} };
+    expect(lotKeysForRow(bare, null, [])).toEqual(['P1-216B']);
+    expect(lotLabel('P1-216B|1234500')).toBe('P1-216B, lot 1234500');
   });
 
   it('groups lots by NUM_LOT on request: "1 234 567" = "1234567", blanks never group', () => {
@@ -175,8 +193,10 @@ describe('the house and lot cases (fixtures/public/cases.kmz)', () => {
     expect(report.severalParcelIds.map((entry) => entry.ids)).toEqual([['P08-132A', 'P08-132']]);
     const rita = rowByParcel(plan, 'P08-132A\nP08-132');
     const marked = withOldParcelIds(plan, rita.rowId, ['P08-132A']);
-    expect(marked.report.lotsAcrossHouses.map((lot) => lot.lotKey)).toEqual(['P1-216B']);
-    expect(marked.merge.rows.find((row) => row.rowId === rita.rowId)?.lotKeys).toEqual(['P08-132']);
+    expect(marked.report.lotsAcrossHouses.map((lot) => lot.lotKey)).toEqual(['P1-216B|1234500']);
+    expect(marked.merge.rows.find((row) => row.rowId === rita.rowId)?.lotKeys).toEqual([
+      'P08-132|1235140',
+    ]);
   });
 
   it('keeps a true duplicate and lists it', () => {

@@ -231,7 +231,7 @@ describe('campaigns and settings, saved', () => {
     const byParcel = lotsAcrossHouses(await storedRows(store(), id))
       .map((lot) => lot.lotKey)
       .sort();
-    expect(byParcel).toContain('P1-216B');
+    expect(byParcel).toContain('P1-216B|1234500');
 
     const loaded = await setLotColumn(store(), id, 'NUM_LOT');
     expect(loaded.campaign.lotColumn).toBe('NUM_LOT');

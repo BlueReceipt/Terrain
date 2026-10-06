@@ -163,6 +163,20 @@ describe('backup and restore', () => {
     expect(parsed.settings).toEqual(backup.settings);
   });
 
+  it('restores a backup that linked by the parcel ID alone, linked by the lot number too', async () => {
+    const store = await busyDb();
+    const backup = await makeBackup(store, LATER);
+    const older = {
+      ...backup,
+      schema: 5,
+      rows: backup.rows.map((row) => ({
+        ...row,
+        lotKeys: row.lotKeys.map((key) => key.split('|')[0]),
+      })),
+    };
+    expect(parseBackup(JSON.stringify(older)).rows).toEqual(backup.rows);
+  });
+
   it('names the file Terrain_backup_<date>.json', () => {
     expect(backupFileName(LATER)).toBe('Terrain_backup_2026-10-01.json');
   });

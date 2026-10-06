@@ -5,7 +5,7 @@ import { APP_ROLES } from '../domain/columns.ts';
 import { formatDay } from '../domain/daylog.ts';
 import { editableColumns } from '../domain/editLayout.ts';
 import { DATE_FORMATS, DEFAULT_DATE_FORMAT, formatTime } from '../domain/format.ts';
-import { lotsAcrossHouses } from '../domain/identity.ts';
+import { lotNumberColumns, lotsAcrossHouses } from '../domain/identity.ts';
 import { mapContent } from '../domain/pins.ts';
 import {
   addStatus,
@@ -453,7 +453,9 @@ export function LotsSection() {
           value={campaign.lotColumn ?? ''}
           onChange={(event) => void regroupLots(event.currentTarget.value || null)}
         >
-          <option value="">{words.parcelIdColumn}</option>
+          <option value="">
+            {words.parcelIdColumn(lotNumberColumns(campaign.columnOrder)[0])}
+          </option>
           {columns.map((column) => (
             <option key={column} value={column}>
               {column}

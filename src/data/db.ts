@@ -3,6 +3,7 @@ import { DEFAULT_CALL_OUTCOMES } from '../domain/calls.ts';
 import { headerKey } from '../domain/columns.ts';
 import type { ImportEvent, TerrainEvent } from '../domain/events.ts';
 import { DEFAULT_DATE_FORMAT, type DateFormat } from '../domain/format.ts';
+import { lotKeysForRow, lotNumberColumns } from '../domain/identity.ts';
 import type { NotesExportMode } from '../domain/notes.ts';
 import { DEFAULT_STATUSES } from '../domain/statuses.ts';
 import type { Campaign, Row, Status } from '../domain/types.ts';
@@ -90,7 +91,22 @@ export function upgradeStatuses(saved: readonly Partial<Status>[]): Status[] {
 }
 
 /** The current schema version; a backup records it. */
-export const SCHEMA_VERSION = 5;
+export const SCHEMA_VERSION = 6;
+
+/**
+ * Version 5 → 6 (Alex, 2026-10-06): rows at different addresses are linked as co-owners of one plot
+ * when they share the parcel ID and the lot number, so every row's links are worked out again.
+ * Used by the upgrade and on older backups.
+ */
+export function withLotLinks(rows: readonly Row[], campaigns: readonly Campaign[]): Row[] {
+  const byId = new Map(campaigns.map((campaign) => [campaign.id, campaign]));
+  return rows.map((row) => {
+    const campaign = byId.get(row.campaignId);
+    if (!campaign) return row;
+    const lotKeys = lotKeysForRow(row, campaign.lotColumn, lotNumberColumns(campaign.columnOrder));
+    return { ...row, lotKeys };
+  });
+}
 
 /**
  * Version 4 → 5 (Alex, 2026-10-05): every position so far came from the file, and both online
@@ -208,6 +224,13 @@ export class TerrainDb extends Dexie {
         await tx.table('rows').bulkPut(rows.map(withPlacement));
         const settings = (await tx.table('settings').toArray()) as Settings[];
         await tx.table('settings').bulkPut(settings.map(withOnlineSwitches));
+      });
+    this.version(6)
+      .stores({})
+      .upgrade(async (tx) => {
+        const campaigns = (await tx.table('campaigns').toArray()) as Campaign[];
+        const rows = (await tx.table('rows').toArray()) as Row[];
+        await tx.table('rows').bulkPut(withLotLinks(rows, campaigns));
       });
   }
 }

@@ -300,6 +300,44 @@ describe('the storage upgrade from version 4', () => {
   });
 });
 
+/** The database as version 5 left it: rows linked to other addresses by the parcel ID alone. */
+class Version5Db extends Dexie {
+  constructor(name: string) {
+    super(name);
+    this.version(5).stores({
+      campaigns: 'id',
+      rows: 'rowId, campaignId, [campaignId+houseKey], *lotKeys',
+      events: 'id, campaignId, *rowIds, type, at, [campaignId+seq]',
+      settings: 'key',
+      pendingCalls: 'id, campaignId',
+      basemaps: 'id',
+    });
+  }
+}
+
+describe('the storage upgrade from version 5', () => {
+  it('links co-owners again by the parcel ID and the lot number together', async () => {
+    const name = `terrain-test-${randomUUID()}`;
+    const plan = importInto(parseFixture('public/cases.kmz'));
+    const old = new Version5Db(name);
+    await old.table('campaigns').put(plan.campaign);
+    // Version 5 linked by the parcel ID alone: "P1-216B", not "P1-216B|1234500".
+    await old.table('rows').bulkPut(
+      plan.merge.rows.map((row) => ({
+        ...row,
+        lotKeys: row.lotKeys.map((key) => key.split('|')[0]),
+      })),
+    );
+    await old.table('settings').put({ ...defaultSettings(), lastCampaignId: plan.campaign.id });
+    old.close();
+
+    const store = track(new TerrainDb(name));
+    const loaded = await loadLastCampaign(store);
+    expect(loaded?.rows).toEqual(plan.merge.rows);
+    expect(rowOf(loaded?.rows ?? [], 'P1-216B', 'Luc').lotKeys).toEqual(['P1-216B|1234500']);
+  });
+});
+
 describe('clock', () => {
   it('writes local time with its UTC offset', () => {
     expect(nowWithOffset(new Date(2026, 8, 26, 14, 32, 5))).toMatch(

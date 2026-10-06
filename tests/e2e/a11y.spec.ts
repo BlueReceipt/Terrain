@@ -67,7 +67,9 @@ test('every screen meets WCAG 2.2 AA', async ({ page }) => {
   expect(await problems(page), 'day log').toEqual([]);
   await page.getByRole('button', { name: 'Export' }).click();
   expect(await problems(page), 'export').toEqual([]);
+  // Escape goes back to the day log, which takes the focus; a second Escape closes it.
   await page.keyboard.press('Escape');
+  await expect(page.getByRole('heading', { name: 'Day log' })).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog')).toHaveCount(0);
 

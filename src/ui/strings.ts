@@ -141,7 +141,8 @@ export const strings = {
     reference: (n: number) =>
       `${count(n, 'line, shape or route', 'lines, shapes and routes')} shown as a background drawing`,
     groupBy: 'Group rows into lots by',
-    parcelIdOption: 'Parcel ID',
+    parcelIdOption: (lotNumber: string | undefined) =>
+      lotNumber ? `Parcel ID and ${lotNumber}` : 'Parcel ID',
     openCampaign: 'Open campaign',
     startNew: 'Start a new campaign',
     mostlyNew: 'Most parcel IDs in this file are new to this campaign.',
@@ -371,7 +372,8 @@ export const strings = {
     groups: { house: 'House', parcel: 'Parcel', person: 'Owner' },
     lots: 'Lots',
     lotColumn: 'Group rows into lots by',
-    parcelIdColumn: 'Parcel ID',
+    parcelIdColumn: (lotNumber: string | undefined) =>
+      lotNumber ? `Parcel ID and ${lotNumber}` : 'Parcel ID',
     lotsAcross: (n: number) => `${count(n, 'lot is', 'lots are')} at more than one house.`,
     lotVisitDate: 'Rows closed from the lot get Visit date',
     // Calls.

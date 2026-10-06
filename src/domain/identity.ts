@@ -1,5 +1,5 @@
 import { addressParts, sameAddress, type AddressParts } from './address.ts';
-import type { MyMapsColumn } from './columns.ts';
+import { headerKey, type MyMapsColumn } from './columns.ts';
 import { lotKeysOf } from './parcel.ts';
 import { compactKey, fold } from './text.ts';
 import type { ColumnRoles, FieldRole, LatLng, Row } from './types.ts';
@@ -70,13 +70,39 @@ export function fingerprintOf(parcelIdRaw: string, imported: FieldReader): strin
   return [compactKey(parcelIdRaw), fold(displayName(imported)), fold(imported('street'))].join('|');
 }
 
+/**
+ * The columns holding a row's lot number: NUM_LOT, or a designation column as the poutine sample
+ * calls it. Anc_lot, the former lot, isn't one.
+ */
+export function lotNumberColumns(columnOrder: readonly string[]): string[] {
+  return columnOrder.filter((column) => {
+    const key = headerKey(column);
+    return key === 'numlot' || key.includes('designation');
+  });
+}
+
+/**
+ * What links a row to the rows of other addresses. By default, rows at different addresses are
+ * co-owners of one plot when they share the row ID and the lot number (Alex, 2026-10-06: "two
+ * different addresses have the same row id and same lot id"), or the row ID alone in a file with
+ * no lot-number column. "Group rows into lots by" another column links by that column alone.
+ */
 export function lotKeysForRow(
   row: Pick<Row, 'parcelIdRaw' | 'oldParcelIds' | 'sourceFields' | 'edits'>,
   lotColumn: string | null,
+  lotNumbers: readonly string[] = [],
 ): string[] {
-  return lotColumn === null
-    ? lotKeysOf(row.parcelIdRaw, row.oldParcelIds)
-    : lotKeysOf(currentValue(row, lotColumn));
+  if (lotColumn !== null) return lotKeysOf(currentValue(row, lotColumn));
+  const ids = lotKeysOf(row.parcelIdRaw, row.oldParcelIds);
+  if (lotNumbers.length === 0) return ids;
+  const lot = lotNumbers.map((column) => compactKey(currentValue(row, column))).find(Boolean) ?? '';
+  return ids.map((id) => `${id}|${lot}`);
+}
+
+/** A link key as people read it: "P1-216B" or, with its lot number, "P1-216B, lot 1234500". */
+export function lotLabel(lotKey: string): string {
+  const [id = '', lot = ''] = lotKey.split('|');
+  return lot ? `${id}, lot ${lot}` : id;
 }
 
 /** The same coordinates, to a centimeter. */

@@ -242,14 +242,14 @@ describe('planStatusChange', () => {
     ]);
     const rows = mini.merge.rows;
     const line = rowOfOwner(rows, 'Casse-Croûte Chez Line');
-    expect(line.lotKeys).toEqual(['PT7-012', 'PT7-011']);
+    expect(line.lotKeys).toEqual(['PT7-012|', 'PT7-011|']);
     const planned = tap(rows, [line], 'given', { target: 'row' });
     expect(planned?.event.payload.lotAffected).toEqual([
       { rowId: rowOfOwner(rows, 'Jos Patate').rowId, statusChanged: true },
       { rowId: rowOfOwner(rows, 'Casse-croûte chez Jojo').rowId, statusChanged: true },
     ]);
 
-    const crossedOut = { ...line, oldParcelIds: ['PT7-011'], lotKeys: ['PT7-012'] };
+    const crossedOut = { ...line, oldParcelIds: ['PT7-011'], lotKeys: ['PT7-012|'] };
     const withOld = tap(withChanged(rows, [crossedOut]), [crossedOut], 'given', {
       target: 'row',
     });

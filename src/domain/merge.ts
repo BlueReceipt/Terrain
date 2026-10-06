@@ -33,7 +33,7 @@ export interface Conflict {
 }
 
 export interface MergeInput {
-  campaign: Pick<Campaign, 'id' | 'roles' | 'colorMap' | 'lotColumn'>;
+  campaign: Pick<Campaign, 'id' | 'roles' | 'colorMap' | 'lotColumn' | 'columnOrder'>;
   existing: readonly Row[];
   incoming: readonly IncomingRow[];
   statuses: readonly Status[];

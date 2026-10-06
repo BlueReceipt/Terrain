@@ -71,7 +71,7 @@ Without either, the pins still show on a plain background.
 
 - Tap the pin: the card lists every row at the house, by parcel ID. **Show everything** opens the full card.
 - The rail marks the whole house in one tap: **Given**, **At door**, **To research**, **Skipped**. The toast's **Undo** takes it back for 6 seconds.
-  - **Given** closes the lot: co-owners of the same parcels at other addresses become Given too, with a note saying with whom and where.
+  - **Given** closes the lot: co-owners of the same plot at other addresses (the same parcel ID and the same lot number, NUM_LOT) become Given too, with a note saying with whom and where. In a file without a lot-number column, the same parcel ID is enough.
   - **To research** asks for a note and leaves "Co-owner to research" on the co-owners elsewhere.
 - One row only: tap the owner, then use the small rail **This row only**.
 - **Edit info** (full card) corrects names, phones and addresses, each owner's once. **Use my location** pins the house where you stand.

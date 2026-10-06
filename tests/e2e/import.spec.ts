@@ -29,9 +29,10 @@ test('imports a My Maps export offline, reports it, and keeps the campaign', asy
   await expect(section(page, 'Different houses on one spot').locator('.section-count')).toHaveText(
     '1',
   );
+  // P1-216B only: P08-132A's two addresses are on two lot numbers, so not one plot.
   await expect(
     section(page, 'Parcels at more than one house').locator('.section-count'),
-  ).toHaveText('2');
+  ).toHaveText('1');
 
   await section(page, 'Houses with more than one row').locator('summary').click();
   const trempette = section(page, 'Houses with more than one row')

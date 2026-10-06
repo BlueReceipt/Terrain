@@ -10,6 +10,7 @@ import {
 } from '../domain/actions.ts';
 import { phoneColumns, rowsListingNumber } from '../domain/calls.ts';
 import { undoable, undoneIds, type ImportEvent, type TerrainEvent } from '../domain/events.ts';
+import { lotNumberColumns } from '../domain/identity.ts';
 import { boundsOf, type ImportPlan } from '../domain/importPlan.ts';
 import { planStatusChange } from '../domain/lots.ts';
 import { applyIdentity } from '../domain/rows.ts';
@@ -134,7 +135,10 @@ function isRow(row: Row | undefined): row is Row {
   return row !== undefined;
 }
 
-/** Whether saved corrections can move rows between houses or lots: address, lot column, position. */
+/**
+ * Whether saved corrections can move rows between houses or lots: address, lot column (or, by
+ * default, the lot number that goes with the row ID), position.
+ */
 function changesIdentity(campaign: Campaign, event: TerrainEvent): boolean {
   if (event.type !== 'fields_edited') return false;
   if (event.payload.location) return true;
@@ -144,7 +148,9 @@ function changesIdentity(campaign: Campaign, event: TerrainEvent): boolean {
     roles.town,
     roles.province,
     roles.postalCode,
-    campaign.lotColumn ?? undefined,
+    ...(campaign.lotColumn === null
+      ? lotNumberColumns(campaign.columnOrder)
+      : [campaign.lotColumn]),
   ]);
   return event.payload.changes.some((change) => columns.has(change.column));
 }

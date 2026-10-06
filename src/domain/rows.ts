@@ -3,6 +3,7 @@ import {
   groupHouses,
   identityInputs,
   lotKeysForRow,
+  lotNumberColumns,
   readerFor,
   type House,
 } from './identity.ts';
@@ -90,9 +91,13 @@ export function createRow(
 /** Recomputes lot keys and house keys from current values; run after every import and correction. */
 export function applyIdentity(
   rows: readonly Row[],
-  campaign: Pick<Campaign, 'roles' | 'lotColumn'>,
+  campaign: Pick<Campaign, 'roles' | 'lotColumn' | 'columnOrder'>,
 ): { rows: Row[]; houses: House[] } {
-  const withLots = rows.map((row) => ({ ...row, lotKeys: lotKeysForRow(row, campaign.lotColumn) }));
+  const lotNumbers = lotNumberColumns(campaign.columnOrder);
+  const withLots = rows.map((row) => ({
+    ...row,
+    lotKeys: lotKeysForRow(row, campaign.lotColumn, lotNumbers),
+  }));
   const houses = groupHouses(identityInputs(withLots, campaign.roles));
   const houseOf = new Map<string, string>();
   for (const house of houses) for (const rowId of house.rowIds) houseOf.set(rowId, house.houseKey);

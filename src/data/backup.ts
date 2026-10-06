@@ -2,6 +2,7 @@ import { fileDate } from '../domain/format.ts';
 import type { Campaign, Row } from '../domain/types.ts';
 import {
   SCHEMA_VERSION,
+  withLotLinks,
   withOnlineSwitches,
   withOwnerFields,
   withPlacement,
@@ -114,6 +115,7 @@ export function parseBackup(text: string): Backup {
       rows: backup.rows.map(withPlacement),
       settings: backup.settings.map(withOnlineSwitches),
     };
+  if (backup.schema < 6) backup = { ...backup, rows: withLotLinks(backup.rows, backup.campaigns) };
   return { ...backup, schema: SCHEMA_VERSION };
 }
 

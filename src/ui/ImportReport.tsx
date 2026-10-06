@@ -1,5 +1,6 @@
 import type { ComponentChildren } from 'preact';
 import { useState } from 'preact/hooks';
+import { lotLabel, lotNumberColumns } from '../domain/identity.ts';
 import type { ImportPlan } from '../domain/importPlan.ts';
 import type { HouseSummary, RowSummary } from '../domain/report.ts';
 import {
@@ -120,7 +121,10 @@ export function ImportReport({
             setLotColumn(event.currentTarget.value || null);
           }}
         >
-          <option value="">{text.parcelIdOption}</option>
+          {/* By default, co-owners of one plot: the same parcel ID and the same lot number. */}
+          <option value="">
+            {text.parcelIdOption(lotNumberColumns(plan.campaign.columnOrder)[0])}
+          </option>
           {plan.campaign.columnOrder.map((column) => (
             <option key={column} value={column}>
               {column}
@@ -241,7 +245,7 @@ export function ImportReport({
             <ul class="list">
               {report.lotsAcrossHouses.map((lot) => (
                 <li key={lot.lotKey}>
-                  <p class="parcel">{lot.lotKey}</p>
+                  <p class="parcel">{lotLabel(lot.lotKey)}</p>
                   <ul class="rows">
                     {lot.houses.map((house) => (
                       <li key={house.houseKey}>
