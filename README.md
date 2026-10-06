@@ -18,7 +18,7 @@ Terrain is a set of files with no server and no account behind it. Cloudflare ho
 
 The site is public, but it only holds the app: no campaign, name or phone number ever goes to Cloudflare. Your data stays on the phone.
 
-To update Terrain later: run `npm run build` again, then in the Worker choose **New deployment** and upload the new `dist` the same way. On the phone, Terrain shows **Update ready** with **Reload** once nothing is open (no card sheet, no export, no call waiting).
+To update Terrain without uploading anything, connect the Worker to your copy of this repository once: in the Worker, **Settings → Builds → Connect**, then the repository and its `main` branch, with `npm run build` as the build command and `npx wrangler deploy` as the deploy command. From then on, each push to `main` builds Terrain and publishes it as `wrangler.jsonc` says: set its `name` to your Worker's and its addresses to yours first, since Wrangler replaces the Worker's addresses with the ones listed there. Without that: run `npm run build` again, then in the Worker choose **New deployment** and upload the new `dist` the same way. On the phone, Terrain shows **Update ready** with **Reload** once nothing is open (no card sheet, no export, no call waiting).
 
 ### The demo’s My Maps relay
 
@@ -27,7 +27,7 @@ Google doesn't let other sites read a My Maps export, so the demo asks its own a
 1. **Compute → Workers & Pages → Create application → Start with Hello World**. Name it (Alex's is `terrain-mymaps`) and deploy.
 2. **Edit code**: replace everything with the contents of `relay/mymaps.js`, and deploy.
 3. In that Worker: **Domains → Add Route**. Zone: your domain. Route: your demo address followed by `/mymaps*`, for example `terrain.ederer.digital/mymaps*`. Failure mode: *Fail closed*.
-4. List your demo address in `DEMO_HOSTS` in `src/ui/demo.ts`, then build and upload `dist` to the app's Worker.
+4. List your demo address in `DEMO_HOSTS` in `src/ui/demo.ts`, then publish the app again: a push, or a new `dist` uploaded to the app's Worker.
 
 ## 2. Install it on the phone
 

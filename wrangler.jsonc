@@ -1,0 +1,16 @@
+// How Cloudflare publishes Terrain: a Worker with no code of its own that serves the built `dist`
+// folder at both addresses. Connected to the GitHub repository (Workers Builds), each push to main
+// runs `npm run build`, then `npx wrangler deploy` with this file. Deploying your own copy: change
+// the name to your Worker's and the addresses to yours.
+{
+  "name": "terrain",
+  "compatibility_date": "2026-10-05",
+  "assets": { "directory": "./dist" },
+  // Wrangler replaces the Worker's addresses with these on each deploy, so all of them stay listed.
+  "routes": [
+    { "pattern": "terrain.ederer.digital", "custom_domain": true },
+    { "pattern": "landagentfriend.ederer.digital", "custom_domain": true },
+  ],
+  "workers_dev": false,
+  "preview_urls": false,
+}
