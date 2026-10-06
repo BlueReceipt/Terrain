@@ -20,6 +20,9 @@ const FONT_FILES = [
   'atkinson-hyperlegible-next-latin-ext-wght-normal.woff2',
 ];
 
+/** The range of U+FE00 to U+FEFF: variation selectors and the zero-width no-break space. */
+const INVISIBLES = 0xfe00;
+
 const SIZE = 24;
 const BUFFER = 3;
 const RADIUS = 8;
@@ -217,6 +220,9 @@ function main(): void {
       list.push(glyphOf(font, codePoint, stack.embolden, ascender));
       byRange.set(start, list);
     }
+    // Some map names carry an invisible U+FEFF or U+FE0F, which the font doesn't have: the map still
+    // asks for their range, and an empty range answers it instead of a missing file.
+    if (!byRange.has(INVISIBLES)) byRange.set(INVISIBLES, []);
     for (const [start, glyphs] of byRange) {
       writeFileSync(
         join(dir, `${String(start)}-${String(start + 255)}.pbf`),

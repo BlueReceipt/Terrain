@@ -117,8 +117,10 @@ async function tile({ z, x, y }) {
   if (answer.status === 204 || answer.status === 404)
     return new Response(null, { status: 204, headers });
   if (!answer.ok) return problem(502, 'unreachable');
+  // A vector tile, under the type Cloudflare compresses on the way to the phone (it leaves
+  // application/vnd.mapbox-vector-tile as is): about 40% less to download.
   return new Response(answer.body, {
-    headers: { ...headers, 'Content-Type': 'application/vnd.mapbox-vector-tile' },
+    headers: { ...headers, 'Content-Type': 'application/x-protobuf' },
   });
 }
 

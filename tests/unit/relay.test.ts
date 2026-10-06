@@ -123,7 +123,7 @@ describe('the demo’s background tiles', () => {
     const response = await ask('/tiles/14/4842/5856.pbf');
     expect(calls.asked()).toEqual([INDEX, `${BUILD}/14/4842/5856.pbf`]);
     expect(response.status).toBe(200);
-    expect(response.headers.get('Content-Type')).toBe('application/vnd.mapbox-vector-tile');
+    expect(response.headers.get('Content-Type')).toBe('application/x-protobuf');
     expect(response.headers.get('Cache-Control')).toBe('public, max-age=86400');
     expect(response.headers.get('Content-Security-Policy')).toBe("default-src 'none'; sandbox");
     expect(new Uint8Array(await response.arrayBuffer())).toEqual(TILE);
