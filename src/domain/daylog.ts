@@ -35,14 +35,30 @@ export interface DayLogWords {
   nothing: string;
 }
 
-/** One action of the day, named by the house it was made at. */
+/** The status a line holds, shown by its color under the time. */
+export interface DayStatus {
+  statusId: string;
+  label: string;
+  color: string;
+  /** Whose rows it reached, when not every row of the house. */
+  whom: string | null;
+}
+
+/**
+ * One line of the day, named by the house. A status and the notes written just before or after it
+ * at the same house share a line (Alex, 2026-10-06); any other action has a line of its own.
+ */
 export interface DayLine {
+  /** The first action's. */
   eventId: string;
+  /** When the status was tapped; without one, when the first action was made. */
   at: string;
   /** The house today, to show it on the map; null when its rows are gone. */
   houseKey: string | null;
   address: string;
-  text: string;
+  status: DayStatus | null;
+  /** What else was done there, in order: the notes, or the one other action. */
+  texts: string[];
   /** Lines under it: the parcels marked, the houses the lot reached. */
   details: string[];
 }
@@ -89,7 +105,7 @@ export function activeDays(events: readonly TerrainEvent[]): string[] {
   return [...new Set(actions(events).map((event) => fileDate(event.at)))].sort();
 }
 
-/** The day log of one day: counts, then one line per action in the order they happened. */
+/** The day log of one day: counts, then the lines in the order the actions happened. */
 export function dayLog(input: DayLogInput): DayLog {
   const { campaign, rows, events, statuses, words } = input;
   const byId = new Map(rows.map((row) => [row.rowId, row]));
@@ -137,16 +153,19 @@ export function dayLog(input: DayLogInput): DayLog {
   let calls = 0;
   let notes = 0;
   const lines: DayLine[] = [];
+  /** The last line, while it holds only a status and notes: a note or a status there joins it. */
+  let open: DayLine | null = null;
 
   for (const event of actions(events)) {
     if (fileDate(event.at) !== input.day) continue;
     let reached: Row[] = [];
+    let status: DayStatus | null = null;
     let text = '';
     const details: string[] = [];
     switch (event.type) {
       case 'status_set': {
         const tap = event.payload;
-        const status = statuses.find((candidate) => candidate.id === tap.statusId);
+        const known = statuses.find((candidate) => candidate.id === tap.statusId);
         const written = existing(tap.writtenRowIds);
         reached = written.length > 0 ? written : existing(tap.targetRowIds);
         const closed = existing(
@@ -160,10 +179,13 @@ export function dayLog(input: DayLogInput): DayLog {
           direct: count.direct + written.length,
           viaLot: count.viaLot + closed.length,
         });
-        const label = status?.label ?? tap.statusId;
         const house = reached[0]?.houseKey ?? '';
-        const who = tap.target === 'row' ? whom(reached, house) : null;
-        text = who ? words.forWhom(label, who) : label;
+        status = {
+          statusId: tap.statusId,
+          label: known?.label ?? tap.statusId,
+          color: known?.color ?? 'transparent',
+          whom: tap.target === 'row' ? whom(reached, house) : null,
+        };
         if (tap.target === 'house' && written.length > 1) {
           const parcels = new Map<string, number>();
           for (const row of written)
@@ -236,14 +258,34 @@ export function dayLog(input: DayLogInput): DayLog {
         continue;
     }
     const houseKey = reached[0]?.houseKey ?? null;
-    lines.push({
+    const joins =
+      event.type === 'status_set' || event.type === 'note_added' || event.type === 'note_deleted';
+    if (
+      joins &&
+      open !== null &&
+      houseKey !== null &&
+      open.houseKey === houseKey &&
+      (status === null || open.status === null)
+    ) {
+      if (status === null) open.texts.push(text);
+      else {
+        open.status = status;
+        open.at = event.at;
+        open.details.push(...details);
+      }
+      continue;
+    }
+    const line: DayLine = {
       eventId: event.id,
       at: event.at,
       houseKey,
       address: houseKey === null ? words.noAddress : addressOf(houseKey),
-      text,
+      status,
+      texts: text ? [text] : [],
       details,
-    });
+    };
+    lines.push(line);
+    open = joins ? line : null;
   }
 
   return {
@@ -267,6 +309,11 @@ export function formatDay(day: string, format: string): string {
   return formatTime(`${day}T00:00Z`, datePart);
 }
 
+/** "Given", or "Given (Marie Trempette)" when it reached some rows of the house only. */
+function statusText(status: DayStatus, words: DayLogWords): string {
+  return status.whom ? words.forWhom(status.label, status.whom) : status.label;
+}
+
 /** The day log as text, to copy or share. */
 export function dayLogText(
   log: DayLog,
@@ -281,10 +328,14 @@ export function dayLogText(
     ...(log.notes > 0 ? [words.notes(log.notes)] : []),
   ];
   const indent = ' '.repeat(7);
-  const lines = log.lines.flatMap((line) => [
-    `${formatTime(line.at, 'HH:mm')}  ${line.address}  ${line.text}`,
-    ...line.details.map((detail) => `${indent}${detail}`),
-  ]);
+  const lines = log.lines.flatMap((line) => {
+    // In text the status is named: "Given · note: …".
+    const what = [...(line.status ? [statusText(line.status, words)] : []), ...line.texts];
+    return [
+      `${formatTime(line.at, 'HH:mm')}  ${line.address}  ${what.join(' · ')}`,
+      ...line.details.map((detail) => `${indent}${detail}`),
+    ];
+  });
   return [
     words.title(campaignName, formatDay(log.day, format)),
     summary.length > 0 ? summary.join(' · ') : words.nothing,

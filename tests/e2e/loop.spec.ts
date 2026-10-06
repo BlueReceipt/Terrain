@@ -89,15 +89,16 @@ test('the whole loop of a day, offline, ends in an Excel file holding all of it'
   await editor.getByRole('button', { name: 'Save note' }).click();
   await closeCard(card);
 
-  // All of it in the day log.
+  // All of it in the day log; the call between Given and the note keeps them on lines of their own.
   await page.getByRole('button', { name: 'Day log' }).click();
   const log = page.getByRole('dialog', { name: 'Day log' });
   await expect(log.locator('.log-line')).toHaveText([
     /^14:28\s*123, rue Saint-Paul info updated: CELLULAIRE \(Marie Trempette\)$/,
-    /^14:32\s*123, rue Saint-Paul Given/,
+    /^14:32\s*Given\s*123, rue Saint-Paul\s*P1-216B/,
     /^14:35\s*123, rue Saint-Paul call 514 555-0100: Voicemail \(Marie Trempette\)$/,
     /^14:40\s*123, rue Saint-Paul note: Cantine Alain, confirmer avec Alain$/,
   ]);
+  await expect(log.locator('.log-line .swatch')).toHaveCount(1);
 
   // Export Excel: the client's rows carry it all, and the Journal lists every action.
   await log.getByRole('button', { name: 'Export' }).click();

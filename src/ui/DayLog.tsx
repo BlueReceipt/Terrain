@@ -12,8 +12,8 @@ import { strings } from './strings.ts';
 import { Swatch } from './Swatch.tsx';
 
 /**
- * The day log: the day's counts, then one line per action, named by house; a line shows its
- * house on the map. Copy as text, Share, and what is still to export.
+ * The day log: the day's counts, then the lines, named by house, a status as its color under the
+ * time; a line shows its house on the map. Copy as text, Share, and what is still to export.
  */
 export function DayLogPanel() {
   const today = fileDate(nowWithOffset());
@@ -146,14 +146,24 @@ export function DayLogPanel() {
                     selectHouse(line.houseKey);
                   }}
                 >
-                  <span class="log-time">{formatTime(line.at, 'HH:mm')}</span>
+                  <span class="log-when">
+                    <span class="log-time">{formatTime(line.at, 'HH:mm')}</span>
+                    {line.status && (
+                      <>
+                        <Swatch color={line.status.color} />
+                        <span class="visually-hidden">{line.status.label}</span>
+                      </>
+                    )}
+                  </span>
                   <span class="log-body">
-                    <span class="strong">{line.address}</span> {line.text}
-                    {line.details.map((detail) => (
-                      <span key={detail} class="log-detail">
-                        {detail}
-                      </span>
-                    ))}
+                    <span class="strong">{line.address}</span> {line.texts.join(' · ')}
+                    {[...(line.status?.whom ? [line.status.whom] : []), ...line.details].map(
+                      (detail) => (
+                        <span key={detail} class="log-detail">
+                          {detail}
+                        </span>
+                      ),
+                    )}
                   </span>
                 </button>
               </li>

@@ -81,7 +81,7 @@ Without either, the pins still show on a plain background.
 
 ## 6. End of the day
 
-- **Day log** (bottom left of the map): the day's work, house by house. **Copy as text** or **Share**.
+- **Day log** (bottom left of the map): the day's work, house by house. A status and the notes written with it at a house share one line: the status's color under the time, the note next to the address. **Copy as text** or **Share**.
 - **Export** (from the day log):
   - **Export Excel**: Parcels (every row with its current values, in the client's columns) and Journal (every change, with what it replaced).
   - **My Maps update**: one file per layer. In My Maps, on a copy of the map: layer menu → **Reimport and merge** → **Replace all items** → the layer's file → position by **Location** → title **Parcel ID**, then style by *Package status*.

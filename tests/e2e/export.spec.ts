@@ -46,7 +46,7 @@ async function downloaded(page: Page, click: () => Promise<void>) {
   return { name: download.suggestedFilename(), bytes: await readFile(path) };
 }
 
-test('the day log counts the day, lists each action by house, copies as text and opens a house', async ({
+test('the day log counts the day, puts a status and its note on one line, copies as text and opens a house', async ({
   page,
 }) => {
   await work(page);
@@ -54,10 +54,14 @@ test('the day log counts the day, lists each action by house, copies as text and
   await expect(log.getByRole('list', { name: 'The day in numbers' })).toHaveText(
     /Given: 3 rows\s*\+1 via lot\s*Notes: 1/,
   );
+  // Given, then the note written there: one line, Given's color under the time, named for a screen reader.
   await expect(log.locator('.log-line')).toHaveText([
-    /^14:32\s*123, rue Saint-Paul Given\s*P1-216B \(2 rows\), P1-217A\s*also closed 12, chemin du Lac \(Luc Trempette, P1-216B\)$/,
-    /^14:40\s*123, rue Saint-Paul note: Cantine Alain, confirmer avec Alain$/,
+    /^14:32\s*Given\s*123, rue Saint-Paul note: Cantine Alain, confirmer avec Alain\s*P1-216B \(2 rows\), P1-217A\s*also closed 12, chemin du Lac \(Luc Trempette, P1-216B\)$/,
   ]);
+  await expect(log.locator('.log-line .swatch')).toHaveCSS('background-color', 'rgb(15, 157, 88)');
+  await expect(
+    log.getByRole('button', { name: /^14:32\s*Given\s*123, rue Saint-Paul note: Cantine Alain/ }),
+  ).toBeVisible();
   await expect(log).toContainText('2 changes not exported yet');
   // One day of work: nothing before it or after it to step to.
   await expect(log.getByRole('button', { name: 'Previous day with work' })).toBeDisabled();
@@ -72,10 +76,9 @@ test('the day log counts the day, lists each action by house, copies as text and
       'Terrain, cases, 26.09.2026',
       'Given: 3 rows (+1 via lot) · Notes: 1',
       '',
-      '14:32  123, rue Saint-Paul  Given',
+      '14:32  123, rue Saint-Paul  Given · note: Cantine Alain, confirmer avec Alain',
       '       P1-216B (2 rows), P1-217A',
       '       also closed 12, chemin du Lac (Luc Trempette, P1-216B)',
-      '14:40  123, rue Saint-Paul  note: Cantine Alain, confirmer avec Alain',
     ].join('\n'),
   );
 
@@ -83,7 +86,7 @@ test('the day log counts the day, lists each action by house, copies as text and
   await log.getByRole('textbox', { name: 'Day' }).fill('2026-09-27');
   await expect(log).toContainText('Nothing recorded this day.');
   await log.getByRole('button', { name: 'Previous day with work' }).click();
-  await expect(log.locator('.log-line')).toHaveCount(2);
+  await expect(log.locator('.log-line')).toHaveCount(1);
 
   // A line opens its house.
   await log.locator('.log-line').first().click();

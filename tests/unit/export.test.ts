@@ -10,6 +10,7 @@ import {
   loadCampaign,
   logCall,
   markHouse,
+  markRow,
   moveHouse,
   undo,
 } from '../../src/data/repo.ts';
@@ -550,6 +551,87 @@ describe('day log', () => {
     });
     expect(dayLogText(quiet, 'Poutine sample', 'DD.MM.YYYY HH:mm', strings.dayLog.words)).toBe(
       'Terrain, Poutine sample, 27.09.2026\nNothing recorded this day.',
+    );
+  });
+
+  it('puts a status and the notes written just before or after it at the house on one line', async () => {
+    db = freshDb();
+    const plan = await casesCampaign(db);
+    const campaignId = plan.campaign.id;
+    const before = (await loaded(campaignId)).rows;
+    const alain = rowOf(before, 'P1-216B', 'Alain');
+    const marie = rowOf(before, 'P1-216B', 'Marie');
+    const paul = rowOf(before, 'P1-222', 'Paul');
+    const trempettes = { campaignId, houseKey: alain.houseKey };
+    const rotis = { campaignId, houseKey: paul.houseKey };
+    const note = (house: typeof trempettes, eventId: string, now: string, text: string) =>
+      addNote(db, { ...house, eventId, now: at(now), rowId: null, text });
+    await note(trempettes, 'e1', '09:50', 'Chien dans la cour');
+    await markRow(db, {
+      campaignId,
+      rowId: marie.rowId,
+      statusId: 'given',
+      eventId: 'e2',
+      now: at('09:51'),
+    });
+    await addNote(db, {
+      ...trempettes,
+      eventId: 'e3',
+      now: at('09:52'),
+      rowId: alain.rowId,
+      text: 'Rappeler Alain',
+    });
+    // A call comes next: it keeps its own line, and so does the note after it.
+    await logCall(db, {
+      ...trempettes,
+      eventId: 'e4',
+      now: at('09:53'),
+      number: '514 555-0199',
+      outcome: 'Voicemail',
+      callDate: at('09:53'),
+      scope: 'number',
+    });
+    await note(trempettes, 'e5', '09:54', 'Laissé la carte');
+    // Another house; there, a second status starts a line of its own.
+    await markHouse(db, { ...rotis, statusId: 'skipped', eventId: 'e6', now: at('09:56') });
+    await markHouse(db, { ...rotis, statusId: 'given', eventId: 'e7', now: at('09:57') });
+    await note(rotis, 'e8', '09:58', 'Revenir samedi');
+
+    const day = await loaded(campaignId);
+    const log = dayLog({
+      day: '2026-09-26',
+      campaign: day.campaign,
+      rows: day.rows,
+      events: day.events,
+      statuses: DEFAULT_STATUSES,
+      words: strings.dayLog.words,
+    });
+    expect(
+      log.lines.map((line) => ({
+        eventId: line.eventId,
+        status: line.status && { id: line.status.statusId, whom: line.status.whom },
+        texts: line.texts.length,
+      })),
+    ).toEqual([
+      { eventId: 'e1', status: { id: 'given', whom: 'Marie Trempette' }, texts: 2 },
+      { eventId: 'e4', status: null, texts: 1 },
+      { eventId: 'e5', status: null, texts: 1 },
+      { eventId: 'e6', status: { id: 'skipped', whom: null }, texts: 0 },
+      { eventId: 'e7', status: { id: 'given', whom: null }, texts: 1 },
+    ]);
+    expect(dayLogText(log, 'Poutine sample', 'DD.MM.YYYY HH:mm', strings.dayLog.words)).toBe(
+      [
+        'Terrain, Poutine sample, 26.09.2026',
+        'Given: 2 rows (+1 via lot) · Skipped: 1 row · Calls: 1 · Notes: 4',
+        '',
+        // The time is the status's.
+        '09:51  123, rue Saint-Paul  Given (Marie Trempette) · note: Chien dans la cour · note: Rappeler Alain (Alain Trempette)',
+        '       also closed 12, chemin du Lac (Luc Trempette, P1-216B)',
+        '09:53  123, rue Saint-Paul  call 514 555-0199: Voicemail (Marie Trempette)',
+        '09:54  123, rue Saint-Paul  note: Laissé la carte',
+        '09:56  10, rue Principale  Skipped',
+        '09:57  10, rue Principale  Given · note: Revenir samedi',
+      ].join('\n'),
     );
   });
 });

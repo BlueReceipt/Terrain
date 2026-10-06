@@ -1133,6 +1133,20 @@ select {
   cursor: pointer;
 }
 
+/* The time, and the status's color under it. */
+.log-when {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.log-when .swatch {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+}
+
 .log-time {
   font-variant-numeric: tabular-nums;
   font-weight: 700;
