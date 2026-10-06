@@ -21,6 +21,24 @@ interface EventOf<Type extends string, Payload> {
   exportedAt: string | null;
 }
 
+/**
+ * A new owner named by the client's file (Alex, 2026-10-06): the row started over at the file's
+ * status, the old owner's corrections went, and the owner before went to Previous info.
+ */
+export interface ImportedOwner {
+  rowId: string;
+  previous: string;
+  next: string;
+  /** The Previous info column, and its correction before and after. */
+  column: string;
+  previousEdit: string | null;
+  nextEdit: string;
+  /** Columns whose correction was the old owner's, dropped. */
+  dropped: string[];
+  previousStatusId: string;
+  nextStatusId: string;
+}
+
 /** A file imported into a campaign. Its changes hold every previous value (Journal: Import update). */
 export type ImportEvent = EventOf<
   'import',
@@ -32,6 +50,8 @@ export type ImportEvent = EventOf<
     changes: ImportChange[];
     /** Corrections the file now agrees with: they stopped being corrections. */
     absorbed: { rowId: string; column: string }[];
+    /** Absent before 2026-10-06. */
+    newOwners?: ImportedOwner[];
   }
 >;
 
@@ -126,6 +146,16 @@ export type FieldsEditedEvent = EventOf<
     location: LocationChange | null;
     /** Owners replaced by a new one; their changes are among the others. Absent before 2026-10-06. */
     newOwners?: NewOwner[];
+    /**
+     * Rows of a new owner whose visit was the owner before's, back to the start status with no
+     * Visit date, each as it was before (Alex, 2026-10-06: a visit made while the owner changes is
+     * the new owner's; an older one goes to Previous info).
+     */
+    startOver?: {
+      statusId: string;
+      packageStatusText: string;
+      previous: Record<string, StatusFields>;
+    };
   }
 >;
 
@@ -203,14 +233,44 @@ function update(
 const STAMPED: readonly AppField[] = ['status', 'packageStatus', 'visitDate'];
 const UNSTAMPED: readonly AppField[] = ['status', 'packageStatus'];
 
-/** What an event did, applied to the states of the rows it touched. Replay and actions both use it. */
-export function applyEvent(states: Map<string, RowState>, event: TerrainEvent): void {
+/**
+ * What an event did, applied to the states of the rows it touched. Replay and actions both use it.
+ * A replay passes each row's baseline: a new owner a file brought starts over from the latest
+ * import's values, and the events after it apply on top.
+ */
+export function applyEvent(
+  states: Map<string, RowState>,
+  event: TerrainEvent,
+  baselines?: ReadonlyMap<string, RowState>,
+): void {
   switch (event.type) {
     case 'import':
       for (const { rowId, column } of event.payload.absorbed) {
         update(states, rowId, (state) => ({
           ...state,
           edits: withEdit(state.edits, column, null),
+        }));
+      }
+      for (const owner of event.payload.newOwners ?? []) {
+        const base = baselines?.get(owner.rowId);
+        update(states, owner.rowId, (state) => ({
+          ...state,
+          ...(base && {
+            statusId: base.statusId,
+            packageStatusText: base.packageStatusText,
+            visitDate: base.visitDate,
+            callDate: base.callDate,
+            callResult: base.callResult,
+          }),
+          origin: null,
+          touched: { appFields: [], moved: state.touched.moved },
+          edits: withEdit(
+            Object.fromEntries(
+              Object.entries(state.edits).filter(([column]) => !owner.dropped.includes(column)),
+            ),
+            owner.column,
+            owner.nextEdit,
+          ),
         }));
       }
       return;
@@ -256,6 +316,19 @@ export function applyEvent(states: Map<string, RowState>, event: TerrainEvent): 
           }));
         }
       }
+      const startOver = event.payload.startOver;
+      if (startOver) {
+        for (const rowId of Object.keys(startOver.previous)) {
+          update(states, rowId, (state) => ({
+            ...state,
+            statusId: startOver.statusId,
+            packageStatusText: startOver.packageStatusText,
+            visitDate: '',
+            origin: null,
+            touched: withTouched(state.touched, STAMPED),
+          }));
+        }
+      }
       return;
     }
     case 'call_logged': {
@@ -286,6 +359,9 @@ export function revertEvent(states: Map<string, RowState>, event: TerrainEvent):
       }
       return;
     case 'fields_edited': {
+      for (const [rowId, previous] of Object.entries(event.payload.startOver?.previous ?? {})) {
+        update(states, rowId, (state) => ({ ...state, ...previous }));
+      }
       for (const change of [...event.payload.changes].reverse()) {
         update(states, change.rowId, (state) => ({
           ...state,
@@ -329,6 +405,7 @@ export function rowsChangedBy(event: TerrainEvent): string[] {
         ...new Set([
           ...event.payload.changes.map((change) => change.rowId),
           ...(event.payload.location?.rowIds ?? []),
+          ...Object.keys(event.payload.startOver?.previous ?? {}),
         ]),
       ];
     case 'import':
@@ -388,10 +465,11 @@ export function foldStates(
   events: readonly TerrainEvent[],
   roles: ColumnRoles,
 ): Map<string, RowState> {
-  const states = new Map(rows.map((row) => [row.rowId, baselineState(row, roles)]));
+  const baselines = new Map(rows.map((row) => [row.rowId, baselineState(row, roles)]));
+  const states = new Map(baselines);
   const undone = undoneIds(events);
   for (const event of events) {
-    if (event.type !== 'undo' && !undone.has(event.id)) applyEvent(states, event);
+    if (event.type !== 'undo' && !undone.has(event.id)) applyEvent(states, event, baselines);
   }
   return states;
 }

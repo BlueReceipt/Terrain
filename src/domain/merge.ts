@@ -1,7 +1,26 @@
 import { APP_ROLES, MY_MAPS_COLUMNS, myMapsColumnOf } from './columns.ts';
-import { DATE_FORMATS, formatTime, isTerrainTime } from './format.ts';
-import { fingerprintOf, myMapsValue, readerFor, samePosition, type House } from './identity.ts';
-import { isPreviousInfoColumn } from './newOwner.ts';
+import type { ImportedOwner } from './events.ts';
+import { DATE_FORMATS, formatTime, isTerrainTime, type DateFormat } from './format.ts';
+import {
+  currentReader,
+  currentValue,
+  displayName,
+  fingerprintOf,
+  myMapsValue,
+  readerFor,
+  samePosition,
+  type House,
+} from './identity.ts';
+import {
+  isNewOwner,
+  isPreviousInfoColumn,
+  ownerColumns,
+  ownerDetails,
+  previousInfoColumn,
+  previousVisit,
+  withPreviousOwner,
+  type PreviousInfoWords,
+} from './newOwner.ts';
 import { withoutOwnNotes } from './notes.ts';
 import { splitParcelIds } from './parcel.ts';
 import {
@@ -42,6 +61,18 @@ export interface MergeInput {
   newId: () => string;
   /** Per existing row, the notes Terrain may have written into an export (`ownNoteTexts`). */
   ownNotes?: ReadonlyMap<string, readonly string[]>;
+  /** How Previous info is written for a new owner the file names; without it, a new name is only owner details changed. */
+  previousInfo?: { words: PreviousInfoWords; format: DateFormat };
+}
+
+/** A new owner the file names, and what goes to Previous info. */
+interface Replacement {
+  /** The owner columns: the old owner's corrections there go. */
+  columns: string[];
+  column: string;
+  entry: string;
+  previous: string;
+  next: string;
 }
 
 export interface MergeResult {
@@ -63,6 +94,8 @@ export interface MergeResult {
   absorbed: { rowId: string; column: string }[];
   /** Every imported value that changed, with its previous value (Journal: Import update). */
   changes: ImportChange[];
+  /** Rows whose owner the file replaced by someone else (Alex, 2026-10-06). */
+  newOwners: ImportedOwner[];
 }
 
 export function formatPosition(position: LatLng | null): string {
@@ -100,11 +133,13 @@ function mergeRow(
   rowIndex: number,
   context: RowContext,
   ownNotes: readonly string[],
+  replace: Replacement | null,
 ): {
   row: Row;
   changes: ImportChange[];
   conflicts: Conflict[];
   absorbed: { rowId: string; column: string }[];
+  newOwner: ImportedOwner | null;
 } {
   const { rowId } = existing;
   const { roles } = context;
@@ -155,9 +190,14 @@ function mergeRow(
   }
 
   // Local wins wherever Alex acted; a correction the file now agrees with is absorbed. A file
-  // without Previous info, Terrain's own column, says nothing about it.
+  // without Previous info, Terrain's own column, says nothing about it. For a new owner, the old
+  // owner's corrections go.
+  const dropped = replace
+    ? Object.keys(existing.edits).filter((column) => replace.columns.includes(column))
+    : [];
   const edits: Record<string, string> = {};
   for (const [column, local] of Object.entries(existing.edits)) {
+    if (dropped.includes(column) || column === replace?.column) continue;
     if (isPreviousInfoColumn(column) && !(column in incoming.fields)) {
       edits[column] = local;
       continue;
@@ -184,7 +224,8 @@ function mergeRow(
     }
   }
 
-  const touched = new Set(existing.touched.appFields);
+  // A new owner starts over at the file's status and dates (Alex, 2026-10-06: "always start over").
+  const touched = new Set(replace ? [] : existing.touched.appFields);
   const keepLocal = (field: AppRowField): string => {
     const spec = APP_FIELDS.find((entry) => entry.field === field);
     if (!spec || !touched.has(spec.touch)) return fromFile[field];
@@ -221,11 +262,33 @@ function mergeRow(
     }
   }
 
+  let newOwner: ImportedOwner | null = null;
+  if (replace) {
+    const previousEdit = existing.edits[replace.column] ?? null;
+    const nextEdit = withPreviousOwner(currentValue(existing, replace.column), replace.entry);
+    edits[replace.column] = nextEdit;
+    newOwner = {
+      rowId,
+      previous: replace.previous,
+      next: replace.next,
+      column: replace.column,
+      previousEdit,
+      nextEdit,
+      dropped,
+      previousStatusId: existing.statusId,
+      nextStatusId: statusId,
+    };
+  }
+
   const stillListed = new Set(splitParcelIds(incoming.parcelIdRaw).map(compactKey));
   const changed = changes.length > 0 || absorbed.length > 0;
   return {
     row: {
       ...existing,
+      ...(replace && {
+        origin: null,
+        touched: { appFields: [], moved: existing.touched.moved },
+      }),
       rowIndex,
       layer: incoming.layer,
       parcelIdRaw: incoming.parcelIdRaw,
@@ -248,6 +311,38 @@ function mergeRow(
     changes,
     conflicts,
     absorbed,
+    newOwner,
+  };
+}
+
+/**
+ * When the file names someone else (`isNewOwner`) than both its last version and the owner Terrain
+ * has: a file that hasn't caught up with a New owner made at the door, or that now agrees with it,
+ * is no new owner. What goes to Previous info: the owner as Terrain had them and the visit they
+ * had ("Given 26.09.2026"), dated today.
+ */
+function replacementOf(
+  existing: Row,
+  incoming: IncomingRow,
+  input: MergeInput,
+): Replacement | null {
+  if (!input.previousInfo) return null;
+  const { roles } = input.campaign;
+  const before = currentReader(existing, roles);
+  const after = readerFor(incoming.fields, roles);
+  if (!isNewOwner(readerFor(existing.sourceFields, roles), after) || !isNewOwner(before, after))
+    return null;
+  const { words, format } = input.previousInfo;
+  const [datePart = format] = format.split(' ');
+  const columns = ownerColumns(input.campaign.columnOrder, roles);
+  const visit = previousVisit(existing, input.statuses, words, format);
+  const details = [ownerDetails(existing, columns, roles), visit].filter(Boolean).join(', ');
+  return {
+    columns,
+    column: previousInfoColumn(input.campaign.columnOrder),
+    entry: words.previousOwner(details, formatTime(input.now, datePart)),
+    previous: displayName(before),
+    next: displayName(after),
   };
 }
 
@@ -349,6 +444,7 @@ export function mergeImport(input: MergeInput): MergeResult {
   const conflicts: Conflict[] = [];
   const absorbed: { rowId: string; column: string }[] = [];
   const changes: ImportChange[] = [];
+  const newOwners: ImportedOwner[] = [];
   const rowIdByIncoming: string[] = [];
   incoming.forEach((row, i) => {
     const match = matchOf[i];
@@ -359,12 +455,20 @@ export function mergeImport(input: MergeInput): MergeResult {
       next.push(created);
       return;
     }
-    const merged = mergeRow(match, row, i, context, input.ownNotes?.get(match.rowId) ?? []);
+    const merged = mergeRow(
+      match,
+      row,
+      i,
+      context,
+      input.ownNotes?.get(match.rowId) ?? [],
+      replacementOf(match, row, input),
+    );
     next.push(merged.row);
     rowIdByIncoming.push(match.rowId);
     conflicts.push(...merged.conflicts);
     absorbed.push(...merged.absorbed);
     changes.push(...merged.changes);
+    if (merged.newOwner) newOwners.push(merged.newOwner);
     if (merged.changes.length > 0) updated.push(match.rowId);
     else unchanged.push(match.rowId);
   });
@@ -405,5 +509,6 @@ export function mergeImport(input: MergeInput): MergeResult {
     conflicts,
     absorbed,
     changes,
+    newOwners,
   };
 }

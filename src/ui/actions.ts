@@ -175,15 +175,28 @@ export async function reopenHouse(houseKey: string): Promise<void> {
   await tapHouseStatus(houseKey, startStatus(statuses.value).id);
 }
 
-/** Edit info or Edit this row, saved. */
+/**
+ * Edit info or Edit this row, saved. With New owner: the owners replaced, and their rows whose
+ * visit was the owner before's, which go back to the start status.
+ */
 export async function saveEdits(
   houseKey: string,
   target: 'house' | 'row',
   writes: readonly EditWrite[],
-  newOwners: readonly NewOwner[] = [],
+  owners: { newOwners: readonly NewOwner[]; startOver: readonly string[] } = {
+    newOwners: [],
+    startOver: [],
+  },
 ): Promise<boolean> {
+  const { newOwners } = owners;
+  const start = startStatus(statuses.value);
+  const startOver = {
+    statusId: start.id,
+    packageStatusText: start.packageStatusText,
+    rowIds: owners.startOver,
+  };
   const result = await run((db, context) =>
-    editFields(db, { ...context, houseKey, target, writes, newOwners }),
+    editFields(db, { ...context, houseKey, target, writes, newOwners, startOver }),
   );
   if (result === null) return false;
   apply(result);

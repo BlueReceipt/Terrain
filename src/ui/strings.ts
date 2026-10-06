@@ -3,6 +3,7 @@ import type { BasemapErrorCode } from '../data/basemap.ts';
 import type { ImportErrorCode } from '../domain/errors.ts';
 import type { DayLogWords } from '../domain/daylog.ts';
 import type { JournalWords } from '../domain/export/journal.ts';
+import type { PreviousInfoWords } from '../domain/newOwner.ts';
 import type { NoteWords } from '../domain/notes.ts';
 import type { AppRole, FieldRole } from '../domain/types.ts';
 
@@ -105,6 +106,10 @@ export const strings = {
     unchanged: 'Unchanged',
     houses: 'Houses',
     ownerDetailsChanged: 'Owner details changed',
+    newOwners: 'New owners',
+    newOwnersHelp:
+      'Someone else is named: they start over at the file’s status, and the owner before goes to Previous info.',
+    newOwner: (previous: string, next: string) => `${previous} → ${next}`,
     conflicts: 'Your corrections the file disagrees with',
     conflict: (column: string, local: string, incoming: string) =>
       `${column}: yours “${local}”, file “${incoming || '(blank)'}”`,
@@ -267,13 +272,20 @@ export const strings = {
     save: 'Save changes',
     nothing: 'Nothing changed.',
     newOwner: 'New owner',
-    newOwnerHelp: (previous: string) =>
-      previous
-        ? `${previous} goes to Previous info when you save. Type the new owner’s name and numbers.`
-        : 'Type the new owner’s name and numbers.',
-    // What Previous info keeps of an owner, also in the export.
-    previousOwner: (details: string, until: string) => `${details} (until ${until})`,
+    newOwnerHelp: (previous: string, restart: string | null) =>
+      [
+        previous && `${previous} goes to Previous info when you save.`,
+        restart && `That visit was theirs: the row goes back to ${restart}.`,
+        'Type the new owner’s name and numbers.',
+      ]
+        .filter(Boolean)
+        .join(' '),
   },
+  // What Previous info keeps of an owner, at the door or from the client's file, also in the export.
+  previousInfo: {
+    previousOwner: (details, until) => `${details} (until ${until})`,
+    visit: (status, date) => (date ? `${status} ${date}` : status),
+  } satisfies PreviousInfoWords,
   toast: {
     undo: 'Undo',
     rowMarked: (parcelId: string, status: string) => `${parcelId} marked ${status.toLowerCase()}`,

@@ -1,7 +1,7 @@
 import type { Placement } from './addresses.ts';
 import { suggestStatus } from './color.ts';
 import { APP_ROLES, defaultColumnGroup, defaultColumnGroups } from './columns.ts';
-import { mergeImport, type MergeResult } from './merge.ts';
+import { mergeImport, type MergeInput, type MergeResult } from './merge.ts';
 import { splitParcelIds } from './parcel.ts';
 import { buildReport, type ImportReport } from './report.ts';
 import { applyIdentity } from './rows.ts';
@@ -32,6 +32,8 @@ export interface PlanInput {
   newId: () => string;
   /** Per existing row, the notes Terrain may have written into an export (`ownNoteTexts`). */
   ownNotes?: ReadonlyMap<string, readonly string[]>;
+  /** How Previous info is written when the file names a new owner (`MergeInput`). */
+  previousInfo?: MergeInput['previousInfo'];
 }
 
 /** Each pin color of the file, mapped to a status: the campaign's earlier choice, else a suggestion. */
@@ -158,7 +160,14 @@ export function planImport(input: PlanInput): ImportPlan {
     now: input.now,
     newId: input.newId,
     ownNotes: input.ownNotes,
+    previousInfo: input.previousInfo,
   });
+  // The first new owner adds Previous info to the campaign, per owner, as New owner at the door does.
+  const previous = merge.newOwners[0]?.column;
+  if (previous !== undefined && !campaign.columnOrder.includes(previous)) {
+    campaign.columnOrder = [...campaign.columnOrder, previous];
+    campaign.columnGroups = { ...campaign.columnGroups, [previous]: 'person' };
+  }
   campaign.bounds = boundsOf(merge.rows);
   const existingParcelKeys = new Set(
     input.existingRows.flatMap((row) => splitParcelIds(row.parcelIdRaw).map(compactKey)),

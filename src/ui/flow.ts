@@ -37,6 +37,7 @@ import {
   type Placement,
 } from '../domain/addresses.ts';
 import { ImportError, type ImportErrorCode } from '../domain/errors.ts';
+import { DEFAULT_DATE_FORMAT } from '../domain/format.ts';
 import {
   initialColorMap,
   missingRoles,
@@ -328,6 +329,10 @@ export async function showReport(
     newId: ulid,
     // An export coming back carries Terrain's notes in its Notes cells: recognized, not doubled.
     ownNotes: target ? ownNoteTexts(events.value, strings.notes) : undefined,
+    previousInfo: {
+      words: strings.previousInfo,
+      format: settings.value?.dateFormat ?? DEFAULT_DATE_FORMAT,
+    },
   });
   const { plan, lookUp } = await findHouses(planned);
   screen.value = { name: 'report', plan, saving: false, saveFailed: false, lookUp };

@@ -1,8 +1,39 @@
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
-import { importFile, mapReady, offlineAfterFirstLoad, openSettings } from './helpers.ts';
+import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate';
+import {
+  FIXTURES,
+  importFile,
+  mapReady,
+  offlineAfterFirstLoad,
+  openHouse,
+  openSettings,
+} from './helpers.ts';
 
 function section(page: Page, title: string) {
   return page.locator('details.section', { has: page.locator('summary', { hasText: title }) });
+}
+
+/** cases.kmz as the client sends it again: Rosalie Frite bought Marie Trempette's part. */
+async function soldFile() {
+  const files = unzipSync(new Uint8Array(await readFile(join(FIXTURES, 'cases.kmz'))));
+  const kml = strFromU8(files['doc.kml'] ?? new Uint8Array())
+    .split('<Placemark>')
+    .map((mark) =>
+      mark.includes('<Data name="PRENOM"><value>Marie</value>')
+        ? mark
+            .replaceAll('Marie', 'Rosalie')
+            .replaceAll('Trempette', 'Frite')
+            .replaceAll('514 555-0199', '418 555-0150')
+        : mark,
+    )
+    .join('<Placemark>');
+  return {
+    name: 'cases.kmz',
+    mimeType: 'application/vnd.google-earth.kmz',
+    buffer: Buffer.from(zipSync({ ...files, 'doc.kml': strToU8(kml) })),
+  };
 }
 
 test('imports a My Maps export offline, reports it, and keeps the campaign', async ({ page }) => {
@@ -74,6 +105,32 @@ test('imports a My Maps export offline, reports it, and keeps the campaign', asy
   await page.getByRole('button', { name: 'Continue' }).click();
   await expect(page.locator('.counts')).toContainText('Unchanged28');
   expect(errors).toEqual([]);
+});
+
+test('a file naming someone else lists the new owner, and the row starts over with Previous info', async ({
+  page,
+}) => {
+  await page.clock.setFixedTime(new Date('2026-09-26T14:32:00-04:00'));
+  await offlineAfterFirstLoad(page);
+  await importFile(page, 'cases.kmz');
+  await page.getByRole('button', { name: 'Continue' }).click();
+  await page.getByRole('button', { name: 'Open campaign' }).click();
+  await mapReady(page);
+
+  await openSettings(page);
+  await page.locator('input[type=file][accept*=".kmz"]').setInputFiles(await soldFile());
+  await page.getByRole('button', { name: 'Continue' }).click();
+  const owners = section(page, 'New owners');
+  await expect(owners.locator('.section-count')).toHaveText('1');
+  await owners.locator('summary').click();
+  await expect(owners.locator('.row-line')).toHaveText('P1-216B Marie Trempette → Rosalie Frite');
+  await page.getByRole('button', { name: 'Open campaign' }).click();
+  await mapReady(page);
+
+  const card = await openHouse(page, [-73.6105, 45.2641], '123, rue Saint-Paul');
+  await expect(card.locator('.owner-previous')).toHaveText(
+    'Previous info: Marie Trempette, 450 555-0100, 514 555-0199 (until 26.09.2026)',
+  );
 });
 
 test('refuses a spreadsheet without coordinates, with directions', async ({ page }) => {

@@ -81,14 +81,37 @@ export function journalLines(input: JournalInput): JournalLine[] {
 
     switch (event.type) {
       case 'import': {
-        const changes = [...event.payload.changes].sort(
-          (a, b) => (order.get(a.rowId) ?? 0) - (order.get(b.rowId) ?? 0),
+        // A new owner the file named: its changes, the owner before in Previous info, the status anew.
+        const owners = new Map(
+          (event.payload.newOwners ?? []).map((owner) => [owner.rowId, owner]),
         );
-        return changes
-          .filter((change) => order.has(change.rowId))
-          .map((change) =>
-            line(change.rowId, 'importUpdate', change.column, change.previous, change.next),
+        const lines = event.payload.changes.map((change) =>
+          line(
+            change.rowId,
+            owners.has(change.rowId) ? 'newOwner' : 'importUpdate',
+            change.column,
+            change.previous,
+            change.next,
+          ),
+        );
+        for (const owner of owners.values()) {
+          lines.push(
+            line(owner.rowId, 'newOwner', owner.column, owner.previousEdit ?? '', owner.nextEdit),
           );
+          if (owner.previousStatusId !== owner.nextStatusId)
+            lines.push(
+              line(
+                owner.rowId,
+                'newOwner',
+                words.actions.status,
+                label(owner.previousStatusId),
+                label(owner.nextStatusId),
+              ),
+            );
+        }
+        return lines
+          .filter((entry) => order.has(entry.rowId))
+          .sort((a, b) => (order.get(a.rowId) ?? 0) - (order.get(b.rowId) ?? 0));
       }
       case 'status_set': {
         const tap = event.payload;
@@ -138,6 +161,22 @@ export function journalLines(input: JournalInput): JournalLine[] {
                 detail,
                 formatPosition(location.previous[rowId]?.position ?? null),
                 formatPosition(location.next),
+              ),
+            );
+          }
+        }
+        // The visit of the owner before went with them: the row started over.
+        const startOver = event.payload.startOver;
+        if (startOver) {
+          for (const rowId of inOrder(Object.keys(startOver.previous))) {
+            const before = startOver.previous[rowId]?.statusId ?? '';
+            lines.push(
+              line(
+                rowId,
+                'newOwner',
+                words.actions.status,
+                label(before),
+                label(startOver.statusId),
               ),
             );
           }
@@ -196,14 +235,16 @@ export function journalSheet(input: JournalInput): string[][] {
   const undone = undoneIds(input.events);
   const position = new Map(input.events.map((event, i) => [event.id, i]));
   const handovers = new Map<string, { index: number; previous: string }[]>();
+  const handOver = (rowId: string, index: number, previous: string) =>
+    handovers.set(rowId, [...(handovers.get(rowId) ?? []), { index, previous }]);
   input.events.forEach((event, index) => {
-    if (event.type !== 'fields_edited' || undone.has(event.id)) return;
-    for (const owner of event.payload.newOwners ?? [])
-      for (const rowId of owner.rowIds)
-        handovers.set(rowId, [
-          ...(handovers.get(rowId) ?? []),
-          { index, previous: owner.previous },
-        ]);
+    if (undone.has(event.id)) return;
+    if (event.type === 'fields_edited')
+      for (const owner of event.payload.newOwners ?? [])
+        for (const rowId of owner.rowIds) handOver(rowId, index, owner.previous);
+    if (event.type === 'import')
+      for (const owner of event.payload.newOwners ?? [])
+        handOver(owner.rowId, index, owner.previous);
   });
   const lines = journalLines(input).map((line) => {
     const row = byId.get(line.rowId);

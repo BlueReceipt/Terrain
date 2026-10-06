@@ -13,8 +13,11 @@ import {
   ownerColumns,
   ownerDetails,
   previousInfoColumn,
+  previousVisit,
+  visitWasBefore,
   withPreviousOwner,
 } from '../domain/newOwner.ts';
+import { startStatus } from '../domain/statuses.ts';
 import type { Row } from '../domain/types.ts';
 import {
   answerCall,
@@ -26,7 +29,7 @@ import {
   saveNote,
 } from './actions.ts';
 import { useDialog } from './dialog.ts';
-import { current, settings } from './flow.ts';
+import { current, settings, statuses } from './flow.ts';
 import { PinHereButton } from './HouseCard.tsx';
 import { sheet, type Sheet } from './mapState.ts';
 import { addressOf, nameOf } from './rowText.ts';
@@ -311,10 +314,22 @@ function EditForm({ houseKey, rowId }: { houseKey: string; rowId: string | null 
     section.fields.filter((field) => owned.has(field.column));
   const rowOf = (id: string | undefined) => rows.find((candidate) => candidate.rowId === id);
   /** The owner's name and numbers as they are, before New owner empties them. */
-  const detailsOf = (section: FormSection, id: string | undefined) => {
+  const format = settings.value?.dateFormat ?? DEFAULT_DATE_FORMAT;
+  const today = fileDate(nowWithOffset());
+  /**
+   * What goes to Previous info for a row: the owner as they are, and a visit from before today,
+   * which was theirs (a visit today is the new owner's): then the row starts over.
+   */
+  const goingOf = (section: FormSection, id: string | undefined) => {
     const owner = rowOf(id);
+    if (!owner) return { details: '', startsOver: false };
     const columns = [...new Set(ownerFields(section).map((field) => field.column))];
-    return owner ? ownerDetails(owner, columns, roles) : '';
+    const startsOver = visitWasBefore(owner, statuses.value, today);
+    const visit = startsOver
+      ? previousVisit(owner, statuses.value, strings.previousInfo, format)
+      : '';
+    const details = [ownerDetails(owner, columns, roles), visit].filter(Boolean).join(', ');
+    return { details, startsOver };
   };
   /** A field's value in the form, typed or as it was. */
   const valueIn = (id: string, column: string) => {
@@ -354,16 +369,17 @@ function EditForm({ houseKey, rowId }: { houseKey: string; rowId: string | null 
     : strings.edit.title(addressOf(rows, campaign.roles));
 
   const save = async () => {
-    const format = settings.value?.dateFormat ?? DEFAULT_DATE_FORMAT;
-    const until = formatDay(fileDate(nowWithOffset()), format);
+    const until = formatDay(today, format);
     const newOwners: NewOwner[] = [];
     const previous: EditWrite[] = [];
+    const startOver: string[] = [];
     for (const section of sections) {
       if (!section.ownerRowIds || !replacing.value.has(section.id)) continue;
       for (const id of section.ownerRowIds) {
-        const details = detailsOf(section, id);
+        const { details, startsOver } = goingOf(section, id);
+        if (startsOver) startOver.push(id);
         if (!details) continue;
-        const entry = strings.edit.previousOwner(details, until);
+        const entry = strings.previousInfo.previousOwner(details, until);
         previous.push({
           rowIds: [id],
           column: previousColumn,
@@ -401,7 +417,7 @@ function EditForm({ houseKey, rowId }: { houseKey: string; rowId: string | null 
       close();
       return;
     }
-    if (await saveEdits(houseKey, row ? 'row' : 'house', writes, newOwners)) close();
+    if (await saveEdits(houseKey, row ? 'row' : 'house', writes, { newOwners, startOver })) close();
   };
 
   return (
@@ -442,11 +458,18 @@ function EditForm({ houseKey, rowId }: { houseKey: string; rowId: string | null 
                 >
                   {strings.edit.newOwner}
                 </button>
-                {replacing.value.has(section.id) && (
-                  <p class="muted">
-                    {strings.edit.newOwnerHelp(detailsOf(section, section.ownerRowIds[0]))}
-                  </p>
-                )}
+                {replacing.value.has(section.id) &&
+                  (() => {
+                    const going = goingOf(section, section.ownerRowIds[0]);
+                    return (
+                      <p class="muted">
+                        {strings.edit.newOwnerHelp(
+                          going.details,
+                          going.startsOver ? startStatus(statuses.value).label : null,
+                        )}
+                      </p>
+                    );
+                  })()}
               </div>
             )}
             {section.fields.map((field, i) => {

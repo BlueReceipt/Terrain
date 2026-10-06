@@ -102,6 +102,7 @@ export function importEventOf(plan: ImportPlan, eventId: string, at: string): Im
       missing: merge.missing,
       changes: merge.changes,
       absorbed: merge.absorbed,
+      ...(merge.newOwners.length > 0 ? { newOwners: merge.newOwners } : {}),
     },
     exportedAt: null,
   };
@@ -292,6 +293,7 @@ export async function editFields(
     target: 'house' | 'row';
     writes: readonly EditWrite[];
     newOwners?: readonly NewOwner[];
+    startOver?: { statusId: string; packageStatusText: string; rowIds: readonly string[] };
   },
 ): Promise<ActionResult | null> {
   return db.transaction('rw', ACTION_TABLES(db), async () => {

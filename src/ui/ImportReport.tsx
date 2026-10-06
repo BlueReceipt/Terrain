@@ -134,6 +134,20 @@ export function ImportReport({
       </label>
 
       <div class="sections">
+        {report.newOwners.length > 0 && (
+          <Section title={text.newOwners} count={report.newOwners.length} help={text.newOwnersHelp}>
+            {() => (
+              <ul class="list">
+                {report.newOwners.map((owner) => (
+                  <li key={owner.row.rowId} class="row-line">
+                    <span class="parcel">{owner.row.parcelId}</span>{' '}
+                    <span>{text.newOwner(owner.previous || strings.noName, owner.row.owner)}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Section>
+        )}
         {report.ownerDetailsChanged.length > 0 && (
           <Section title={text.ownerDetailsChanged} count={report.ownerDetailsChanged.length}>
             {() => (

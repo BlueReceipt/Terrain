@@ -40,6 +40,8 @@ export interface ImportReport {
   updated: number;
   unchanged: number;
   ownerDetailsChanged: RowSummary[];
+  /** Someone else named in the file (Alex, 2026-10-06): the row starts over, the owner before goes to Previous info. */
+  newOwners: { row: RowSummary; previous: string }[];
   conflicts: (Conflict & { row: RowSummary })[];
   duplicates: RowSummary[][];
   missing: RowSummary[];
@@ -165,7 +167,15 @@ export function buildReport(input: {
     added: merge.added.length,
     updated: merge.updated.length,
     unchanged: merge.unchanged.length,
-    ownerDetailsChanged: rows(merge.ownerDetailsChanged),
+    ownerDetailsChanged: rows(
+      merge.ownerDetailsChanged.filter(
+        (rowId) => !merge.newOwners.some((owner) => owner.rowId === rowId),
+      ),
+    ),
+    newOwners: merge.newOwners.flatMap((owner) => {
+      const summary = row(owner.rowId);
+      return summary ? [{ row: summary, previous: owner.previous }] : [];
+    }),
     conflicts: merge.conflicts.flatMap((conflict) => {
       const summary = row(conflict.rowId);
       return summary ? [{ ...conflict, row: summary }] : [];

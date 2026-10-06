@@ -6,6 +6,7 @@ import {
   type FieldChange,
   type FieldsEditedEvent,
   type NewOwner,
+  type StatusFields,
   type NoteAddedEvent,
   type NoteDeletedEvent,
   type TerrainEvent,
@@ -40,6 +41,8 @@ export function planEdit(
     rows: readonly Row[];
     writes: readonly EditWrite[];
     newOwners?: readonly NewOwner[];
+    /** A new owner's rows whose visit was the owner before's: back to this start status. */
+    startOver?: { statusId: string; packageStatusText: string; rowIds: readonly string[] };
   },
 ): Planned<FieldsEditedEvent> | null {
   const byId = new Map(context.rows.map((row) => [row.rowId, row]));
@@ -70,6 +73,21 @@ export function planEdit(
   const newOwners = (context.newOwners ?? [])
     .map((owner) => ({ ...owner, rowIds: owner.rowIds.filter((id) => rowIds.includes(id)) }))
     .filter((owner) => owner.rowIds.length > 0);
+  const previous: Record<string, StatusFields> = {};
+  for (const rowId of context.startOver?.rowIds ?? []) {
+    const row = byId.get(rowId);
+    if (!row || !rowIds.includes(rowId)) continue;
+    const { statusId, packageStatusText, visitDate, origin, touched } = row;
+    previous[rowId] = { statusId, packageStatusText, visitDate, origin, touched };
+  }
+  const startOver =
+    context.startOver && Object.keys(previous).length > 0
+      ? {
+          statusId: context.startOver.statusId,
+          packageStatusText: context.startOver.packageStatusText,
+          previous,
+        }
+      : null;
   const event: FieldsEditedEvent = {
     id: context.eventId,
     campaignId: context.campaignId,
@@ -82,6 +100,7 @@ export function planEdit(
       changes,
       location: null,
       ...(newOwners.length > 0 ? { newOwners } : {}),
+      ...(startOver ? { startOver } : {}),
     },
     exportedAt: null,
   };
