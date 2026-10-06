@@ -32,7 +32,7 @@ import { strings } from './strings.ts';
 import { Swatch } from './Swatch.tsx';
 import { Toast } from './Toast.tsx';
 
-/** The search field: parcel ID, owner, lot number, address; corrected values included. */
+/** The search field: parcel ID, owner, lot number, address and every other cell; corrections too. */
 function SearchBox() {
   const query = useSignal('');
   const loaded = current.value;
@@ -74,6 +74,12 @@ function SearchBox() {
                   <>
                     <span class="parcel">{result.parcelId}</span> {result.name || strings.noName}
                     <span class="muted"> {result.address}</span>
+                    {result.cell && (
+                      <span class="muted">
+                        {' · '}
+                        {result.cell.column}: {result.cell.value}
+                      </span>
+                    )}
                   </>
                 ) : (
                   strings.map.lotResult(result.column, result.value, result.houseKeys.length)

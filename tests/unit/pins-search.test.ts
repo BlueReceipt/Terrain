@@ -138,6 +138,48 @@ describe('search', () => {
   it('waits for two characters', () => {
     expect(search(rows, campaign, 'p')).toEqual([]);
   });
+
+  it('searches every other cell too, saying which column matched', () => {
+    const [phone] = search(rows, campaign, '555-0177');
+    expect(phone).toMatchObject({
+      kind: 'row',
+      rowId: luc.rowId,
+      match: 'cell',
+      cell: { column: 'CELLULAIRE', value: '450 555-0177' },
+    });
+    const [note] = search(rows, campaign, 'terrasse');
+    expect(note).toMatchObject({ kind: 'row', match: 'cell', cell: { column: 'Notes' } });
+    // An owner, a parcel or an address still comes first at equal quality.
+    expect(search(rows, campaign, 'trempette')[0]).toMatchObject({ match: 'owner' });
+  });
+
+  it('finds a column someone added to their own spreadsheet', () => {
+    const custom = { ...campaign, columnOrder: [...campaign.columnOrder, 'Couleur de la porte'] };
+    const painted = rows.map((row) =>
+      row.rowId === alain.rowId
+        ? { ...row, sourceFields: { ...row.sourceFields, 'Couleur de la porte': 'Rouge vif' } }
+        : row,
+    );
+    expect(search(painted, custom, 'rouge')).toEqual([
+      expect.objectContaining({
+        rowId: alain.rowId,
+        cell: { column: 'Couleur de la porte', value: 'Rouge vif' },
+      }),
+    ]);
+  });
+});
+
+describe('search in a real My Maps export (the poutine sample)', () => {
+  const poutine = importInto(parseFixture('public/poutine-autour-du-quebec.kmz'));
+
+  it('finds a designation number, and lists every house of a shared one', () => {
+    const [one] = search(poutine.merge.rows, poutine.campaign, 'P3-001');
+    expect(one).toMatchObject({ kind: 'lot', column: 'Designation', value: 'P3-001' });
+    expect(one?.kind === 'lot' && one.houseKeys).toHaveLength(1);
+    const [shared] = search(poutine.merge.rows, poutine.campaign, 'p1 002');
+    expect(shared).toMatchObject({ kind: 'lot', column: 'designation', value: 'P1-002' });
+    expect(shared?.kind === 'lot' && shared.houseKeys).toHaveLength(2);
+  });
 });
 
 describe('the basemap colors (desaturated)', () => {
