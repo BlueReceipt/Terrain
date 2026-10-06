@@ -101,6 +101,9 @@ test('the public demo draws OpenFreeMap’s map, asking only its own address for
   });
   await expect(page.getByRole('button', { name: /No offline map loaded/ })).toHaveCount(0);
   expect(errors).toEqual([]);
+  // A visitor keeps only what they look at: no campaign's worth of close-up tiles in the background.
+  await page.waitForTimeout(2000);
+  expect(tiles.filter((path) => Number(path.split('/')[2]) >= 9)).toEqual([]);
 });
 
 test('the public demo opens a My Maps map by its link, through its relay', async ({ page }) => {

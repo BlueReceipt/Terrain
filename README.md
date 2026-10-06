@@ -24,7 +24,7 @@ To update Terrain without uploading anything, connect the Worker to your copy of
 
 Terrain only ever talks to its own address. A second, small Worker on routes of that address fetches for it, `relay/worker.js`, and logs or keeps nothing:
 
-- `/geocode`: where houses are, for files without coordinates, from [Adresses Québec](https://www.donneesquebec.ca/recherche/dataset/adresses-quebec) (Gouvernement du Québec, CC BY 4.0). It takes each house's street, town, postal code and province, and refuses anything else.
+- `/geocode`: where houses are, for files without coordinates: in Québec from [Adresses Québec](https://www.donneesquebec.ca/recherche/dataset/adresses-quebec) (Gouvernement du Québec, CC BY 4.0), elsewhere in Canada from Natural Resources Canada's [Geolocation Service](https://geogratis.gc.ca/) (Open Government Licence – Canada), which estimates a civic number's place along its street. It takes each house's street, town, postal code and province, and refuses anything else.
 - `/tiles/…`: the background map's tiles from OpenFreeMap (OpenStreetMap data, free, no key). Offline, the map stays plain under the pins.
 - `/mymaps/…`, on the public demo only: Google doesn't let other sites read a My Maps export, so the relay fetches one map's KMZ export, only for a map shared with *Anyone with the link*.
 
@@ -46,7 +46,7 @@ The addresses with a relay are listed in `src/ui/online.ts`, and **Settings → 
 From the client's Excel, with no My Maps at all:
 
 1. In Terrain: **Import file**, choose the `.xlsx` (or `.csv`). It needs a street and a town column (ADRESSE and MUNICIPALITE), or Latitude and Longitude.
-2. With a connection, Terrain finds each house without coordinates from its address: only its street, town, postal code and province go to Adresses Québec. The **Import report** counts the houses found at their address, those found on their street only (check them at the door with **Use my location**) and those not found, which wait in a list. Then **Open campaign**.
+2. With a connection, Terrain finds each house without coordinates from its address: only its street, town, postal code and province go out, to Adresses Québec, or Natural Resources Canada elsewhere in Canada (those are placed on the street, estimated from the civic number). Addresses outside Canada wait in the list. The **Import report** counts the houses found at their address, those found on their street only (check them at the door with **Use my location**) and those not found, which wait in a list. Then **Open campaign**.
 
 Or from My Maps:
 
@@ -55,13 +55,17 @@ Or from My Maps:
 
 Importing a newer file into the same campaign later keeps your corrections, moved houses, found positions and statuses; the report lists anything the file disagrees with. Rows are one house only when their addresses are the same (street, number and postal code, or the town when there is no postal code); spelling, accents and case don't count.
 
-## 4. Load an offline map
+## 4. The map without signal
+
+On the addresses with a relay, the map draws its streets online (Settings → Online), and while there's a connection Terrain keeps the map around every house on the phone, so it shows with no signal: close up at each house, wider and coarser around. **Settings → Offline map** shows how much is kept: about 50 MB for a campaign of 900 houses, best fetched once on Wi-Fi.
+
+A map file made on the PC covers a whole area in more detail, and comes first when loaded:
 
 1. In Terrain: **Settings → Offline map → Copy campaign area**.
 2. On the PC, in the Terrain folder: `npm run basemap -- ` followed by the area. It downloads that area's map data (tens of megabytes) and writes the file into `basemaps/`.
 3. Copy the file to the phone, then **Settings → Offline map → Load a map file**.
 
-With a connection, the map draws its streets online (Settings → Online); a loaded offline map comes first, and is the one that works without signal. Without either, the pins still show on a plain background.
+Without either, the pins still show on a plain background.
 
 ## 5. At a house
 
@@ -90,7 +94,7 @@ On the old phone, **Back up**. On the new one, install Terrain, then **Restore f
 
 ## Privacy
 
-Landowner names, phones and addresses are personal information (Quebec's Law 25). Terrain keeps them on the phone: no server, no account, no analytics, and it never contacts any other site. On the addresses with a relay, two things go out through it, each with a switch in **Settings → Online**: a house's street, town, postal code and province, to find a house without coordinates (Adresses Québec), and the map area on screen, for the streets (OpenFreeMap). Names, phone numbers, parcel IDs, notes and statuses never leave the phone; an end-to-end test imports a file full of them and fails if any shows up in a request. Otherwise data leaves the phone only when you export it, and where those files go is up to you.
+Landowner names, phones and addresses are personal information (Quebec's Law 25). Terrain keeps them on the phone: no server, no account, no analytics, and it never contacts any other site. On the addresses with a relay, two things go out through it, each with a switch in **Settings → Online**: a house's street, town, postal code and province, to find a house without coordinates (Adresses Québec, or Natural Resources Canada elsewhere in Canada), and map areas, for the streets on screen and the map kept around the houses (OpenFreeMap). Names, phone numbers, parcel IDs, notes and statuses never leave the phone; an end-to-end test imports a file full of them and fails if any shows up in a request. Otherwise data leaves the phone only when you export it, and where those files go is up to you.
 
 ## For development
 

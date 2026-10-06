@@ -38,7 +38,7 @@ export const strings = {
     finding: (n: number) => `Finding ${count(n, 'house', 'houses')} from their address…`,
     progress: (done: number, total: number) =>
       `${done.toLocaleString('en-CA')} of ${total.toLocaleString('en-CA')}`,
-    what: 'Only each house’s street, town, postal code and province go to Adresses Québec. Names, phone numbers, parcel IDs and notes stay on the phone.',
+    what: 'Only each house’s street, town, postal code and province go out: to Adresses Québec, or Natural Resources Canada elsewhere in Canada. Names, phone numbers, parcel IDs and notes stay on the phone.',
     stop: 'Stop looking up',
   },
   failed: {
@@ -119,10 +119,11 @@ export const strings = {
     placedAtAddress: 'Houses found at their address',
     placedOnStreet: 'Houses found on their street only',
     placedOnStreetHelp:
-      'Adresses Québec knows the street, not the civic number. Check each at the door: Use my location puts it right.',
-    placedFrom: 'Positions from addresses: Adresses Québec, Gouvernement du Québec (CC BY 4.0).',
+      'The address service knows the street, not the house (outside Québec, it estimates the place from the civic number). Check each at the door: Use my location puts it right.',
+    placedFrom:
+      'Positions from addresses: Adresses Québec (Gouvernement du Québec, CC BY 4.0) and Natural Resources Canada’s Geolocation Service (Open Government Licence – Canada).',
     lookUpFailed:
-      'Adresses Québec couldn’t be reached. The houses it didn’t find wait with no position: import the file again with a connection to look them up.',
+      'The address service couldn’t be reached. The houses it didn’t find wait with no position: import the file again with a connection to look them up.',
     lookUpStopped:
       'Lookups stopped. The houses not looked up wait with no position: import the file again to look them up.',
     lots: 'Parcels at more than one house',
@@ -171,7 +172,7 @@ export const strings = {
     onStreet: (n: number) => `${count(n, 'house', 'houses')} on the street only`,
     onStreetTitle: 'Houses found on their street only',
     onStreetHelp:
-      'Adresses Québec knows the street, not the civic number. Open one at the door to pin it there.',
+      'The address service knows the street, not the house. Open one at the door to pin it there.',
     chooserTitle: (n: number) => `${String(n)} houses on this spot`,
     chooserHelp:
       'Different addresses on one point, usually a village center. These pins are probably in the wrong place.',
@@ -287,15 +288,21 @@ export const strings = {
     back: 'Map',
     offlineMap: 'Offline map',
     noMap: 'No offline map loaded. Pins still show, on a plain background.',
+    mapKept: (tiles: number) =>
+      `The map around every house is kept for no signal (${count(tiles, 'piece', 'pieces')}).`,
+    mapKeeping: (kept: number, total: number) =>
+      `Keeping the map around every house for no signal… ${kept.toLocaleString('en-CA')} of ${total.toLocaleString('en-CA')}`,
+    mapKeptPart: (kept: number, total: number) =>
+      `Map kept for no signal: ${kept.toLocaleString('en-CA')} of ${total.toLocaleString('en-CA')} pieces. The rest comes with the next connection.`,
     online: 'Online',
     onlineIntro:
       'Names, phone numbers, parcel IDs, notes and statuses never leave the phone. These switches decide what else may go online.',
     lookUpAddresses: 'Find houses from their address',
     lookUpAddressesHelp:
-      'When a file has no coordinates, Terrain asks Adresses Québec (Gouvernement du Québec) where each house is. Only its street, town, postal code and province go online.',
+      'When a file has no coordinates, Terrain asks where each house is: Adresses Québec (Gouvernement du Québec) in Québec, Natural Resources Canada elsewhere in Canada. Only its street, town, postal code and province go online.',
     onlineMap: 'Map from the internet',
     onlineMapHelp:
-      'Streets under the pins from OpenFreeMap while there’s a connection; a loaded offline map comes first. Only the map area on screen goes online.',
+      'Streets under the pins from OpenFreeMap while there’s a connection, and the map around every house kept on the phone for no signal; a loaded offline map comes first. Only map areas go online.',
     mapInfo: (name: string, megabytes: string) => `${name}, ${megabytes} MB`,
     mapZooms: (min: number, max: number) => `Zoom ${String(min)} to ${String(max)}`,
     loadMap: 'Load a map file',

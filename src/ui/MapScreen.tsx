@@ -9,6 +9,7 @@ import { DayLogPanel } from './DayLog.tsx';
 import { ExportPanel } from './ExportPanel.tsx';
 import { basemap, current, openSettings, settings, statuses } from './flow.ts';
 import { HouseCard } from './HouseCard.tsx';
+import { keepCampaignMap } from './keptMap.ts';
 import { hasRelay } from './online.ts';
 import { addressOf, nameOf } from './rowText.ts';
 import {
@@ -250,6 +251,18 @@ export function MapScreen() {
       stopLocating();
     };
   }, []);
+
+  // The campaign's map kept for no signal: again when the houses' area changes or signal comes back.
+  const area = loaded?.campaign.bounds?.join(',');
+  const onlineSwitch = settings.value?.onlineMap;
+  useEffect(() => {
+    void keepCampaignMap();
+    const again = () => void keepCampaignMap();
+    window.addEventListener('online', again);
+    return () => {
+      window.removeEventListener('online', again);
+    };
+  }, [loaded?.campaign.id, area, onlineSwitch]);
 
   if (!loaded) return null;
   // Where Terrain has a relay, the map draws OpenFreeMap's streets while online (switch in Settings).

@@ -1,6 +1,7 @@
 import { AxeBuilder } from '@axe-core/playwright';
 import { expect, test, type Page, type Request } from '@playwright/test';
-import { mapReady, openSettings, pins } from './helpers.ts';
+import { tilesAround } from '../../src/domain/tiles.ts';
+import { mapReady, openSettings, pins, swActive } from './helpers.ts';
 
 // The build, reached as Alex's work copy: a relay address with no demo (src/ui/online.ts).
 const WORK = 'http://landagentfriend.ederer.digital:4173/';
@@ -124,7 +125,7 @@ test('the work copy finds houses from their address, and nothing but the address
   await expect(page.locator('summary', { hasText: 'Houses with no position yet' })).toContainText(
     '1',
   );
-  await expect(page.getByText(/Adresses Québec, Gouvernement du Québec/)).toBeVisible();
+  await expect(page.getByText(/Adresses Québec \(Gouvernement du Québec/)).toBeVisible();
   expect(await problems(page)).toEqual([]);
   await page.getByRole('button', { name: 'Open campaign' }).click();
   await mapReady(page);
@@ -168,7 +169,7 @@ test('without a connection to Adresses Québec, the houses wait; with both switc
   const requests = everyRequest(page);
   await page.goto(WORK);
   await importClientFile(page);
-  await expect(page.getByText(/Adresses Québec couldn’t be reached/)).toBeVisible();
+  await expect(page.getByText(/The address service couldn’t be reached/)).toBeVisible();
   await expect(page.locator('summary', { hasText: 'Houses with no position yet' })).toContainText(
     '3',
   );
@@ -205,4 +206,42 @@ test('without a connection to Adresses Québec, the houses wait; with both switc
   expect(asked).toHaveLength(1);
   const later = requests.slice(before).map(({ url }) => new URL(url).pathname);
   expect(later.filter((path) => path === '/geocode' || path.startsWith('/tiles/'))).toEqual([]);
+});
+
+test('the work copy keeps the map around its houses for no signal, and draws it from there offline', async ({
+  page,
+}) => {
+  await relayFinds(page);
+  await page.goto(WORK);
+  await swActive(page);
+  await importClientFile(page);
+  await page.getByRole('button', { name: 'Open campaign' }).click();
+  await mapReady(page);
+
+  // The two houses found: Snack-bar St-Jean's street in Québec, the chemin du Lac.
+  const expected = tilesAround([
+    { lat: 46.8113, lng: -71.2176 },
+    { lat: 45.6307, lng: -72.9567 },
+  ]).length;
+  const kept = () =>
+    page.evaluate(async () => (await (await caches.open('terrain-tiles')).keys()).length);
+  await expect.poll(kept, { timeout: 20_000 }).toBeGreaterThanOrEqual(expected);
+  await openSettings(page);
+  await expect(
+    page.getByText(
+      `The map around every house is kept for no signal (${String(expected)} pieces).`,
+    ),
+  ).toBeVisible();
+
+  // No signal: the map draws the tiles the phone kept.
+  await page.context().unroute('**/tiles/**');
+  await page.context().setOffline(true);
+  const fromThePhone: string[] = [];
+  page.on('response', (response) => {
+    if (new URL(response.url()).pathname.startsWith('/tiles/') && response.fromServiceWorker())
+      fromThePhone.push(response.url());
+  });
+  await page.reload();
+  await mapReady(page);
+  await expect.poll(() => fromThePhone.length).toBeGreaterThan(0);
 });

@@ -256,4 +256,86 @@ describe('the relay’s address lookups', () => {
     google(new Response('busy', { status: 503 }));
     expect(await errorOf(await lookUp({ addresses: [POUTINE] }))).toBe('unreachable');
   });
+
+  const FEDERAL = 'https://www.geolocator.api.geo.ca/geolocation/en/locate';
+  const OTTAWA = {
+    street: '111 Wellington Street',
+    town: 'Ottawa',
+    postalCode: '',
+    province: 'ON',
+  };
+  // Natural Resources Canada's answer: a number estimated along a street, a place, a crossing.
+  const FEDERAL_ANSWER = [
+    {
+      title: '111 Wellington Street, City Of Ottawa, Ontario',
+      qualifier: 'INTERPOLATED_POSITION',
+      type: 'ca.gc.nrcan.geoloc.data.model.Street',
+      geometry: { type: 'Point', coordinates: [-75.69876, 45.42312] },
+    },
+    {
+      title: 'Guelph, Wellington, Ontario (City)',
+      qualifier: 'LOCATION',
+      type: 'ca.gc.nrcan.geoloc.data.model.Geoname',
+      geometry: { type: 'Point', coordinates: [-80.23165, 43.534] },
+    },
+    {
+      title: 'Wellington Street & Bank Street, City Of Ottawa, Ontario',
+      qualifier: 'LOCATION',
+      type: 'ca.gc.nrcan.geoloc.data.model.Intersection',
+      geometry: { type: 'Point', coordinates: [-75.7, 45.42] },
+    },
+  ];
+
+  /** Both address services, as the relay sees them: a fresh answer per question. */
+  function services(answer: (url: string, call: number) => Response | Error) {
+    let call = 0;
+    const urlOf = (input: string | URL | Request) =>
+      typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+    const spy = vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
+      const result = answer(urlOf(input), call++);
+      return result instanceof Error ? Promise.reject(result) : Promise.resolve(result);
+    });
+    return { asked: () => spy.mock.calls.map(([input]) => urlOf(input)) };
+  }
+
+  it('asks Natural Resources Canada for an address elsewhere in Canada: its streets, estimated', async () => {
+    const calls = services(() => Response.json(FEDERAL_ANSWER));
+    const response = await lookUp({ addresses: [OTTAWA] });
+    expect(await response.json()).toEqual({
+      results: [
+        [
+          {
+            lat: 45.42312,
+            lng: -75.69876,
+            number: '111',
+            street: 'Wellington Street',
+            town: 'Ottawa',
+            postalCode: '',
+            estimated: true,
+          },
+        ],
+      ],
+    });
+    const asked = calls.asked().map((url) => new URL(url));
+    expect(asked.map((url) => `${url.origin}${url.pathname}`)).toEqual([FEDERAL]);
+    expect(asked[0]?.searchParams.get('q')).toBe('111 Wellington Street, Ottawa, ON');
+  });
+
+  it('tries Natural Resources Canada for an address with no province that Adresses Québec doesn’t know', async () => {
+    const calls = services((url) =>
+      Response.json(url.startsWith(FEDERAL) ? FEDERAL_ANSWER : { candidates: [] }),
+    );
+    const response = await lookUp({ addresses: [{ ...OTTAWA, province: '' }] });
+    expect(((await response.json()) as { results: unknown[][] }).results[0]).toHaveLength(1);
+    expect(calls.asked().map((url) => url.startsWith(FEDERAL))).toEqual([false, true]);
+  });
+
+  it('asks again once after a service’s passing hiccup', async () => {
+    const calls = services((_, call) =>
+      call === 0 ? new TypeError('connection reset') : Response.json(ANSWER),
+    );
+    const response = await lookUp({ addresses: [POUTINE] });
+    expect(response.status).toBe(200);
+    expect(calls.asked()).toHaveLength(2);
+  });
 });

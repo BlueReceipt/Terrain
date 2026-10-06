@@ -13,7 +13,7 @@ export interface AddressQuery {
   province: string;
 }
 
-/** One answer of the address service (Adresses Québec), as the relay passes it on. */
+/** One answer of an address service, as the relay passes it on. */
 export interface AddressCandidate {
   lat: number;
   lng: number;
@@ -22,6 +22,11 @@ export interface AddressCandidate {
   street: string;
   town: string;
   postalCode: string;
+  /**
+   * The service estimated the place along the street from the civic number (Natural Resources
+   * Canada, outside Québec) instead of knowing the house: on the street, to check at the door.
+   */
+  estimated?: boolean;
 }
 
 /** At the house's civic address, or only somewhere on its street. */
@@ -41,10 +46,18 @@ export function addressOf(row: Row, roles: ColumnRoles): AddressQuery | null {
   return { street, town, postalCode: read('postalCode').trim(), province: read('province').trim() };
 }
 
-/** Adresses Québec knows Québec only; a row says nothing of its province, or says Québec. */
-function inQuebec(province: string): boolean {
+// Canada's provinces and territories, by code or name, English or French (Alex, 2026-10-05: Québec
+// from Adresses Québec, the rest of Canada from Natural Resources Canada; elsewhere, none).
+const CANADA = new Set(
+  'qc quebec pq que on ontario nb newbrunswick nouveaubrunswick ns novascotia nouvelleecosse pe pei princeedwardisland ileduprinceedouard nl newfoundland newfoundlandandlabrador terreneuve terreneuveetlabrador mb manitoba sk saskatchewan ab alberta bc britishcolumbia colombiebritannique yt yukon nt northwestterritories territoiresdunordouest nu nunavut'.split(
+    ' ',
+  ),
+);
+
+/** The address services know Canada; a row says nothing of its province, or names one of Canada's. */
+function inCanada(province: string): boolean {
   const key = fold(province).replace(/[^a-z]/g, '');
-  return key === '' || ['qc', 'quebec', 'pq', 'que'].includes(key);
+  return key === '' || CANADA.has(key);
 }
 
 /** One key per address, so a street of twin rows is looked up once. */
@@ -54,7 +67,7 @@ export function addressKey(query: AddressQuery): string {
     .join('|');
 }
 
-/** The houses with no position, each with the address to look up: one per house, Québec only. */
+/** The houses with no position, each with the address to look up: one per house, in Canada. */
 export function housesToFind(
   rows: readonly Row[],
   houses: readonly House[],
@@ -68,7 +81,7 @@ export function housesToFind(
       const row = byId.get(rowId);
       const query = row ? addressOf(row, roles) : null;
       if (!query) continue;
-      if (inQuebec(query.province)) found.push({ houseKey: house.houseKey, query });
+      if (inCanada(query.province)) found.push({ houseKey: house.houseKey, query });
       break;
     }
   }
@@ -142,10 +155,72 @@ function civicNumber(street: string): string {
   return /^\s*(\d+)/.exec(street)?.[1] ?? '';
 }
 
+// Street types, French and English, each spelling to one: "ch." is "chemin", "Dr" is "drive".
+const TYPES = new Map<string, string>(
+  Object.entries({
+    rue: ['r'],
+    chemin: ['ch'],
+    rang: ['rg'],
+    route: ['rte'],
+    boulevard: ['boul', 'bd', 'blvd'],
+    avenue: ['av', 'ave'],
+    montee: ['mtee'],
+    place: ['pl'],
+    cote: [],
+    croissant: [],
+    impasse: [],
+    allee: [],
+    terrasse: [],
+    promenade: [],
+    street: [],
+    road: ['rd'],
+    drive: ['dr'],
+    crescent: ['cres'],
+    court: ['crt', 'ct'],
+    lane: ['ln'],
+    way: [],
+    highway: ['hwy'],
+    line: [],
+    concession: ['conc'],
+    sideroad: ['sdrd'],
+    trail: ['trl'],
+    parkway: ['pkwy'],
+    terrace: ['terr'],
+    circle: ['cir'],
+    square: ['sq'],
+  }).flatMap(([type, short]) => [[type, type] as const, ...short.map((s) => [s, type] as const)]),
+);
+const SMALL = new Set(['de', 'du', 'des', 'la', 'le', 'les', 'l', 'd', 'et', 'of', 'the']);
+
+/** A street's type and the words of its name: "780, rue St-Jean" is rue and "st jean". */
+function streetParts(text: string): { type: string | null; name: string[] } {
+  const tokens = fold(text)
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean);
+  let type: string | null = null;
+  const name: string[] = [];
+  tokens.forEach((token, i) => {
+    // "St" ends a name as Street ("Main St") and starts one as Saint ("St-Jean", "St Clair Ave").
+    const kind = token === 'st' && i > 0 && i === tokens.length - 1 ? 'street' : TYPES.get(token);
+    if (kind && type === null) type = kind;
+    else if (!SMALL.has(token)) name.push(SAME.get(token) ?? token);
+  });
+  return { type, name };
+}
+
+/**
+ * The service's street is the file's: every word of its name is in the file's, and both name the
+ * same type when both name one ("Rideau Terrace" is not "Rideau Street", "rue Saint-Jean" is
+ * "Saint-Jean").
+ */
 function sameStreet(query: AddressQuery, candidate: AddressCandidate): boolean {
-  const asked = words(query.street.replace(/^\s*\d+[a-z]?\b[\s,-]*/i, ''));
-  const named = words(candidate.street);
-  return named.length > 0 && named.every((word) => asked.includes(word));
+  const asked = streetParts(query.street.replace(/^\s*\d+[a-z]?\b[\s,-]*/i, ''));
+  const named = streetParts(candidate.street);
+  return (
+    named.name.length > 0 &&
+    named.name.every((word) => asked.name.includes(word)) &&
+    (asked.type === null || named.type === null || asked.type === named.type)
+  );
 }
 
 function sameTownOrPostalCode(query: AddressQuery, candidate: AddressCandidate): boolean {
@@ -160,7 +235,8 @@ function sameTownOrPostalCode(query: AddressQuery, candidate: AddressCandidate):
 /**
  * Where the service's answers put the house: the candidate at its civic number, else its street,
  * always in its own town (or at its postal code). Null when no answer is that house's street: a
- * "rang Double" in another town is not the one.
+ * "rang Double" in another town is not the one. A place estimated along the street from the
+ * number is the best guess on the street, never the house itself.
  */
 export function placementFor(
   query: AddressQuery,
@@ -170,8 +246,14 @@ export function placementFor(
   const fitting = candidates.filter(
     (candidate) => sameStreet(query, candidate) && sameTownOrPostalCode(query, candidate),
   );
-  const atAddress = number ? fitting.find((candidate) => candidate.number === number) : undefined;
-  const onStreet = fitting.find((candidate) => !candidate.number) ?? fitting[0];
+  const numbered = (estimated: boolean) =>
+    number
+      ? fitting.find(
+          (candidate) => candidate.number === number && Boolean(candidate.estimated) === estimated,
+        )
+      : undefined;
+  const atAddress = numbered(false);
+  const onStreet = numbered(true) ?? fitting.find((candidate) => !candidate.number) ?? fitting[0];
   const chosen = atAddress ?? onStreet;
   if (!chosen) return null;
   return {

@@ -70,6 +70,28 @@ describe('where an address puts a house', () => {
     ).toBe('address');
   });
 
+  it('puts a house outside Québec where the federal service estimates it: on the street', () => {
+    const estimated = { ...candidate('111', 'Wellington Street', 'Ottawa'), estimated: true };
+    const west = {
+      ...candidate('', 'Wellington Street West', 'Ottawa', '', 45.4),
+      estimated: true,
+    };
+    expect(
+      placementFor(query('111 Wellington St.', 'Ottawa', '', 'ON'), [west, estimated]),
+    ).toEqual({ position: { lat: 46.8113, lng: -71.2176 }, precision: 'street' });
+  });
+
+  it('tells street types apart in English and French, and lets a file leave the type out', () => {
+    const terrace = { ...candidate('50', 'Rideau Terrace', 'Ottawa'), estimated: true };
+    expect(placementFor(query('50 Rideau St', 'Ottawa', '', 'ON'), [terrace])).toBeNull();
+    const maple = candidate('', 'Maple Drive', 'Kanata');
+    expect(placementFor(query('12 Maple Dr', 'Kanata', '', 'ON'), [maple])?.precision).toBe(
+      'street',
+    );
+    expect(placementFor(query('780 Saint-Jean', 'Québec'), [house])?.precision).toBe('address');
+    expect(placementFor(query('780 av. Saint-Jean', 'Québec'), [house])).toBeNull();
+  });
+
   it('keys an address the same however it is written', () => {
     expect(addressKey(query('780, rue Saint-Jean', 'Québec', 'G1R 1P8'))).toBe(
       addressKey(query('780 Rue St-Jean', 'QUÉBEC', 'G1R 1P8')),
@@ -103,17 +125,19 @@ describe('houses found from their addresses', () => {
         ],
         ['P1-003', 'Frites Ontario', '1 Main Street', 'Ottawa', 'ON', '', '613 555-0103'],
         ['P1-004', 'Sans adresse', '', '', 'QC', '', '450 555-0104'],
+        ['P1-005', 'Poutine du Vermont', '1 Church St', 'Burlington', 'VT', '', '802 555-0105'],
       ],
     }),
     'cantines.xlsx',
   );
   const plan = importInto(parsed);
 
-  it('looks up each house without a position, in Québec, by its address only', () => {
+  it('looks up each house without a position, in Canada, by its address only', () => {
     const asked = housesToFind(plan.merge.rows, plan.merge.houses, plan.campaign.roles);
     expect(asked.map((house) => house.query)).toEqual([
       query('780, rue Saint-Jean', 'Québec', 'G1R 1P8'),
       query('12, chemin du Lac', 'Saint-Hyacinthe'),
+      query('1 Main Street', 'Ottawa', '', 'ON'),
     ]);
   });
 
@@ -129,13 +153,19 @@ describe('houses found from their addresses', () => {
         [lac?.houseKey ?? '', { position: { lat: 45.6307, lng: -72.9567 }, precision: 'street' }],
       ] as const),
     );
-    expect(placed.merge.rows.map((row) => row.placed)).toEqual(['address', 'street', null, null]);
+    expect(placed.merge.rows.map((row) => row.placed)).toEqual([
+      'address',
+      'street',
+      null,
+      null,
+      null,
+    ]);
     expect(placed.merge.rows[0]?.importedPosition).toEqual({ lat: 46.8113, lng: -71.2176 });
     expect(placed.report.placedAtAddress).toBe(1);
     expect(placed.report.placedOnStreet.map((house) => house.address)).toEqual([
       '12, chemin du Lac',
     ]);
-    expect(placed.report.housesWithoutPosition).toHaveLength(2);
+    expect(placed.report.housesWithoutPosition).toHaveLength(3);
     expect(placed.campaign.bounds).toEqual([-72.9567, 45.6307, -71.2176, 46.8113]);
   });
 

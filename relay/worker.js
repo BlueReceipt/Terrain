@@ -4,9 +4,10 @@
 //   shared with "Anyone with the link". Google doesn't let other sites read the export themselves.
 // - /tiles/<z>/<x>/<y>.pbf: the background map's tiles from OpenFreeMap (OpenStreetMap data), so
 //   the map shows streets while it's online. Offline, the map stays plain under the pins.
-// - /geocode: where houses are, from Adresses Québec (Gouvernement du Québec), for files without
-//   coordinates. It takes a house's street, town, postal code and province, and refuses anything
-//   else: no name, phone number, parcel ID or note ever passes through here.
+// - /geocode: where houses are, for files without coordinates: in Québec from Adresses Québec
+//   (Gouvernement du Québec), elsewhere in Canada from Natural Resources Canada's Geolocation
+//   Service. It takes a house's street, town, postal code and province, and refuses anything else:
+//   no name, phone number, parcel ID or note ever passes through here.
 // Nothing is logged or stored. It needs no packages and no settings; relay/wrangler.jsonc publishes it.
 
 const MAP_ID = /^[\w-]{10,128}$/;
@@ -19,6 +20,13 @@ const MAX_ZOOM = 14;
 
 const ADRESSES_QUEBEC =
   'https://servicescarto.mrnf.gouv.qc.ca/pes/rest/services/Territoire/Adresse_Geocodage/GeocodeServer/findAddressCandidates';
+const GEOLOCATOR = 'https://www.geolocator.api.geo.ca/geolocation/en/locate';
+// Canada's provinces and territories other than Québec, by code or name, English or French.
+const ELSEWHERE_IN_CANADA = new Set(
+  'on ontario nb newbrunswick nouveaubrunswick ns novascotia nouvelleecosse pe pei princeedwardisland ileduprinceedouard nl newfoundland newfoundlandandlabrador terreneuve terreneuveetlabrador mb manitoba sk saskatchewan ab alberta bc britishcolumbia colombiebritannique yt yukon nt northwestterritories territoiresdunordouest nu nunavut'.split(
+    ' ',
+  ),
+);
 /** All a lookup may carry: the house's address. */
 const ADDRESS_FIELDS = ['street', 'town', 'postalCode', 'province'];
 const MAX_ADDRESSES = 25;
@@ -138,7 +146,7 @@ async function tile({ z, x, y }) {
 
 /**
  * @typedef {{ street: string, town: string, postalCode: string, province: string }} Address
- * @typedef {{ lat: number, lng: number, number: string, street: string, town: string, postalCode: string }} Candidate
+ * @typedef {{ lat: number, lng: number, number: string, street: string, town: string, postalCode: string, estimated?: boolean }} Candidate
  */
 
 /**
@@ -162,11 +170,82 @@ function addressIn(value) {
 }
 
 /**
- * Adresses Québec's answers for one address: houses at a civic number, and streets.
+ * Natural Resources Canada's answers for an address outside Québec: its streets, and a civic
+ * number's place estimated along the street ("estimated"); places, postal codes and crossings not.
+ * @param {Address} address
+ * @returns {Promise<Candidate[]>}
+ */
+async function federalCandidates(address) {
+  const query = new URLSearchParams({
+    q: [address.street, address.town, address.province, address.postalCode]
+      .filter(Boolean)
+      .join(', '),
+  });
+  const answer = await fetch(`${GEOLOCATOR}?${query.toString()}`);
+  if (!answer.ok) throw new Error('unreachable');
+  const found = /** @type {unknown} */ (await answer.json());
+  if (!Array.isArray(found)) throw new Error('unreachable');
+  return found.flatMap((/** @type {Record<string, unknown>} */ item) => {
+    const geometry = /** @type {{ type?: string, coordinates?: unknown } | undefined} */ (
+      item.geometry
+    );
+    const [lng, lat] = Array.isArray(geometry?.coordinates) ? geometry.coordinates : [];
+    if (
+      !String(item.type).endsWith('.Street') ||
+      typeof lng !== 'number' ||
+      typeof lat !== 'number'
+    )
+      return [];
+    // "111 Wellington Street, City Of Ottawa, Ontario"
+    const [named = '', place = ''] = String(item.title ?? '')
+      .split(',')
+      .map((part) => part.trim());
+    const civic = /^(\d+)\s+(.+)$/.exec(named);
+    const atNumber = item.qualifier === 'INTERPOLATED_POSITION' && civic;
+    return [
+      {
+        lat,
+        lng,
+        number: atNumber ? (civic[1] ?? '') : '',
+        street: civic ? (civic[2] ?? '') : named,
+        town: place.replace(
+          /^(city|town|township|village|municipality|county|district|region) of\s+/i,
+          '',
+        ),
+        postalCode: '',
+        estimated: true,
+      },
+    ];
+  });
+}
+
+/** @param {string} province */
+const provinceKey = (province) =>
+  province
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z]/g, '');
+
+/**
+ * Where an address is looked up: Adresses Québec in Québec; Natural Resources Canada elsewhere in
+ * Canada, and for an address without a province that Adresses Québec doesn't know.
  * @param {Address} address
  * @returns {Promise<Candidate[]>}
  */
 async function candidatesFor(address) {
+  const province = provinceKey(address.province);
+  if (ELSEWHERE_IN_CANADA.has(province)) return federalCandidates(address);
+  const inQuebec = await quebecCandidates(address);
+  return inQuebec.length === 0 && province === '' ? federalCandidates(address) : inQuebec;
+}
+
+/**
+ * Adresses Québec's answers for one address: houses at a civic number, and streets.
+ * @param {Address} address
+ * @returns {Promise<Candidate[]>}
+ */
+async function quebecCandidates(address) {
   const area = [address.province, address.postalCode].filter(Boolean).join(' ');
   const query = new URLSearchParams({
     SingleLine: [address.street, address.town, area].filter(Boolean).join(', '),
@@ -225,7 +304,11 @@ async function geocode(request) {
   try {
     for (let start = 0; start < addresses.length; start += AT_ONCE) {
       const group = /** @type {Address[]} */ (addresses.slice(start, start + AT_ONCE));
-      results.push(...(await Promise.all(group.map(candidatesFor))));
+      // A service's passing hiccup is asked again once before the lookup gives up.
+      const answers = group.map((address) =>
+        candidatesFor(address).catch(() => candidatesFor(address)),
+      );
+      results.push(...(await Promise.all(answers)));
     }
   } catch {
     return problem(502, 'unreachable');

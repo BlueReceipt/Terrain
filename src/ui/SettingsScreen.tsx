@@ -13,6 +13,7 @@ import {
   unloadBasemap,
 } from './flow.ts';
 import { RestoreButton } from './ImportButton.tsx';
+import { keptMap } from './keptMap.ts';
 import {
   AboutSection,
   CallOutcomesSection,
@@ -31,6 +32,7 @@ import { strings } from './strings.ts';
 function OfflineMap() {
   const copied = useSignal<'yes' | 'failed' | null>(null);
   const map = basemap.value;
+  const kept = keptMap.value;
   const state = basemapState.value;
   const area = campaignArea(current.value?.campaign.bounds ?? null);
   return (
@@ -41,6 +43,14 @@ function OfflineMap() {
           {strings.settings.mapInfo(map.info.name, (map.info.size / 1_048_576).toFixed(1))}
           <br />
           <span class="muted">{strings.settings.mapZooms(map.info.minZoom, map.info.maxZoom)}</span>
+        </p>
+      ) : kept ? (
+        <p class="muted" role="status">
+          {kept.kept >= kept.total
+            ? strings.settings.mapKept(kept.total)
+            : kept.saving
+              ? strings.settings.mapKeeping(kept.kept, kept.total)
+              : strings.settings.mapKeptPart(kept.kept, kept.total)}
         </p>
       ) : (
         <p class="muted">{strings.settings.noMap}</p>
