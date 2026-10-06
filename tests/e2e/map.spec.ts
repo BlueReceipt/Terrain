@@ -143,7 +143,7 @@ test('loads an offline map file, then draws it offline with French labels', asyn
   ).toBeVisible();
 });
 
-test('searches parcel IDs, owners and lot numbers', async ({ page }) => {
+test('searches parcel IDs, owners, lot numbers and every other cell', async ({ page }) => {
   await offlineAfterFirstLoad(page);
   await openCases(page);
   const searchField = page.getByRole('searchbox', { name: 'Search parcel, owner, lot or address' });
@@ -160,6 +160,17 @@ test('searches parcel IDs, owners and lot numbers', async ({ page }) => {
   await expect(
     page.getByRole('region', { name: 'NUM_LOT 1 234 500' }).locator('.result'),
   ).toHaveCount(2);
+
+  // A match in any other column names it; the result wraps across the bar, nothing scrolls sideways.
+  await searchField.fill('555-0177');
+  await expect(results.getByRole('button', { name: /CELLULAIRE: 450 555-0177$/ })).toBeVisible();
+  const sizes = await results.evaluate((list) => ({
+    list: list.getBoundingClientRect().width,
+    field: document.querySelector('.search-input')?.getBoundingClientRect().width ?? 0,
+    overflow: list.scrollWidth - list.clientWidth,
+  }));
+  expect(sizes.list).toBeGreaterThan(sizes.field);
+  expect(sizes.overflow).toBe(0);
 });
 
 test('filters houses by status, and lists the houses with no position yet', async ({ page }) => {

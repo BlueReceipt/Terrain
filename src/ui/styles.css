@@ -147,6 +147,11 @@ body {
   margin: 0;
 }
 
+/* In Settings, the open box takes the whole row under Import file. */
+.settings-actions > .link-form {
+  flex-basis: 100%;
+}
+
 /* Import screens and the campaign screen. */
 .screen {
   display: flex;
@@ -388,7 +393,6 @@ select {
 }
 
 .search {
-  position: relative;
   flex: 1;
   min-width: 0;
 }
@@ -411,16 +415,18 @@ select {
   list-style: none;
 }
 
+/* The results take the whole bar's width, under its buttons too: a result can name a column. */
 .search-results {
   position: absolute;
-  top: calc(var(--touch) + 4px);
-  right: 0;
-  left: 0;
+  top: calc(100% - 4px);
+  right: 12px;
+  left: 12px;
   max-height: 60vh;
   overflow-y: auto;
   border: 2px solid var(--ink);
   border-radius: 8px;
   background: var(--sheet);
+  overflow-wrap: anywhere;
 }
 
 .search-results > li.muted {

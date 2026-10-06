@@ -71,7 +71,8 @@ function SearchBox() {
                 }}
               >
                 {result.kind === 'row' ? (
-                  <>
+                  // One run of text that wraps, not a column per part.
+                  <span class="grow">
                     <span class="parcel">{result.parcelId}</span> {result.name || strings.noName}
                     <span class="muted"> {result.address}</span>
                     {result.cell && (
@@ -80,7 +81,7 @@ function SearchBox() {
                         {result.cell.column}: {result.cell.value}
                       </span>
                     )}
-                  </>
+                  </span>
                 ) : (
                   strings.map.lotResult(result.column, result.value, result.houseKeys.length)
                 )}

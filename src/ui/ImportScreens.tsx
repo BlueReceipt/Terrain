@@ -3,6 +3,7 @@ import type { ImportErrorCode } from '../domain/errors.ts';
 import type { ColumnRoles, FieldRole, ParsedFile } from '../domain/types.ts';
 import type { MyMapsProblem } from './demo.ts';
 import {
+  backToLinks,
   confirmMapping,
   current,
   leaveImport,
@@ -40,8 +41,8 @@ export function Failed({ reason }: { reason: FailedReason }) {
         {message}
       </p>
       <div class="actions">
-        {link && !current.value && (
-          <button type="button" class="button primary" onClick={leaveImport}>
+        {link && (
+          <button type="button" class="button primary" onClick={backToLinks}>
             {strings.failed.anotherLink}
           </button>
         )}

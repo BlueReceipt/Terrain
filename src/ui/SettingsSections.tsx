@@ -17,8 +17,10 @@ import {
   type LotBehavior,
 } from '../domain/statuses.ts';
 import type { ColumnGroup, Status } from '../domain/types.ts';
+import { isPublicDemo } from './demo.ts';
 import { current, settings, statuses } from './flow.ts';
 import { ImportButton } from './ImportButton.tsx';
+import { MyMapsLink } from './MyMapsLink.tsx';
 import {
   campaigns,
   editingStatus,
@@ -38,7 +40,7 @@ import { Swatch } from './Swatch.tsx';
 
 const words = strings.settings;
 
-/** Campaign: rename, its summary, import into it, switch to another, delete it. */
+/** Campaign: rename, its summary, import into it (on the demo, a My Maps link too), switch, delete. */
 export function CampaignSection() {
   const loaded = current.value;
   const name = useSignal(loaded?.campaign.name ?? '');
@@ -80,6 +82,7 @@ export function CampaignSection() {
       </ul>
       <div class="settings-actions">
         <ImportButton label={strings.campaign.importFile} primary={false} />
+        {isPublicDemo(location.hostname) && <MyMapsLink />}
       </div>
       {others.length > 0 && (
         <>

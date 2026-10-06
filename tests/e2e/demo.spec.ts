@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { AxeBuilder } from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
-import { FIXTURES, mapReady, pins, swActive } from './helpers.ts';
+import { FIXTURES, mapReady, openSettings, pins, swActive } from './helpers.ts';
 
 async function problems(page: Page): Promise<string[]> {
   const results = await new AxeBuilder({ page })
@@ -99,6 +99,34 @@ test('the public demo explains a map that isn’t shared, and lets you try anoth
   await expect(page.getByRole('alert')).toHaveText(/Anyone with the link can view/);
   await page.getByRole('button', { name: 'Try another link' }).click();
   await expect(page.getByRole('button', { name: 'Open a My Maps link' })).toBeVisible();
+});
+
+test('with a campaign open, Settings opens a My Maps link, and a failed one comes back there', async ({
+  page,
+}) => {
+  await page.goto(DEMO);
+  await page.getByRole('button', { name: 'Try the poutine sample' }).click();
+  await openMapIn(page);
+  await openSettings(page);
+
+  await relayAnswers(page, 'not-shared');
+  await page.getByRole('button', { name: 'Open a My Maps link' }).click();
+  expect(await problems(page)).toEqual([]);
+  const link = page.getByRole('textbox', { name: 'My Maps link' });
+  await link.fill(`https://www.google.com/maps/d/viewer?mid=${ID}`);
+  await page.getByRole('button', { name: 'Open the map' }).click();
+  await expect(page.getByRole('heading', { name: 'This map can’t be opened' })).toBeVisible();
+  await page.getByRole('button', { name: 'Try another link' }).click();
+  await expect(page.getByRole('heading', { name: 'Settings', level: 1 })).toBeVisible();
+
+  await page.context().unrouteAll();
+  const asked = await relayAnswers(page, 'map');
+  await page.getByRole('button', { name: 'Open a My Maps link' }).click();
+  await link.fill(`https://www.google.com/maps/d/viewer?mid=${ID}`);
+  await page.getByRole('button', { name: 'Open the map' }).click();
+  await page.getByRole('button', { name: 'Continue' }).click();
+  await expect(page.getByRole('heading', { name: 'Import report' })).toBeVisible();
+  expect(asked).toEqual([`/mymaps/${ID}`]);
 });
 
 test('the public demo follows a network-link file to its map', async ({ page }) => {

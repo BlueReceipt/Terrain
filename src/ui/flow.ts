@@ -153,6 +153,11 @@ export function leaveImport(): void {
   screen.value = current.value ? { name: 'campaign' } : { name: 'home' };
 }
 
+/** After a My Maps link fails: back where links are opened, the first screen or Settings. */
+export function backToLinks(): void {
+  screen.value = current.value ? { name: 'settings' } : { name: 'home' };
+}
+
 /** Roles found in the file first; the campaign's earlier choices fill gaps when those columns exist. */
 function rolesFor(parsed: ParsedFile): ColumnRoles {
   const roles: ColumnRoles = { ...parsed.roles };
