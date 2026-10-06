@@ -1,6 +1,6 @@
 import type { Placement } from './addresses.ts';
 import { suggestStatus } from './color.ts';
-import { APP_ROLES, defaultColumnGroups } from './columns.ts';
+import { APP_ROLES, defaultColumnGroup, defaultColumnGroups } from './columns.ts';
 import { mergeImport, type MergeResult } from './merge.ts';
 import { splitParcelIds } from './parcel.ts';
 import { buildReport, type ImportReport } from './report.ts';
@@ -135,7 +135,8 @@ export function planImport(input: PlanInput): ImportPlan {
     ? defaultColumnGroups(parsed.columns, roles)
     : { ...base.columnGroups };
   for (const column of parsed.columns) {
-    if (!(column in columnGroups) && !appColumns.has(column)) columnGroups[column] = 'person';
+    if (!(column in columnGroups) && !appColumns.has(column))
+      columnGroups[column] = defaultColumnGroup(column);
   }
 
   const campaign: Campaign = {

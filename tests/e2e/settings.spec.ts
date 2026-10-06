@@ -51,6 +51,21 @@ test('a status edited in Settings is on the rail and in Package status', async (
   });
 });
 
+test('About names who made Terrain, its license and code, and where to write', async ({ page }) => {
+  await openSettings(page);
+  const about = page.getByRole('region', { name: 'About' });
+  await expect(about).toContainText('Designed by Alex Ederer, with help from Claude by Anthropic.');
+  await expect(about).toContainText('Open source, under the MIT License:');
+  await expect(about.getByRole('link', { name: 'github.com/BlueReceipt/Terrain' })).toHaveAttribute(
+    'href',
+    'https://github.com/BlueReceipt/Terrain',
+  );
+  await expect(about.getByRole('link', { name: 'alex@ederer.digital' })).toHaveAttribute(
+    'href',
+    'mailto:alex@ederer.digital',
+  );
+});
+
 test('the date format and the call outcomes follow Settings', async ({ page }) => {
   await openSettings(page);
   await page.getByRole('radio', { name: '2026-09-26 14:32' }).check();

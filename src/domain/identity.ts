@@ -1,5 +1,5 @@
 import { addressParts, sameAddress, type AddressParts } from './address.ts';
-import { headerKey, type MyMapsColumn } from './columns.ts';
+import { isLotNumberColumn, type MyMapsColumn } from './columns.ts';
 import { lotKeysOf } from './parcel.ts';
 import { compactKey, fold } from './text.ts';
 import type { ColumnRoles, FieldRole, LatLng, Row } from './types.ts';
@@ -70,15 +70,9 @@ export function fingerprintOf(parcelIdRaw: string, imported: FieldReader): strin
   return [compactKey(parcelIdRaw), fold(displayName(imported)), fold(imported('street'))].join('|');
 }
 
-/**
- * The columns holding a row's lot number: NUM_LOT, or a designation column as the poutine sample
- * calls it. Anc_lot, the former lot, isn't one.
- */
+/** The columns holding a row's lot number, in file order. */
 export function lotNumberColumns(columnOrder: readonly string[]): string[] {
-  return columnOrder.filter((column) => {
-    const key = headerKey(column);
-    return key === 'numlot' || key.includes('designation');
-  });
+  return columnOrder.filter(isLotNumberColumn);
 }
 
 /**

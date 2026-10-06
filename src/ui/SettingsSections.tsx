@@ -659,13 +659,25 @@ export function StorageSection() {
   );
 }
 
-/** About: version and build date. */
+const SOURCE_CODE = 'https://github.com/BlueReceipt/Terrain';
+const CONTACT = 'alex@ederer.digital';
+
+/** About: version and build date, who made Terrain, its license and code, and where to write. */
 export function AboutSection() {
   const format = settings.value?.dateFormat ?? DEFAULT_DATE_FORMAT;
   return (
     <section class="settings-section" aria-labelledby="about">
       <h2 id="about">{words.about}</h2>
       <p>{words.version(__TERRAIN_VERSION__, formatDay(__TERRAIN_BUILT__, format))}</p>
+      <p>{words.madeBy}</p>
+      <p>{words.license}</p>
+      <a class="link-button" href={SOURCE_CODE} target="_blank" rel="noopener noreferrer">
+        {SOURCE_CODE.replace('https://', '')}
+      </a>
+      <p>{words.questions}</p>
+      <a class="link-button" href={`mailto:${CONTACT}`}>
+        {CONTACT}
+      </a>
     </section>
   );
 }

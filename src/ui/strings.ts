@@ -402,6 +402,9 @@ export const strings = {
     used: (used: string, quota: string) => `Using ${used} of ${quota} available.`,
     about: 'About',
     version: (version: string, built: string) => `Terrain ${version}, built ${built}.`,
+    madeBy: 'Designed by Alex Ederer, with help from Claude by Anthropic.',
+    license: 'Open source, under the MIT License:',
+    questions: 'For any questions:',
   },
   dayLog: {
     open: 'Day log',

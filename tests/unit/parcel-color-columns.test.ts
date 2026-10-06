@@ -241,4 +241,14 @@ describe('column matching', () => {
     expect(groups).not.toHaveProperty('Package status');
     expect(groups).not.toHaveProperty('Notes');
   });
+
+  it('starts every lot-number column per parcel, as the poutine sample names them too', () => {
+    const columns = ['Designation', 'designation', 'NUM designation', 'ADRESSE'];
+    expect(defaultColumnGroups(columns, detectRoles(columns))).toEqual({
+      Designation: 'parcel',
+      designation: 'parcel',
+      'NUM designation': 'parcel',
+      ADRESSE: 'person',
+    });
+  });
 });

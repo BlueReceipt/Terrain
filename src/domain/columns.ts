@@ -86,12 +86,26 @@ export function detectRoles(columns: readonly string[]): ColumnRoles {
   return roles;
 }
 
+/**
+ * A column holding a row's lot number: NUM_LOT, or a designation column as the poutine sample
+ * calls it. Anc_lot, the former lot, isn't one.
+ */
+export function isLotNumberColumn(column: string): boolean {
+  const key = headerKey(column);
+  return key === 'numlot' || key.includes('designation');
+}
+
 // Alex's rule of 2026-10-01: a fix goes on one owner only (changing one co-owner's number must not
 // change the other's). The address and phone columns are person fields; only the parcel's own
-// columns are shared by its owners.
-const PARCEL_COLUMNS = new Set(['anclot', 'numlot', 'rowlocation']);
+// columns are shared by its owners: the lot number, the former lot and Row location.
+const PARCEL_COLUMNS = new Set(['anclot', 'rowlocation']);
 
-/** Default Edit info grouping: parcel columns per parcel, every other column per owner; app-owned columns left out. */
+/** The Edit info group a column starts in: per parcel for the parcel's own columns, else per owner. */
+export function defaultColumnGroup(column: string): ColumnGroup {
+  return PARCEL_COLUMNS.has(headerKey(column)) || isLotNumberColumn(column) ? 'parcel' : 'person';
+}
+
+/** Default Edit info grouping, app-owned columns left out. */
 export function defaultColumnGroups(
   columns: readonly string[],
   roles: ColumnRoles,
@@ -100,7 +114,7 @@ export function defaultColumnGroups(
   const groups: Record<string, ColumnGroup> = {};
   for (const column of columns) {
     if (appColumns.has(column)) continue;
-    groups[column] = PARCEL_COLUMNS.has(headerKey(column)) ? 'parcel' : 'person';
+    groups[column] = defaultColumnGroup(column);
   }
   return groups;
 }
