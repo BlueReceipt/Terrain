@@ -229,6 +229,8 @@ function mergeRow(
       edits,
       importedPosition,
       position,
+      // A position found from the address stays until the file brings coordinates of its own.
+      placed: incoming.position ? null : existing.placed,
       addressText: incoming.addressText ?? (incoming.position ? null : existing.addressText),
       pinColor: incoming.pinColor,
       statusId,

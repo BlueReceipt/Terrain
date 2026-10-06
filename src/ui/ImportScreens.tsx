@@ -9,6 +9,7 @@ import {
   leaveImport,
   showReport,
   statuses,
+  stopLookingUp,
   type FailedReason,
 } from './flow.ts';
 import { ImportButton } from './ImportButton.tsx';
@@ -19,6 +20,24 @@ export function Reading({ fileName }: { fileName: string }) {
   return (
     <main class="screen centered" aria-busy="true">
       <p class="lead">{strings.reading(fileName)}</p>
+    </main>
+  );
+}
+
+/** Houses without coordinates, found from their address through Terrain's relay. */
+export function Placing({ total, done }: { total: number; done: number }) {
+  return (
+    <main class="screen centered" aria-busy="true">
+      <p class="lead">{strings.placing.finding(total)}</p>
+      <p class="strong" role="status">
+        {strings.placing.progress(done, total)}
+      </p>
+      <p class="muted">{strings.placing.what}</p>
+      <div class="actions">
+        <button type="button" class="button" onClick={stopLookingUp}>
+          {strings.placing.stop}
+        </button>
+      </div>
     </main>
   );
 }
@@ -187,7 +206,7 @@ export function PinColors({
           type="button"
           class="button primary"
           onClick={() => {
-            showReport(parsed, roles, map, false);
+            void showReport(parsed, roles, map, false);
           }}
         >
           {strings.continue}

@@ -1,15 +1,19 @@
-// How Cloudflare publishes the demo's relay (README, "The demo's relay"): the Worker `terrain-mymaps`
-// on two routes of the demo's address. Connected to the GitHub repository with `relay` as its root
+// How Cloudflare publishes Terrain's relay (README, "The relay"): the Worker `terrain-mymaps` on
+// routes of Terrain's addresses. Connected to the GitHub repository with `relay` as its root
 // directory, each push to main runs `npx wrangler deploy` here. Your own copy: change the name to your
-// Worker's and the routes to your demo address and its domain.
+// Worker's and the routes to your addresses and their domain.
 {
   "name": "terrain-mymaps",
   "main": "worker.js",
   "compatibility_date": "2026-10-05",
   // Wrangler replaces the Worker's routes with these on each deploy, so all of them stay listed.
+  // My Maps links on the public demo only; streets and address lookups on both addresses.
   "routes": [
     { "pattern": "terrain.ederer.digital/mymaps*", "zone_name": "ederer.digital" },
     { "pattern": "terrain.ederer.digital/tiles/*", "zone_name": "ederer.digital" },
+    { "pattern": "terrain.ederer.digital/geocode", "zone_name": "ederer.digital" },
+    { "pattern": "landagentfriend.ederer.digital/tiles/*", "zone_name": "ederer.digital" },
+    { "pattern": "landagentfriend.ederer.digital/geocode", "zone_name": "ederer.digital" },
   ],
   "workers_dev": false,
   "preview_urls": false,

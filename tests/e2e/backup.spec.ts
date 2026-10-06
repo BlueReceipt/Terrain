@@ -29,7 +29,7 @@ test('backs up everything to one file, and a new phone restores it, offline', as
   );
   await page.reload();
   await expect(
-    page.getByText('Import a KMZ export from My Maps to start a campaign.'),
+    page.getByText('Import the client’s Excel, or a KMZ export from My Maps, to start a campaign.'),
   ).toBeVisible();
 
   await page.locator('input[type=file][accept*=".json"]').setInputFiles(backup);

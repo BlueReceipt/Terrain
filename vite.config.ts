@@ -136,7 +136,7 @@ export default defineConfig({
   preview: {
     port: 4173,
     strictPort: true,
-    // The e2e tests reach the build as the public demo address too (tests/e2e/sample.spec.ts).
-    allowedHosts: ['terrain.ederer.digital'],
+    // The e2e tests reach the build as the demo and the work copy too (demo.spec.ts, work.spec.ts).
+    allowedHosts: ['terrain.ederer.digital', 'landagentfriend.ederer.digital'],
   },
 });

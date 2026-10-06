@@ -105,7 +105,9 @@ export function parseTabular(bytes: Uint8Array, fileName: string): ParsedFile {
   }
 
   const roles = detectRoles(columns);
-  if (!(roles.lat && roles.lng) && !roles.wkt) throw new ImportError('no-coordinates');
+  // Without coordinates, a street and a town let Terrain find each house from its address.
+  const findable = Boolean(roles.street && roles.town);
+  if (!(roles.lat && roles.lng) && !roles.wkt && !findable) throw new ImportError('no-coordinates');
 
   for (const sheet of sheets) {
     const index: Record<string, number> = {};
@@ -130,6 +132,6 @@ export function parseTabular(bytes: Uint8Array, fileName: string): ParsedFile {
   }
 
   if (rows.length === 0) throw new ImportError('no-rows');
-  if (!rows.some((row) => row.position)) throw new ImportError('no-coordinates');
+  if (!findable && !rows.some((row) => row.position)) throw new ImportError('no-coordinates');
   return { fileName, format: 'tabular', columns, layers, rows, reference: [], roles };
 }

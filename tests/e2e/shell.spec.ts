@@ -4,7 +4,8 @@ import { join } from 'node:path';
 import { chromium, devices, expect, test, type Page } from '@playwright/test';
 import { swActive } from './helpers.ts';
 
-const HOME_SENTENCE = 'Import a KMZ export from My Maps to start a campaign.';
+const HOME_SENTENCE =
+  'Import the client’s Excel, or a KMZ export from My Maps, to start a campaign.';
 
 async function expectShell(page: Page): Promise<void> {
   await expect(page.getByText(HOME_SENTENCE)).toBeVisible();

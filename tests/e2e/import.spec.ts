@@ -79,7 +79,7 @@ test('refuses a spreadsheet without coordinates, with directions', async ({ page
   await offlineAfterFirstLoad(page);
   await importFile(page, 'no-coordinates.xlsx');
   await expect(page.getByRole('alert')).toHaveText(
-    'This file has no coordinates. Import it into My Maps once, then export the layer as KMZ and import that here.',
+    'This file has no coordinates, and no street and town to find its houses from. Add Latitude and Longitude columns, or address and town columns (ADRESSE and MUNICIPALITE), then import it again.',
   );
 });
 

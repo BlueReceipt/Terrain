@@ -49,6 +49,10 @@ export interface ImportReport {
   spreadHouses: HouseSummary[];
   lotsAcrossHouses: { lotKey: string; houses: HouseSummary[] }[];
   housesWithoutPosition: HouseSummary[];
+  /** Houses placed from their address (Adresses Québec) at their civic number. */
+  placedAtAddress: number;
+  /** Houses placed from their address on their street only: to check at the door. */
+  placedOnStreet: HouseSummary[];
   severalParcelIds: { row: RowSummary; ids: string[]; oldIds: string[] }[];
   colors: ColorSummary[];
   referenceFeatures: number;
@@ -139,6 +143,12 @@ export function buildReport(input: {
   const rows = (ids: readonly string[]): RowSummary[] =>
     ids.map(row).filter((summary): summary is RowSummary => summary !== null);
   const positions = new Map<string, LatLng | null>(merge.rows.map((r) => [r.rowId, r.position]));
+  // Where a house's position came from, when Terrain found it from the address and nobody moved it.
+  const placedAs = (h: House, precision: 'address' | 'street') =>
+    h.rowIds.some((id) => {
+      const found = rowsById.get(id);
+      return found?.placed === precision && !found.touched.moved;
+    });
 
   let mostlyNewParcelIds = false;
   if (input.existingParcelKeys.size > 0) {
@@ -175,6 +185,11 @@ export function buildReport(input: {
     })),
     housesWithoutPosition: merge.houses
       .filter((h) => !h.position)
+      .map(house)
+      .sort(byTownThenAddress),
+    placedAtAddress: merge.houses.filter((h) => placedAs(h, 'address')).length,
+    placedOnStreet: merge.houses
+      .filter((h) => placedAs(h, 'street'))
       .map(house)
       .sort(byTownThenAddress),
     severalParcelIds: merge.rows

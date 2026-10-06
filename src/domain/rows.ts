@@ -74,6 +74,7 @@ export function createRow(
     edits: {},
     importedPosition: incoming.position,
     position: incoming.position,
+    placed: null,
     addressText: incoming.addressText,
     pinColor: incoming.pinColor,
     statusId,

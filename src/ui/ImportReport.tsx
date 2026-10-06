@@ -9,6 +9,7 @@ import {
   startNewCampaign,
   statuses,
   toggleOldParcelId,
+  type LookUp,
 } from './flow.ts';
 import { strings } from './strings.ts';
 import { Swatch } from './Swatch.tsx';
@@ -69,13 +70,16 @@ export function ImportReport({
   plan,
   saving,
   saveFailed,
+  lookUp,
 }: {
   plan: ImportPlan;
   saving: boolean;
   saveFailed: boolean;
+  lookUp: LookUp;
 }) {
   const report = plan.report;
   const text = strings.report;
+  const found = report.placedAtAddress + report.placedOnStreet.length;
   const statusLabel = (id: string | null) =>
     statuses.value.find((status) => status.id === id)?.label ?? '';
   return (
@@ -105,6 +109,8 @@ export function ImportReport({
       </dl>
 
       {report.mostlyNewParcelIds && !plan.isNewCampaign && <p class="notice">{text.mostlyNew}</p>}
+      {lookUp === 'failed' && <p class="notice">{text.lookUpFailed}</p>}
+      {lookUp === 'stopped' && <p class="notice">{text.lookUpStopped}</p>}
 
       <label class="field">
         {text.groupBy}
@@ -200,6 +206,27 @@ export function ImportReport({
             </ul>
           )}
         </Section>
+        {found > 0 && (
+          <>
+            <div class="section-line">
+              <span>{text.placedAtAddress}</span>
+              <span class="section-count">{report.placedAtAddress.toLocaleString('en-CA')}</span>
+            </div>
+            <Section
+              title={text.placedOnStreet}
+              count={report.placedOnStreet.length}
+              help={text.placedOnStreetHelp}
+            >
+              {() => (
+                <ul class="list">
+                  {report.placedOnStreet.map((house) => (
+                    <House key={house.houseKey} house={house} />
+                  ))}
+                </ul>
+              )}
+            </Section>
+          </>
+        )}
         <Section title={text.severalRows} count={report.housesWithSeveralRows.length}>
           {() => (
             <ul class="list">
@@ -308,6 +335,7 @@ export function ImportReport({
       {report.referenceFeatures > 0 && (
         <p class="muted">{text.reference(report.referenceFeatures)}</p>
       )}
+      {found > 0 && <p class="muted">{text.placedFrom}</p>}
 
       <div class="actions">
         {saveFailed && (

@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { Dexie, type DBCore, type DBCoreMutateRequest, type DBCoreTable } from 'dexie';
 import { afterEach, describe, expect, it } from 'vitest';
 import { nowWithOffset } from '../../src/data/clock.ts';
-import { TerrainDb } from '../../src/data/db.ts';
+import { defaultSettings, TerrainDb, type Settings } from '../../src/data/db.ts';
 import {
   campaignEvents,
   commitImport,
@@ -254,6 +254,49 @@ describe('the storage upgrade from version 1', () => {
     ]);
     expect(settings.statuses.find((status) => status.id === 'to-research')?.notesLot).toBe(true);
     expect(settings.statuses.find((status) => status.id === 'not-given')?.onRail).toBe(false);
+    expect(settings).toMatchObject({ lookUpAddresses: true, onlineMap: true });
+  });
+});
+
+/** The database as version 4 left it: before positions found from addresses and online switches. */
+class Version4Db extends Dexie {
+  constructor(name: string) {
+    super(name);
+    this.version(4).stores({
+      campaigns: 'id',
+      rows: 'rowId, campaignId, [campaignId+houseKey], *lotKeys',
+      events: 'id, campaignId, *rowIds, type, at, [campaignId+seq]',
+      settings: 'key',
+      pendingCalls: 'id, campaignId',
+      basemaps: 'id',
+    });
+  }
+}
+
+describe('the storage upgrade from version 4', () => {
+  it('keeps every row, marks no position as found from an address, and turns both online switches on', async () => {
+    const name = `terrain-test-${randomUUID()}`;
+    const plan = importInto(parseFixture('public/cases.kmz'));
+    const old = new Version4Db(name);
+    await old.table('campaigns').put(plan.campaign);
+    await old.table('rows').bulkPut(
+      plan.merge.rows.map((row) => {
+        const copy: Partial<Row> = { ...row };
+        delete copy.placed;
+        return copy;
+      }),
+    );
+    const version4Settings: Partial<Settings> = { ...defaultSettings() };
+    delete version4Settings.lookUpAddresses;
+    delete version4Settings.onlineMap;
+    await old.table('settings').put({ ...version4Settings, lastCampaignId: plan.campaign.id });
+    old.close();
+
+    const store = track(new TerrainDb(name));
+    const loaded = await loadLastCampaign(store);
+    expect(loaded?.rows).toEqual(plan.merge.rows);
+    expect(loaded?.rows.every((row) => row.placed === null)).toBe(true);
+    expect(await loadSettings(store)).toMatchObject({ lookUpAddresses: true, onlineMap: true });
   });
 });
 

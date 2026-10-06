@@ -120,6 +120,11 @@ export interface Row {
   edits: Record<string, string>;
   importedPosition: LatLng | null;
   position: LatLng | null;
+  /**
+   * The imported position was found from the row's address (Adresses Québec): at its civic number,
+   * or only on its street. Null when it came from the file, or there is none.
+   */
+  placed: 'address' | 'street' | null;
   addressText: string | null;
   pinColor: string | null;
   statusId: string;

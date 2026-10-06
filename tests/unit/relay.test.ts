@@ -162,3 +162,98 @@ describe('the demo’s background tiles', () => {
     expect(calls.asked()).toEqual([INDEX]);
   });
 });
+
+describe('the relay’s address lookups', () => {
+  const SERVICE =
+    'https://servicescarto.mrnf.gouv.qc.ca/pes/rest/services/Territoire/Adresse_Geocodage/GeocodeServer/findAddressCandidates';
+  const POUTINE = {
+    street: '780, rue Saint-Jean',
+    town: 'Québec',
+    postalCode: 'G1R 1P8',
+    province: 'QC',
+  };
+  // Adresses Québec's answer for it: the house, then the street (named only in its label).
+  const ANSWER = {
+    candidates: [
+      {
+        address: '780 Rue Saint-Jean, Québec G1R1P9',
+        location: { x: -71.21757, y: 46.81131 },
+        attributes: { Num: 780, Odonyme: 'Rue Saint-Jean', City: 'Québec', ZIP: 'G1R1P9' },
+      },
+      {
+        address: 'Rue Saint-Jean, Québec',
+        location: { x: -71.21237, y: 46.81308 },
+        attributes: { Num: '', Odonyme: '', City: 'Québec', ZIP: '' },
+      },
+    ],
+  };
+
+  const lookUp = (body: unknown, method = 'POST') =>
+    relay.fetch(
+      new Request('https://landagentfriend.ederer.digital/geocode', {
+        method,
+        ...(method === 'POST' ? { body: JSON.stringify(body) } : {}),
+      }),
+    );
+
+  it('asks Adresses Québec for each address and passes on its houses and streets', async () => {
+    const calls = google(Response.json(ANSWER));
+    const response = await lookUp({ addresses: [POUTINE] });
+    expect(response.status).toBe(200);
+    expect(response.headers.get('Cache-Control')).toBe('no-store');
+    expect(await response.json()).toEqual({
+      results: [
+        [
+          {
+            lat: 46.81131,
+            lng: -71.21757,
+            number: '780',
+            street: 'Rue Saint-Jean',
+            town: 'Québec',
+            postalCode: 'G1R1P9',
+          },
+          {
+            lat: 46.81308,
+            lng: -71.21237,
+            number: '',
+            street: 'Rue Saint-Jean',
+            town: 'Québec',
+            postalCode: '',
+          },
+        ],
+      ],
+    });
+    const [asked] = calls.asked();
+    const url = new URL(asked ?? '');
+    expect(`${url.origin}${url.pathname}`).toBe(SERVICE);
+    expect(url.searchParams.get('SingleLine')).toBe('780, rue Saint-Jean, Québec, QC G1R 1P8');
+    expect(url.searchParams.get('outSR')).toBe('4326');
+  });
+
+  it('refuses anything but addresses: a name, a phone or a note never passes through', async () => {
+    const calls = google(Response.json(ANSWER));
+    for (const body of [
+      { addresses: [{ ...POUTINE, owner: 'Marie Trempette' }] },
+      { addresses: [{ ...POUTINE, phone: '450 555-0123' }] },
+      { addresses: [POUTINE], notes: 'Chien' },
+      { addresses: [{ ...POUTINE, street: 42 }] },
+      { addresses: [{ ...POUTINE, town: '' }] },
+      { addresses: [] },
+      { addresses: 'everything' },
+    ])
+      expect(await errorOf(await lookUp(body))).toBe('not-addresses');
+    expect(await errorOf(await lookUp(null, 'GET'))).toBe('not-addresses');
+    expect(
+      await errorOf(await lookUp({ addresses: Array.from({ length: 26 }, () => POUTINE) })),
+    ).toBe('too-many');
+    expect(calls.asked()).toEqual([]);
+  });
+
+  it('says when Adresses Québec can’t be reached', async () => {
+    google(new TypeError('network down'));
+    expect(await errorOf(await lookUp({ addresses: [POUTINE] }))).toBe('unreachable');
+    vi.restoreAllMocks();
+    google(new Response('busy', { status: 503 }));
+    expect(await errorOf(await lookUp({ addresses: [POUTINE] }))).toBe('unreachable');
+  });
+});

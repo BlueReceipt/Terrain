@@ -160,6 +160,8 @@ export function HouseCard({ houseKey }: { houseKey: string }) {
   const keys = new Set(rows.flatMap((row) => row.lotKeys));
   const full = cardFull.value;
   const placed = rows.some((row) => row.position);
+  // Found from the address on its street only, and not pinned at the door since.
+  const onStreet = rows.some((row) => row.placed === 'street' && !row.touched.moved);
   const position = housesOfRows(rows)[0]?.position ?? null;
 
   // The lot line: this house's parcels at other houses.
@@ -220,6 +222,12 @@ export function HouseCard({ houseKey }: { houseKey: string }) {
             <p class="muted">
               {strings.card.noPosition}. {strings.card.pinHelp}
             </p>
+            <PinHereButton houseKey={houseKey} />
+          </div>
+        )}
+        {onStreet && (
+          <div class="unplaced">
+            <p class="muted">{strings.card.onStreet}</p>
             <PinHereButton houseKey={houseKey} />
           </div>
         )}
@@ -299,7 +307,7 @@ export function HouseCard({ houseKey }: { houseKey: string }) {
               >
                 {strings.card.editInfo}
               </button>
-              {placed && <PinHereButton houseKey={houseKey} />}
+              {placed && !onStreet && <PinHereButton houseKey={houseKey} />}
             </div>
             <LotSection houseKey={houseKey} />
             <NotesList rows={rows} />

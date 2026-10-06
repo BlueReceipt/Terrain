@@ -48,6 +48,13 @@ export interface Settings {
   lastCampaignId: string | null;
   /** Result of navigator.storage.persist(), asked after the first import. */
   storagePersisted: boolean | null;
+  /**
+   * Houses without coordinates are found from their address at import (Alex, 2026-10-05): only the
+   * street, town, postal code and province go online, to Adresses Québec. Where Terrain has a relay.
+   */
+  lookUpAddresses: boolean;
+  /** The background map from the internet while online, where Terrain has a relay (2026-10-05). */
+  onlineMap: boolean;
 }
 
 export function defaultSettings(): Settings {
@@ -60,6 +67,8 @@ export function defaultSettings(): Settings {
     fillVisitDateViaLot: true,
     lastCampaignId: null,
     storagePersisted: null,
+    lookUpAddresses: true,
+    onlineMap: true,
   };
 }
 
@@ -81,7 +90,24 @@ export function upgradeStatuses(saved: readonly Partial<Status>[]): Status[] {
 }
 
 /** The current schema version; a backup records it. */
-export const SCHEMA_VERSION = 4;
+export const SCHEMA_VERSION = 5;
+
+/**
+ * Version 4 → 5 (Alex, 2026-10-05): every position so far came from the file, and both online
+ * switches start on. Used by the upgrade and on older backups.
+ */
+export function withPlacement(row: Row): Row {
+  return { ...row, placed: (row as Partial<Row>).placed ?? null };
+}
+
+export function withOnlineSwitches(saved: Settings): Settings {
+  const partial = saved as Partial<Settings>;
+  return {
+    ...saved,
+    lookUpAddresses: partial.lookUpAddresses ?? true,
+    onlineMap: partial.onlineMap ?? true,
+  };
+}
 
 // Version 2 set these columns as house fields, the town and postal code among them.
 const FORMER_HOUSE_COLUMNS = new Set([
@@ -175,5 +201,13 @@ export class TerrainDb extends Dexie {
       });
     // Version 4: the offline map's metadata. Backups leave it out: the map file stays on the phone.
     this.version(4).stores({ basemaps: 'id' });
+    this.version(5)
+      .stores({})
+      .upgrade(async (tx) => {
+        const rows = (await tx.table('rows').toArray()) as Row[];
+        await tx.table('rows').bulkPut(rows.map(withPlacement));
+        const settings = (await tx.table('settings').toArray()) as Settings[];
+        await tx.table('settings').bulkPut(settings.map(withOnlineSwitches));
+      });
   }
 }

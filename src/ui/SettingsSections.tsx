@@ -21,6 +21,7 @@ import { isPublicDemo } from './demo.ts';
 import { current, settings, statuses } from './flow.ts';
 import { ImportButton } from './ImportButton.tsx';
 import { MyMapsLink } from './MyMapsLink.tsx';
+import { hasRelay } from './online.ts';
 import {
   campaigns,
   editingStatus,
@@ -471,6 +472,47 @@ export function LotsSection() {
         />
         {words.lotVisitDate}
       </label>
+    </section>
+  );
+}
+
+/**
+ * What may go online, where Terrain has a relay (src/ui/online.ts): each house's address to find
+ * it, and the map area on screen for streets. Nothing else ever leaves the phone.
+ */
+export function OnlineSection() {
+  const saved = settings.value;
+  if (!saved || !hasRelay(location.hostname)) return null;
+  return (
+    <section class="settings-section" aria-labelledby="online">
+      <h2 id="online">{words.online}</h2>
+      <p class="muted">{words.onlineIntro}</p>
+      <label class="check">
+        <input
+          type="checkbox"
+          checked={saved.lookUpAddresses}
+          aria-describedby="look-up-help"
+          onChange={(event) =>
+            void updateSettings({ lookUpAddresses: event.currentTarget.checked })
+          }
+        />
+        {words.lookUpAddresses}
+      </label>
+      <p id="look-up-help" class="muted">
+        {words.lookUpAddressesHelp}
+      </p>
+      <label class="check">
+        <input
+          type="checkbox"
+          checked={saved.onlineMap}
+          aria-describedby="online-map-help"
+          onChange={(event) => void updateSettings({ onlineMap: event.currentTarget.checked })}
+        />
+        {words.onlineMap}
+      </label>
+      <p id="online-map-help" class="muted">
+        {words.onlineMapHelp}
+      </p>
     </section>
   );
 }

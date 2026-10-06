@@ -20,6 +20,7 @@ import {
   ColumnsSection,
   DatesSection,
   LotsSection,
+  OnlineSection,
   StatusesSection,
   StorageSection,
 } from './SettingsSections.tsx';
@@ -125,6 +126,7 @@ export function SettingsScreen() {
       <CallOutcomesSection />
       <DatesSection />
       <OfflineMap />
+      <OnlineSection />
       <StorageSection />
       <section class="settings-section" aria-labelledby="backups">
         <h2 id="backups">{strings.settings.backups}</h2>

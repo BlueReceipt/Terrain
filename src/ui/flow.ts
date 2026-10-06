@@ -19,6 +19,7 @@ import {
 import { nowWithOffset } from '../data/clock.ts';
 import { TerrainDb, type BasemapInfo, type Settings, type StoredEvent } from '../data/db.ts';
 import { readImportFile, saveFile } from '../data/files.ts';
+import { lookUpAddresses } from '../data/lookups.ts';
 import {
   campaignEvents,
   commitImport,
@@ -28,6 +29,13 @@ import {
   recordStoragePersistence,
   type LoadedCampaign,
 } from '../data/repo.ts';
+import {
+  addressKey,
+  housesToFind,
+  placementFor,
+  type AddressCandidate,
+  type Placement,
+} from '../domain/addresses.ts';
 import { ImportError, type ImportErrorCode } from '../domain/errors.ts';
 import {
   initialColorMap,
@@ -36,6 +44,7 @@ import {
   withLotColumn,
   withOldParcelIds,
   withParcelIdColumn,
+  withPlacements,
   type ImportPlan,
 } from '../domain/importPlan.ts';
 import { myMapsId } from '../domain/mymaps.ts';
@@ -50,10 +59,14 @@ import {
   sampleFile,
   type MyMapsProblem,
 } from './demo.ts';
+import { hasRelay } from './online.ts';
 import { strings } from './strings.ts';
 
 /** Why an import stopped: the file, the device's storage, or a My Maps link on the demo. */
 export type FailedReason = ImportErrorCode | 'unexpected' | 'storage' | `mymaps-${MyMapsProblem}`;
+
+/** What became of an import's address lookups, for its report; null when none was asked. */
+export type LookUp = 'done' | 'failed' | 'stopped' | null;
 
 export type Screen =
   | { name: 'starting' }
@@ -68,7 +81,8 @@ export type Screen =
       colorMap: Record<string, string>;
       unmatched: string[];
     }
-  | { name: 'report'; plan: ImportPlan; saving: boolean; saveFailed: boolean }
+  | { name: 'placing'; total: number; done: number }
+  | { name: 'report'; plan: ImportPlan; saving: boolean; saveFailed: boolean; lookUp: LookUp }
   | { name: 'campaign' }
   | { name: 'restore'; backup: Backup; restoring: boolean }
   | { name: 'restoreFailed'; reason: RestoreErrorCode | 'storage' }
@@ -241,18 +255,68 @@ function showColors(parsed: ParsedFile, roles: ColumnRoles): void {
     statuses.value,
     current.value?.campaign.colorMap,
   );
-  if (Object.keys(colorMap).length === 0) showReport(parsed, roles, colorMap, false);
+  if (Object.keys(colorMap).length === 0) void showReport(parsed, roles, colorMap, false);
   else screen.value = { name: 'colors', parsed, roles, colorMap, unmatched };
 }
 
-export function showReport(
+// Answers Adresses Québec gave in this session, by address: a report planned again asks nothing.
+const answers = new Map<string, AddressCandidate[]>();
+let stopping = false;
+
+/** "Stop looking up": the report shows what was found so far. */
+export function stopLookingUp(): void {
+  stopping = true;
+}
+
+/**
+ * The plan's houses with no position, found from their address where Terrain has a relay and the
+ * switch in Settings is on. Only each house's street, town, postal code and province go online.
+ */
+async function findHouses(plan: ImportPlan): Promise<{ plan: ImportPlan; lookUp: LookUp }> {
+  if (!hasRelay(location.hostname) || settings.value?.lookUpAddresses === false)
+    return { plan, lookUp: null };
+  const wanted = housesToFind(plan.merge.rows, plan.merge.houses, plan.campaign.roles);
+  if (wanted.length === 0) return { plan, lookUp: null };
+  const unknown = [...new Map(wanted.map(({ query }) => [addressKey(query), query])).entries()]
+    .filter(([key]) => !answers.has(key))
+    .map(([, query]) => query);
+  let lookUp: LookUp = 'done';
+  if (unknown.length > 0) {
+    stopping = false;
+    let done = 0;
+    screen.value = { name: 'placing', total: unknown.length, done };
+    try {
+      await lookUpAddresses(
+        unknown,
+        (query, candidates) => {
+          answers.set(addressKey(query), candidates);
+          done += 1;
+          screen.value = { name: 'placing', total: unknown.length, done };
+        },
+        () => stopping,
+      );
+      if (done < unknown.length) lookUp = 'stopped';
+    } catch {
+      lookUp = 'failed';
+    }
+  }
+  const placements = new Map<string, Placement>();
+  for (const { houseKey, query } of wanted) {
+    const candidates = answers.get(addressKey(query));
+    const placement = candidates ? placementFor(query, candidates) : null;
+    if (placement) placements.set(houseKey, placement);
+  }
+  return { plan: withPlacements(plan, placements), lookUp };
+}
+
+export async function showReport(
   parsed: ParsedFile,
   roles: ColumnRoles,
   colorMap: Record<string, string>,
   asNewCampaign: boolean,
-): void {
+): Promise<void> {
   const target = asNewCampaign ? null : current.value;
-  const plan = planImport({
+  const planned = planImport({
     parsed,
     campaign: target?.campaign ?? null,
     existingRows: target?.rows ?? [],
@@ -265,7 +329,8 @@ export function showReport(
     // An export coming back carries Terrain's notes in its Notes cells: recognized, not doubled.
     ownNotes: target ? ownNoteTexts(events.value, strings.notes) : undefined,
   });
-  screen.value = { name: 'report', plan, saving: false, saveFailed: false };
+  const { plan, lookUp } = await findHouses(planned);
+  screen.value = { name: 'report', plan, saving: false, saveFailed: false, lookUp };
 }
 
 function updatePlan(change: (plan: ImportPlan) => ImportPlan): void {
@@ -292,7 +357,7 @@ export function toggleOldParcelId(rowId: string, id: string): void {
 export function startNewCampaign(): void {
   const now = screen.value;
   if (now.name === 'report')
-    showReport(now.plan.parsed, now.plan.campaign.roles, now.plan.campaign.colorMap, true);
+    void showReport(now.plan.parsed, now.plan.campaign.roles, now.plan.campaign.colorMap, true);
 }
 
 export async function openCampaign(): Promise<void> {

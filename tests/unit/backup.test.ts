@@ -139,6 +139,30 @@ describe('backup and restore', () => {
     );
   });
 
+  it('restores a backup made before positions from addresses, with both online switches on', async () => {
+    const store = await busyDb();
+    const backup = await makeBackup(store, LATER);
+    const older = {
+      ...backup,
+      schema: 4,
+      rows: backup.rows.map((row) => {
+        const copy: Partial<typeof row> = { ...row };
+        delete copy.placed;
+        return copy;
+      }),
+      settings: backup.settings.map((saved) => {
+        const copy: Partial<typeof saved> = { ...saved };
+        delete copy.lookUpAddresses;
+        delete copy.onlineMap;
+        return copy;
+      }),
+    };
+    const parsed = parseBackup(JSON.stringify(older));
+    expect(parsed.schema).toBe(SCHEMA_VERSION);
+    expect(parsed.rows).toEqual(backup.rows);
+    expect(parsed.settings).toEqual(backup.settings);
+  });
+
   it('names the file Terrain_backup_<date>.json', () => {
     expect(backupFileName(LATER)).toBe('Terrain_backup_2026-10-01.json');
   });

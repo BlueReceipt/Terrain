@@ -1,9 +1,12 @@
-// Terrain's demo relay: a Cloudflare Worker on two routes of the public demo's address (README, "The
-// demo's relay"). The demo only ever talks to its own address, and this Worker fetches for it:
-// - /mymaps/<id>: one My Maps map's KMZ export from Google, only for a map shared with "Anyone with
-//   the link". Google doesn't let other sites read the export themselves.
-// - /tiles/<z>/<x>/<y>.pbf: the background map's tiles from OpenFreeMap (OpenStreetMap data), so the
-//   demo shows streets while it's online. Offline, the map stays plain under the pins.
+// Terrain's relay: a Cloudflare Worker on routes of Terrain's own addresses (README, "The relay").
+// Terrain only ever talks to its own address, and this Worker fetches for it:
+// - /mymaps/<id> (the public demo only): one My Maps map's KMZ export from Google, only for a map
+//   shared with "Anyone with the link". Google doesn't let other sites read the export themselves.
+// - /tiles/<z>/<x>/<y>.pbf: the background map's tiles from OpenFreeMap (OpenStreetMap data), so
+//   the map shows streets while it's online. Offline, the map stays plain under the pins.
+// - /geocode: where houses are, from Adresses Québec (Gouvernement du Québec), for files without
+//   coordinates. It takes a house's street, town, postal code and province, and refuses anything
+//   else: no name, phone number, parcel ID or note ever passes through here.
 // Nothing is logged or stored. It needs no packages and no settings; relay/wrangler.jsonc publishes it.
 
 const MAP_ID = /^[\w-]{10,128}$/;
@@ -13,6 +16,15 @@ const OPENFREEMAP = 'https://tiles.openfreemap.org/planet';
 const TILE = /^\/tiles\/(\d{1,2})\/(\d{1,8})\/(\d{1,8})\.pbf$/;
 // OpenFreeMap's tiles stop at zoom 14; the map draws closer views from those.
 const MAX_ZOOM = 14;
+
+const ADRESSES_QUEBEC =
+  'https://servicescarto.mrnf.gouv.qc.ca/pes/rest/services/Territoire/Adresse_Geocodage/GeocodeServer/findAddressCandidates';
+/** All a lookup may carry: the house's address. */
+const ADDRESS_FIELDS = ['street', 'town', 'postalCode', 'province'];
+const MAX_ADDRESSES = 25;
+const MAX_FIELD = 200;
+// A few addresses at a time: the government's service, not a crowd.
+const AT_ONCE = 5;
 
 // Every answer is data, never a page: opened in a browser it downloads, and it can't run anything.
 const LOCKED = {
@@ -124,10 +136,109 @@ async function tile({ z, x, y }) {
   });
 }
 
+/**
+ * @typedef {{ street: string, town: string, postalCode: string, province: string }} Address
+ * @typedef {{ lat: number, lng: number, number: string, street: string, town: string, postalCode: string }} Candidate
+ */
+
+/**
+ * The address in a lookup, or null when it holds anything but the address fields, as text.
+ * @param {unknown} value
+ * @returns {Address | null}
+ */
+function addressIn(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const fields = /** @type {Record<string, unknown>} */ (value);
+  if (Object.keys(fields).some((key) => !ADDRESS_FIELDS.includes(key))) return null;
+  /** @type {Record<string, string>} */
+  const address = {};
+  for (const key of ADDRESS_FIELDS) {
+    const text = fields[key] ?? '';
+    if (typeof text !== 'string' || text.length > MAX_FIELD) return null;
+    address[key] = text.trim();
+  }
+  const { street = '', town = '', postalCode = '', province = '' } = address;
+  return street && town ? { street, town, postalCode, province } : null;
+}
+
+/**
+ * Adresses Québec's answers for one address: houses at a civic number, and streets.
+ * @param {Address} address
+ * @returns {Promise<Candidate[]>}
+ */
+async function candidatesFor(address) {
+  const area = [address.province, address.postalCode].filter(Boolean).join(' ');
+  const query = new URLSearchParams({
+    SingleLine: [address.street, address.town, area].filter(Boolean).join(', '),
+    outSR: '4326',
+    maxLocations: '5',
+    outFields: 'Num,Odonyme,City,ZIP',
+    f: 'json',
+  });
+  const answer = await fetch(`${ADRESSES_QUEBEC}?${query.toString()}`);
+  if (!answer.ok) throw new Error('unreachable');
+  const found =
+    /** @type {{ candidates?: { address?: string, location?: { x: number, y: number }, attributes?: Record<string, unknown> }[] }} */ (
+      await answer.json()
+    );
+  if (!Array.isArray(found.candidates)) throw new Error('unreachable');
+  return found.candidates.flatMap(({ address: label = '', location, attributes = {} }) => {
+    if (!location) return [];
+    // A street's answer names it only in its label: "Rue Saint-Jean, Québec".
+    const [named = '', place = ''] = label.split(',').map((part) => part.trim());
+    const text = (/** @type {unknown} */ value) =>
+      typeof value === 'string' || typeof value === 'number' ? String(value).trim() : '';
+    const number = text(attributes.Num);
+    return [
+      {
+        lat: location.y,
+        lng: location.x,
+        number,
+        street: text(attributes.Odonyme) || named.replace(/^\d+\s+/, ''),
+        town: text(attributes.City) || place.replace(/\s+[A-Z]\d[A-Z]\d[A-Z]\d$/i, ''),
+        postalCode: text(attributes.ZIP),
+      },
+    ];
+  });
+}
+
+/** @param {Request} request */
+async function geocode(request) {
+  if (Number(request.headers.get('Content-Length') ?? '0') > 64 * 1024)
+    return problem(413, 'too-many');
+  let body;
+  try {
+    body = /** @type {unknown} */ (await request.json());
+  } catch {
+    return problem(400, 'not-addresses');
+  }
+  const list =
+    body && typeof body === 'object' && Object.keys(body).join() === 'addresses'
+      ? /** @type {{ addresses: unknown }} */ (body).addresses
+      : null;
+  if (!Array.isArray(list) || list.length === 0) return problem(400, 'not-addresses');
+  if (list.length > MAX_ADDRESSES) return problem(413, 'too-many');
+  const addresses = list.map(addressIn);
+  if (addresses.some((address) => address === null)) return problem(400, 'not-addresses');
+  /** @type {Candidate[][]} */
+  const results = [];
+  try {
+    for (let start = 0; start < addresses.length; start += AT_ONCE) {
+      const group = /** @type {Address[]} */ (addresses.slice(start, start + AT_ONCE));
+      results.push(...(await Promise.all(group.map(candidatesFor))));
+    }
+  } catch {
+    return problem(502, 'unreachable');
+  }
+  return Response.json({ results }, { headers: { ...LOCKED, 'Cache-Control': 'no-store' } });
+}
+
 export default {
   /** @param {Request} request */
   async fetch(request) {
     const { pathname } = new URL(request.url);
+    if (pathname === '/geocode')
+      return request.method === 'POST' ? geocode(request) : problem(400, 'not-addresses');
     if (request.method === 'GET') {
       const id = /^\/mymaps\/([^/]+)$/.exec(pathname)?.[1];
       if (id && MAP_ID.test(id)) return myMapsExport(id);

@@ -1,7 +1,7 @@
 import { screen } from './ui/flow.ts';
 import { Home } from './ui/Home.tsx';
 import { ImportReport } from './ui/ImportReport.tsx';
-import { ColumnMapping, Failed, PinColors, Reading } from './ui/ImportScreens.tsx';
+import { ColumnMapping, Failed, PinColors, Placing, Reading } from './ui/ImportScreens.tsx';
 import { MapScreen } from './ui/MapScreen.tsx';
 import { Restore, RestoreFailed } from './ui/RestoreScreens.tsx';
 import { SettingsScreen } from './ui/SettingsScreen.tsx';
@@ -29,8 +29,17 @@ function Screen() {
           unmatched={now.unmatched}
         />
       );
+    case 'placing':
+      return <Placing total={now.total} done={now.done} />;
     case 'report':
-      return <ImportReport plan={now.plan} saving={now.saving} saveFailed={now.saveFailed} />;
+      return (
+        <ImportReport
+          plan={now.plan}
+          saving={now.saving}
+          saveFailed={now.saveFailed}
+          lookUp={now.lookUp}
+        />
+      );
     case 'campaign':
       return <MapScreen />;
     case 'settings':

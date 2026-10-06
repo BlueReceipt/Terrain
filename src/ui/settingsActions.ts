@@ -41,7 +41,13 @@ export async function updateSettings(
   change: Partial<
     Pick<
       Settings,
-      'statuses' | 'callOutcomes' | 'dateFormat' | 'notesExportMode' | 'fillVisitDateViaLot'
+      | 'statuses'
+      | 'callOutcomes'
+      | 'dateFormat'
+      | 'notesExportMode'
+      | 'fillVisitDateViaLot'
+      | 'lookUpAddresses'
+      | 'onlineMap'
     >
   >,
 ): Promise<void> {

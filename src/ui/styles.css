@@ -274,6 +274,17 @@ select {
   font-variant-numeric: tabular-nums;
 }
 
+/* A count with no list behind it, lined up with the sections' summaries. */
+.section-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space);
+  min-height: var(--touch);
+  border-top: 2px solid var(--ink);
+  font-weight: 700;
+}
+
 .section > .muted {
   margin-bottom: 12px;
 }

@@ -330,7 +330,8 @@ test('a direct tap on a house closed from the lot makes it solid and re-stamps V
   const card = await openHouse(page, TREMPETTE, RUE_SAINT_PAUL);
   await mark(card, 'Given');
   await closeCard(card);
-  expect((await lucPin(page)).ring).toBe(true);
+  // The ring comes once the save and the redraw are done: under a full run, after a moment.
+  await expect.poll(async () => (await lucPin(page)).ring).toBe(true);
   await page.clock.setFixedTime(new Date('2026-09-26T15:10:00-04:00'));
   const lucCard = await openHouse(page, LUC, DU_LAC);
   await mark(lucCard, 'Given');

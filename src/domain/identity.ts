@@ -195,8 +195,9 @@ function housePosition(
 }
 
 /**
- * Houses (with Alex's address rule): rows are one house when their addresses match
- * (see sameAddress), or when they sit within 5 m of each other and share a lot. Transitive.
+ * Houses (with Alex's address rule): rows are one house only when their addresses match (see
+ * sameAddress). Transitive. Pins on one spot never join rows (Alex, 2026-10-05: "only merge
+ * houses if the addresses are identical"); houses sharing a spot share one pin on the map instead.
  */
 export function groupHouses(rows: readonly IdentityInput[]): House[] {
   const ordered = [...rows].sort((a, b) => a.rowIndex - b.rowIndex);
@@ -221,10 +222,6 @@ export function groupHouses(rows: readonly IdentityInput[]): House[] {
         if (a && b && sameAddress(a.address, b.address)) sets.union(a.rowId, b.rowId);
       }
     }
-  }
-
-  for (const [a, b] of nearbyPairs(ordered, (row) => row.position, SAME_SPOT_METERS)) {
-    if (a.lotKeys.some((key) => b.lotKeys.includes(key))) sets.union(a.rowId, b.rowId);
   }
 
   const members = new Map<string, IdentityInput[]>();

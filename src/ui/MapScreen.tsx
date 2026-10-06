@@ -5,11 +5,11 @@ import { search, type SearchResult } from '../domain/search.ts';
 import { locationState, myFix, startLocating, stopLocating } from '../map/geolocation.ts';
 import { MapView } from '../map/MapView.tsx';
 import { freshPendingCall, refreshPending } from './actions.ts';
-import { isPublicDemo } from './demo.ts';
 import { DayLogPanel } from './DayLog.tsx';
 import { ExportPanel } from './ExportPanel.tsx';
-import { basemap, current, openSettings, statuses } from './flow.ts';
+import { basemap, current, openSettings, settings, statuses } from './flow.ts';
 import { HouseCard } from './HouseCard.tsx';
+import { hasRelay } from './online.ts';
 import { addressOf, nameOf } from './rowText.ts';
 import {
   chooserHouseKeys,
@@ -101,6 +101,14 @@ function FilterChips() {
   if (!loaded) return null;
   const counts = statusCounts(loaded.rows);
   const unplaced = content.value.unplaced;
+  // Houses found from their address on the street only, not pinned at the door since.
+  const onStreet = [
+    ...new Set(
+      loaded.rows
+        .filter((row) => row.placed === 'street' && !row.touched.moved)
+        .map((row) => row.houseKey),
+    ),
+  ];
   return (
     <div class="chips" role="toolbar" aria-label={strings.map.filters}>
       <button
@@ -138,6 +146,17 @@ function FilterChips() {
           }}
         >
           {strings.map.notOnMap(unplaced.length)}
+        </button>
+      )}
+      {onStreet.length > 0 && (
+        <button
+          type="button"
+          class="chip"
+          onClick={() => {
+            houseList.value = { title: strings.map.onStreetTitle, houseKeys: onStreet };
+          }}
+        >
+          {strings.map.onStreet(onStreet.length)}
         </button>
       )}
     </div>
@@ -233,8 +252,8 @@ export function MapScreen() {
   }, []);
 
   if (!loaded) return null;
-  // The public demo draws OpenFreeMap's map while online, so it needs no offline map.
-  const demo = isPublicDemo(location.hostname);
+  // Where Terrain has a relay, the map draws OpenFreeMap's streets while online (switch in Settings).
+  const onlineMap = hasRelay(location.hostname) && settings.value?.onlineMap !== false;
   const fix = myFix.value;
   const selected = selectedHouseKey.value;
   const chooser = chooserHouseKeys.value;
@@ -245,7 +264,7 @@ export function MapScreen() {
     <main class="map-screen">
       <MapView
         basemapUrl={basemap.value?.url ?? null}
-        online={demo}
+        online={onlineMap}
         bounds={loaded.campaign.bounds}
         pins={content.value.pins}
         reference={loaded.campaign.reference}
@@ -285,7 +304,7 @@ export function MapScreen() {
           ☰
         </button>
       </header>
-      {!basemap.value && !demo && (
+      {!basemap.value && !onlineMap && (
         <button type="button" class="banner" onClick={openSettings}>
           {strings.map.noBasemap}
         </button>
@@ -318,7 +337,13 @@ export function MapScreen() {
         ) : list ? (
           <HouseSheet
             title={list.title}
-            help={list.title === strings.map.notOnMapTitle ? strings.map.notOnMapHelp : null}
+            help={
+              list.title === strings.map.notOnMapTitle
+                ? strings.map.notOnMapHelp
+                : list.title === strings.map.onStreetTitle
+                  ? strings.map.onStreetHelp
+                  : null
+            }
             houseKeys={list.houseKeys}
             onClose={() => {
               houseList.value = null;

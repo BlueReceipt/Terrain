@@ -3,6 +3,7 @@ const BUSY_SCREENS: ReadonlySet<string> = new Set([
   'reading',
   'mapping',
   'colors',
+  'placing',
   'report',
   'restore',
 ]);

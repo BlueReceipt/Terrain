@@ -2,7 +2,9 @@ import { fileDate } from '../domain/format.ts';
 import type { Campaign, Row } from '../domain/types.ts';
 import {
   SCHEMA_VERSION,
+  withOnlineSwitches,
   withOwnerFields,
+  withPlacement,
   type PendingCall,
   type Settings,
   type StoredEvent,
@@ -103,11 +105,16 @@ export function parseBackup(text: string): Backup {
     listOf(data, 'settings').every((settings) => settings.key === 'app') &&
     listOf(data, 'pendingCalls').every((call) => isText(call.id) && isText(call.campaignId));
   if (!valid) throw new RestoreError('damaged-backup');
-  const backup = data as unknown as Backup;
+  let backup = data as unknown as Backup;
   // The upgrades of an older version's backup, as the database got them (db.ts).
-  return backup.schema < 3
-    ? { ...backup, schema: SCHEMA_VERSION, campaigns: backup.campaigns.map(withOwnerFields) }
-    : backup;
+  if (backup.schema < 3) backup = { ...backup, campaigns: backup.campaigns.map(withOwnerFields) };
+  if (backup.schema < 5)
+    backup = {
+      ...backup,
+      rows: backup.rows.map(withPlacement),
+      settings: backup.settings.map(withOnlineSwitches),
+    };
+  return { ...backup, schema: SCHEMA_VERSION };
 }
 
 /** Replaces everything on the device with the backup, in one transaction: all of it, or nothing. */

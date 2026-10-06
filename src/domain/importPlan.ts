@@ -1,3 +1,4 @@
+import type { Placement } from './addresses.ts';
 import { suggestStatus } from './color.ts';
 import { APP_ROLES, defaultColumnGroups } from './columns.ts';
 import { mergeImport, type MergeResult } from './merge.ts';
@@ -170,6 +171,27 @@ function regroup(plan: ImportPlan, campaign: Campaign, rows: readonly Row[]): Im
   const merge: MergeResult = { ...plan.merge, rows: identity.rows, houses: identity.houses };
   const next = { ...plan, campaign, merge };
   return { ...next, report: reportFor(next) };
+}
+
+/**
+ * Houses found from their address (`placementFor`): each row of the house takes the position as
+ * its imported one, marked with its precision. Houses that have a position keep it.
+ */
+export function withPlacements(
+  plan: ImportPlan,
+  placements: ReadonlyMap<string, Placement>,
+): ImportPlan {
+  const rows = plan.merge.rows.map((row) => {
+    const placement = placements.get(row.houseKey);
+    if (!placement || row.position) return row;
+    return {
+      ...row,
+      importedPosition: placement.position,
+      position: placement.position,
+      placed: placement.precision,
+    };
+  });
+  return regroup(plan, { ...plan.campaign, bounds: boundsOf(rows) }, rows);
 }
 
 /** "Group rows into lots by" changed on the report: lots and their counts recompute on the spot. */

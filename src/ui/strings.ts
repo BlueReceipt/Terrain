@@ -20,7 +20,7 @@ export const strings = {
   cancel: 'Cancel',
   continue: 'Continue',
   home: {
-    noCampaign: 'Import a KMZ export from My Maps to start a campaign.',
+    noCampaign: 'Import the client’s Excel, or a KMZ export from My Maps, to start a campaign.',
     importFile: 'Import file',
     sampleSentence:
       'Try Terrain with 124 poutine places across Québec, or import a KMZ export from My Maps.',
@@ -34,6 +34,13 @@ export const strings = {
     linkReading: 'your My Maps map',
   },
   reading: (fileName: string) => `Reading ${fileName}…`,
+  placing: {
+    finding: (n: number) => `Finding ${count(n, 'house', 'houses')} from their address…`,
+    progress: (done: number, total: number) =>
+      `${done.toLocaleString('en-CA')} of ${total.toLocaleString('en-CA')}`,
+    what: 'Only each house’s street, town, postal code and province go to Adresses Québec. Names, phone numbers, parcel IDs and notes stay on the phone.',
+    stop: 'Stop looking up',
+  },
   failed: {
     title: 'This file can’t be imported',
     chooseAnother: 'Choose another file',
@@ -52,7 +59,7 @@ export const strings = {
       'no-rows':
         'This file has no pins or rows. Check that you exported the right map or layer from My Maps.',
       'no-coordinates':
-        'This file has no coordinates. Import it into My Maps once, then export the layer as KMZ and import that here.',
+        'This file has no coordinates, and no street and town to find its houses from. Add Latitude and Longitude columns, or address and town columns (ADRESSE and MUNICIPALITE), then import it again.',
       'unreadable-spreadsheet':
         'This spreadsheet can’t be read. Save it again as .xlsx or .csv and import that.',
     } satisfies Record<ImportErrorCode, string>,
@@ -108,7 +115,16 @@ export const strings = {
     severalRows: 'Houses with more than one row',
     noPosition: 'Houses with no position yet',
     noPositionHelp:
-      'My Maps exported these pins without coordinates. They wait in a list until you pin each house at the door.',
+      'No coordinates in the file, and no address Terrain could find. They wait in a list until you pin each house at the door.',
+    placedAtAddress: 'Houses found at their address',
+    placedOnStreet: 'Houses found on their street only',
+    placedOnStreetHelp:
+      'Adresses Québec knows the street, not the civic number. Check each at the door: Use my location puts it right.',
+    placedFrom: 'Positions from addresses: Adresses Québec, Gouvernement du Québec (CC BY 4.0).',
+    lookUpFailed:
+      'Adresses Québec couldn’t be reached. The houses it didn’t find wait with no position: import the file again with a connection to look them up.',
+    lookUpStopped:
+      'Lookups stopped. The houses not looked up wait with no position: import the file again to look them up.',
     lots: 'Parcels at more than one house',
     severalIds: 'Cells listing several parcel IDs',
     severalIdsHelp:
@@ -151,7 +167,11 @@ export const strings = {
     notOnMap: (n: number) => `${count(n, 'house', 'houses')} not on the map`,
     notOnMapTitle: 'Houses with no position yet',
     notOnMapHelp:
-      'My Maps exported these pins without coordinates. Open one at the door to pin it there.',
+      'No coordinates in the file, and no address Terrain could find. Open one at the door to pin it there.',
+    onStreet: (n: number) => `${count(n, 'house', 'houses')} on the street only`,
+    onStreetTitle: 'Houses found on their street only',
+    onStreetHelp:
+      'Adresses Québec knows the street, not the civic number. Open one at the door to pin it there.',
     chooserTitle: (n: number) => `${String(n)} houses on this spot`,
     chooserHelp:
       'Different addresses on one point, usually a village center. These pins are probably in the wrong place.',
@@ -176,6 +196,8 @@ export const strings = {
     noAddress: 'No address',
     noName: 'No name',
     noPosition: 'Not on the map yet',
+    onStreet:
+      'Found on the street only, from the address: check at the door, then Use my location.',
     statusLine: (status: string, when: string) => (when ? `${status}, ${when}` : status),
     rail: 'Mark the house',
     rowRail: 'This row only',
@@ -265,6 +287,15 @@ export const strings = {
     back: 'Map',
     offlineMap: 'Offline map',
     noMap: 'No offline map loaded. Pins still show, on a plain background.',
+    online: 'Online',
+    onlineIntro:
+      'Names, phone numbers, parcel IDs, notes and statuses never leave the phone. These switches decide what else may go online.',
+    lookUpAddresses: 'Find houses from their address',
+    lookUpAddressesHelp:
+      'When a file has no coordinates, Terrain asks Adresses Québec (Gouvernement du Québec) where each house is. Only its street, town, postal code and province go online.',
+    onlineMap: 'Map from the internet',
+    onlineMapHelp:
+      'Streets under the pins from OpenFreeMap while there’s a connection; a loaded offline map comes first. Only the map area on screen goes online.',
     mapInfo: (name: string, megabytes: string) => `${name}, ${megabytes} MB`,
     mapZooms: (min: number, max: number) => `Zoom ${String(min)} to ${String(max)}`,
     loadMap: 'Load a map file',

@@ -34,13 +34,15 @@ const input = (
 describe('groupHouses', () => {
   const home = at(45.2641, -73.6105);
 
-  it('joins blank-address rows within 5 m that share a parcel, and only those', () => {
+  it('joins rows only by address: one spot and one lot are not one house', () => {
     const houses = groupHouses([
       input('a', 0, home, ['P1-1']),
       input('b', 1, east(home, 4), ['P1-1']),
       input('c', 2, east(home, 3), ['P1-9']),
+      input('d', 3, east(home, 1), ['P1-1'], '7 rue A'),
+      input('e', 4, east(home, 900), ['P1-2'], '7, rue A'),
     ]);
-    expect(houses.map((house) => house.rowIds)).toEqual([['a', 'b'], ['c']]);
+    expect(houses.map((house) => house.rowIds)).toEqual([['a'], ['b'], ['c'], ['d', 'e']]);
   });
 
   it('is transitive, and keeps the key of the first row in file order', () => {
