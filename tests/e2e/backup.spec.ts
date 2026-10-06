@@ -5,7 +5,7 @@ test('backs up everything to one file, and a new phone restores it, offline', as
   await offlineAfterFirstLoad(page);
   await openCases(page);
   await openSettings(page);
-  await expect(page.getByText('28 rows at 20 houses')).toBeVisible();
+  await expect(page.getByText('28 entries at 20 houses')).toBeVisible();
 
   const downloading = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Back up' }).click();
@@ -34,11 +34,11 @@ test('backs up everything to one file, and a new phone restores it, offline', as
 
   await page.locator('input[type=file][accept*=".json"]').setInputFiles(backup);
   await expect(page.getByRole('heading', { name: 'Restore this backup?' })).toBeVisible();
-  await expect(page.getByText('cases: 28 rows')).toBeVisible();
+  await expect(page.getByText('cases: 28 entries')).toBeVisible();
   await page.getByRole('button', { name: 'Replace with backup' }).click();
   await mapReady(page);
   await openSettings(page);
-  await expect(page.getByText('28 rows at 20 houses')).toBeVisible();
+  await expect(page.getByText('28 entries at 20 houses')).toBeVisible();
 
   // A file that isn't a backup changes nothing.
   await page

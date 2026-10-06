@@ -1,6 +1,6 @@
 # Terrain: the land agent friend
 
-A field book for land-contact campaigns, on the phone and offline. The client's Excel comes straight in (Terrain finds each house from its address), or your My Maps pins from a KMZ; Terrain shows one pin per house, every row of the house on one card, and writes what you do at the door (status, Visit date, corrections, calls, notes) into the client's own columns. Names, phone numbers and notes stay on the phone until you export them.
+A field book for land-contact campaigns, on the phone and offline. The client's Excel comes straight in (Terrain finds each house from its address), or your My Maps pins from a KMZ; Terrain shows one pin per house, every entry of the house on one card, and writes what you do at the door (status, Visit date, corrections, calls, notes) into the client's own columns. Names, phone numbers and notes stay on the phone until you export them.
 
 **Try it:** https://terrain.ederer.digital. Its first screen offers a sample, 124 poutine places across Québec, built into the app, and opens your own My Maps map by its link if the map is shared with *Anyone with the link*. While it's online, the map draws the streets under the pins from [OpenFreeMap](https://openfreemap.org). What you do there stays in your browser. (The sample and the links are offered only on the addresses listed in `src/ui/demo.ts`; see "The relay" below.)
 
@@ -53,7 +53,7 @@ Or from My Maps:
 1. In My Maps: layer menu (or the map menu) → **Export to KML/KMZ** → untick *Keep data up to date with network link KML* → KMZ.
 2. In Terrain: **Import file**, choose the KMZ, check the **Pin colors**, read the **Import report**, then **Open campaign**. The pins My Maps exports without coordinates are found from their address too.
 
-Importing a newer file into the same campaign later keeps your corrections, moved houses, found positions and statuses; the report lists anything the file disagrees with. Rows are one house only when their addresses are the same (street, number and postal code, or the town when there is no postal code); spelling, accents and case don't count.
+Importing a newer file into the same campaign later keeps your corrections, moved houses, found positions and statuses; the report lists anything the file disagrees with. A file with fewer columns keeps the values of those it left out, and an entry it no longer lists stays, marked **Not in the client's latest file** on its card. Entries are one house only when their addresses are the same (street, number and postal code, or the town when there is no postal code); spelling, accents and case don't count.
 
 ## 4. The map without signal
 
@@ -69,23 +69,24 @@ Without either, the pins still show on a plain background.
 
 ## 5. At a house
 
-- Tap the pin: the card lists every row at the house, by parcel ID. **Show everything** opens the full card.
+- Tap the pin: the card lists every entry at the house, by parcel ID. **Show everything** opens the full card.
+- At the door with the GPS on: **You're at 123, rue …** shows at the bottom of the map when a house is within 100 m (and the GPS is accurate to 50 m). Tap it to open that house's card.
 - The rail marks the whole house in one tap: **Given**, **At door**, **To research**, **Skipped**. The toast's **Undo** takes it back for 6 seconds.
   - **Given** closes the lot: co-owners of the same plot at other addresses (the same parcel ID and the same lot number, NUM_LOT) become Given too, with a note saying with whom and where. In a file without a lot-number column, the same parcel ID is enough.
   - **To research** asks for a note and leaves "Co-owner to research" on the co-owners elsewhere.
-- One row only: tap the owner, then use the small rail **This row only**.
+- One entry only: tap the owner, then use the small rail **This entry only**.
 - **Edit info** (full card) corrects names, phones and addresses, each owner's once. **Use my location** pins the house where you stand.
-  - **New owner** (in an owner's part of Edit info): someone else owns it now. The owner's name and numbers move to a **Previous info** column, shown on the card and kept in the export, and you type the new owner's. A visit made today is the new owner's; an older one goes to Previous info too, and the row goes back to To visit.
-  - A client's file naming someone else on a row (another first name and another last name; a new last name alone is the same person) does the same when you import it: the import report lists the **New owners**, and each starts over at the file's status.
+  - **New owner** (in an owner's part of Edit info): someone else owns it now. The owner's name and numbers move to a **Previous info** column, shown on the card and kept in the export, and you type the new owner's. A visit made today is the new owner's; an older one goes to Previous info too, and the entry goes back to To visit.
+  - A client's file naming someone else on an entry (another first name and another last name; a new last name alone is the same person) does the same when you import it: the import report lists the **New owners**, and each starts over at the file's status.
 - **Call** opens the dialer; back in Terrain, *How did the call go?* asks for the outcome. **Log call** records a call made outside Terrain.
-- **Note** writes a note for every row at the house. Press and hold a note to delete it.
+- **Note** writes a note for every entry at the house. Press and hold a note to delete it.
 - **Navigate** opens Google Maps directions to the house.
 
 ## 6. End of the day
 
 - **Day log** (bottom left of the map): the day's work, house by house. A status and the notes written with it at a house share one line: the status's color under the time, the note next to the address. **Copy as text** or **Share**.
 - **Export** (from the day log):
-  - **Export Excel**: Parcels (every row with its current values, in the client's columns) and Journal (every change, with what it replaced).
+  - **Export Excel**: Parcels (every entry with its current values, in the client's columns) and Journal (every change, with what it replaced).
   - **My Maps update**: one file per layer. In My Maps, on a copy of the map: layer menu → **Reimport and merge** → **Replace all items** → the layer's file → position by **Location** → title **Parcel ID**, then style by *Package status*.
   - **Back up**: everything on the phone, every campaign.
 - The phone's share sheet sends the file where Chrome allows that file type; otherwise it goes to Downloads.

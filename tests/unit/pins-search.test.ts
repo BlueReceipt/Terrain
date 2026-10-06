@@ -6,6 +6,7 @@ import {
   mapContent,
   statusCounts,
 } from '../../src/domain/pins.ts';
+import { houseHere } from '../../src/domain/identity.ts';
 import { search } from '../../src/domain/search.ts';
 import { DEFAULT_STATUSES } from '../../src/domain/statuses.ts';
 import type { Row } from '../../src/domain/types.ts';
@@ -187,5 +188,25 @@ describe('the basemap colors (desaturated)', () => {
     expect(gray('#80deea')).toBe('#cbcbcb');
     expect(gray('#ffffff')).toBe('#ffffff');
     expect(gray('rgba(0,0,0,0.5)')).toBe('rgba(0,0,0,0.5)');
+  });
+});
+
+describe('"You’re at"', () => {
+  const houses = plan.merge.houses;
+  const at = houses.find((house) => house.houseKey === alain.houseKey)?.position ?? {
+    lat: 0,
+    lng: 0,
+  };
+  // 111 320 m to a degree of latitude.
+  const north = (meters: number) => ({ lat: at.lat + meters / 111_320, lng: at.lng });
+
+  it('offers the nearest house within 100 m while the GPS is accurate to 50 m', () => {
+    expect(houseHere(houses, { position: north(40), accuracyM: 12 })).toBe(alain.houseKey);
+    expect(houseHere(houses, { position: north(95), accuracyM: 50 })).toBe(alain.houseKey);
+  });
+
+  it('offers none farther, or with a GPS fix too rough to tell', () => {
+    expect(houseHere(houses, { position: north(150), accuracyM: 12 })).toBeNull();
+    expect(houseHere(houses, { position: north(10), accuracyM: 80 })).toBeNull();
   });
 });

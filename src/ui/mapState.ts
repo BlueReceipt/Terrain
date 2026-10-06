@@ -1,5 +1,5 @@
 import { computed, signal } from '@preact/signals';
-import type { House } from '../domain/identity.ts';
+import { housesOfRows, type House } from '../domain/identity.ts';
 import { lotNeighbors, mapContent, type Pin } from '../domain/pins.ts';
 import type { LatLng } from '../domain/types.ts';
 import type { Focus } from '../map/MapView.tsx';
@@ -38,6 +38,9 @@ export const panel = signal<'dayLog' | 'export' | null>(null);
 export const content = computed(() =>
   mapContent(current.value?.rows ?? [], statuses.value, statusFilter.value),
 );
+
+/** Every house of the open campaign, with its position: for "You're at". */
+export const houses = computed(() => housesOfRows(current.value?.rows ?? []));
 
 /** Every house's pin, through the spot it shares. */
 const pinOfHouse = computed(() => {

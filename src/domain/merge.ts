@@ -9,11 +9,11 @@ import {
   myMapsValue,
   readerFor,
   samePosition,
+  type FieldReader,
   type House,
 } from './identity.ts';
 import {
   isNewOwner,
-  isPreviousInfoColumn,
   ownerColumns,
   ownerDetails,
   previousInfoColumn,
@@ -146,7 +146,13 @@ function mergeRow(
   const changes: ImportChange[] = [];
   const conflicts: Conflict[] = [];
   const absorbed: { rowId: string; column: string }[] = [];
-  const fromFile = incomingAppFields(incoming, roles);
+  // A column this file doesn't have says nothing about it (Alex, 2026-10-06): its values stay.
+  const inFile = (column: string) => column in incoming.fields;
+  const sourceFields = {
+    ...Object.fromEntries(Object.entries(existing.sourceFields).filter(([c]) => !inFile(c))),
+    ...incoming.fields,
+  };
+  const fromFile = incomingAppFields({ fields: sourceFields }, roles);
   // Terrain's notes come back inside the Notes cell of its own exports: they are events, not the client's.
   const importedNotes = withoutOwnNotes(fromFile.importedNotes, ownNotes);
 
@@ -154,6 +160,7 @@ function mergeRow(
   // own values coming back from an export (Package status, its dates, its notes) are no news.
   const columns = new Set([...Object.keys(existing.sourceFields), ...Object.keys(incoming.fields)]);
   for (const column of columns) {
+    if (!inFile(column)) continue;
     const previous = existing.sourceFields[column] ?? '';
     const next = incoming.fields[column] ?? '';
     if (previous === next) continue;
@@ -190,15 +197,15 @@ function mergeRow(
   }
 
   // Local wins wherever Alex acted; a correction the file now agrees with is absorbed. A file
-  // without Previous info, Terrain's own column, says nothing about it. For a new owner, the old
-  // owner's corrections go.
+  // without the column (Previous info, Terrain's own, never is in the client's) says nothing about
+  // it. For a new owner, the old owner's corrections go.
   const dropped = replace
     ? Object.keys(existing.edits).filter((column) => replace.columns.includes(column))
     : [];
   const edits: Record<string, string> = {};
   for (const [column, local] of Object.entries(existing.edits)) {
     if (dropped.includes(column) || column === replace?.column) continue;
-    if (isPreviousInfoColumn(column) && !(column in incoming.fields)) {
+    if (!inFile(column)) {
       edits[column] = local;
       continue;
     }
@@ -248,7 +255,10 @@ function mergeRow(
     importedNotes,
   };
 
-  const incomingStatus = statusIdFor(incoming, context);
+  const incomingStatus = statusIdFor(
+    { pinColor: incoming.pinColor, fields: sourceFields },
+    context,
+  );
   let statusId = incomingStatus;
   if (touched.has('status')) {
     statusId = existing.statusId;
@@ -293,8 +303,8 @@ function mergeRow(
       layer: incoming.layer,
       parcelIdRaw: incoming.parcelIdRaw,
       oldParcelIds: existing.oldParcelIds.filter((id) => stillListed.has(compactKey(id))),
-      fingerprint: fingerprintOf(incoming.parcelIdRaw, readerFor(incoming.fields, context.roles)),
-      sourceFields: { ...incoming.fields },
+      fingerprint: fingerprintOf(incoming.parcelIdRaw, readerFor(sourceFields, context.roles)),
+      sourceFields,
       edits,
       importedPosition,
       position,
@@ -380,15 +390,32 @@ export function mergeImport(input: MergeInput): MergeResult {
   };
   const existing = [...input.existing].sort((a, b) => a.rowIndex - b.rowIndex);
   const incoming = input.incoming;
+  const { roles } = campaign;
   const fingerprints = incoming.map((row) =>
-    fingerprintOf(row.parcelIdRaw, readerFor(row.fields, campaign.roles)),
+    fingerprintOf(row.parcelIdRaw, readerFor(row.fields, roles)),
   );
+  // A file without some of the columns that tell rows apart (the names, the address) is matched on
+  // what both have (Alex, 2026-10-06): no row comes in twice for a column the file left out.
+  const present = new Set(incoming.flatMap((row) => Object.keys(row.fields)));
+  const partial = (['salutation', 'firstName', 'lastName', 'company', 'street'] as const).some(
+    (role) => roles[role] !== undefined && !present.has(roles[role]),
+  );
+  const onShared =
+    (read: FieldReader): FieldReader =>
+    (role) => {
+      const column = roles[role];
+      return column !== undefined && present.has(column) ? read(role) : '';
+    };
+  const keyOf = (row: Row) =>
+    partial
+      ? fingerprintOf(row.parcelIdRaw, onShared(readerFor(row.sourceFields, roles)))
+      : row.fingerprint;
 
   // 1. Same fingerprint. Several rows can share one (in Alex's files: one owner, one parcel ID,
   //    several cadastre lots), so each file row takes the most similar of them, ties to the first.
   const matchOf: (Row | undefined)[] = new Array<Row | undefined>(incoming.length).fill(undefined);
   const matched = new Set<string>();
-  const byFingerprint = groupBy(existing, (row) => row.fingerprint);
+  const byFingerprint = groupBy(existing, keyOf);
   fingerprints.forEach((fingerprint, i) => {
     const candidates = byFingerprint.get(fingerprint);
     const row = incoming[i];

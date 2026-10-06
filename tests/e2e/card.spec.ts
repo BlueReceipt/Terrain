@@ -97,9 +97,9 @@ test('Given at a house marks its 3 rows, closes Luc’s row with a lot note, and
   const before = await Promise.all(TREMBLAY_ROWS.map(([id, name]) => storedRow(page, id, name)));
 
   await mark(card, 'Given');
-  const toast = page.getByRole('status').filter({ hasText: 'Given: 3 rows' });
+  const toast = page.getByRole('status').filter({ hasText: 'Given: 3 entries' });
   await expect(toast).toHaveText(
-    /Given: 3 rows at 123, rue Saint-Paul and 1 row at 12, chemin du Lac/,
+    /Given: 3 entries at 123, rue Saint-Paul and 1 entry at 12, chemin du Lac/,
   );
   expect(await page.evaluate(() => window.buzzed)).toEqual([12]);
   await expect(card.locator('.card-parcels .status-chip')).toHaveText([
@@ -162,7 +162,7 @@ test('At door stays at the house, and one row can differ: To research on Marie o
     .getByRole('button', { name: /Marie Trempette/ })
     .click();
   await card
-    .getByRole('group', { name: 'This row only' })
+    .getByRole('group', { name: 'This entry only' })
     .getByRole('button', { name: 'To research' })
     .click();
   await expect(page.getByRole('dialog', { name: 'Note for Marie Trempette' })).toBeVisible();
@@ -198,7 +198,9 @@ test('Edit info writes each correction on the rows it belongs to, and Given keep
   await section('Marie Trempette').getByLabel('CELLULAIRE').fill('514 555-0100');
   await section('Parcel P1-217A').getByLabel('NUM_LOT').fill('1 234 502');
   await form.getByRole('button', { name: 'Save changes' }).click();
-  await expect(page.getByRole('status').filter({ hasText: 'Info updated: 3 rows' })).toBeVisible();
+  await expect(
+    page.getByRole('status').filter({ hasText: 'Info updated: 3 entries' }),
+  ).toBeVisible();
 
   // A fix goes on one owner only (Alex, 2026-10-01): Alain's home line on his two rows, not Marie's.
   const corrected = [
@@ -427,7 +429,7 @@ test('To research asks for a note for the 3 rows; closing the editor unwritten k
 }) => {
   const card = await openHouse(page, TREMPETTE, RUE_SAINT_PAUL);
   await mark(card, 'To research');
-  const editor = page.getByRole('dialog', { name: 'Note for 3 rows at 123, rue Saint-Paul' });
+  const editor = page.getByRole('dialog', { name: 'Note for 3 entries at 123, rue Saint-Paul' });
   await editor.getByRole('textbox').fill('Chien méchant, sonner deux fois');
   await editor.getByRole('button', { name: 'Save note' }).click();
   await card.getByRole('button', { name: 'Show everything' }).click();
@@ -435,13 +437,13 @@ test('To research asks for a note for the 3 rows; closing the editor unwritten k
   await expect(notes.locator('.note > p:first-child')).toHaveText([
     'Chien méchant, sonner deux fois',
   ]);
-  await expect(notes.locator('.note > p:last-child')).toHaveText([/All 3 rows$/]);
+  await expect(notes.locator('.note > p:last-child')).toHaveText([/All 3 entries$/]);
   await closeCard(card);
 
   const lucCard = await openHouse(page, LUC, DU_LAC);
   await mark(lucCard, 'To research');
   await page
-    .getByRole('dialog', { name: 'Note for 1 row at 12, chemin du Lac' })
+    .getByRole('dialog', { name: 'Note for 1 entry at 12, chemin du Lac' })
     .getByRole('button', { name: 'Cancel' })
     .click();
   expect((await storedRow(page, 'P1-216B', 'Luc')).statusId).toBe('to-research');
@@ -478,7 +480,7 @@ test('a house note survives a reload, newest first, on every row', async ({ page
   let card = await openHouse(page, TREMPETTE, RUE_SAINT_PAUL);
   for (const text of ['Cantine Alain', 'Rappeler lundi']) {
     await card.getByRole('button', { name: 'Note', exact: true }).click();
-    const editor = page.getByRole('dialog', { name: 'Note for 3 rows at 123, rue Saint-Paul' });
+    const editor = page.getByRole('dialog', { name: 'Note for 3 entries at 123, rue Saint-Paul' });
     await editor.getByRole('textbox').fill(text);
     await editor.getByRole('button', { name: 'Save note' }).click();
   }
@@ -490,7 +492,10 @@ test('a house note survives a reload, newest first, on every row', async ({ page
     'Rappeler lundi',
     'Cantine Alain',
   ]);
-  await expect(card.locator('.note > p:last-child')).toHaveText([/All 3 rows$/, /All 3 rows$/]);
+  await expect(card.locator('.note > p:last-child')).toHaveText([
+    /All 3 entries$/,
+    /All 3 entries$/,
+  ]);
 });
 
 test('every interactive target measures at least 56 px', async ({ page }) => {

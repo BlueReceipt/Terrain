@@ -1,5 +1,6 @@
 import { useSignal } from '@preact/signals';
 import { useEffect } from 'preact/hooks';
+import { houseHere } from '../domain/identity.ts';
 import { houseStatus, statusCounts } from '../domain/pins.ts';
 import { search, type SearchResult } from '../domain/search.ts';
 import { locationState, myFix, startLocating, stopLocating } from '../map/geolocation.ts';
@@ -19,6 +20,7 @@ import {
   focus,
   focusOn,
   houseList,
+  houses,
   linked,
   panel,
   selectedHouseKey,
@@ -272,6 +274,8 @@ export function MapScreen() {
   const chooser = chooserHouseKeys.value;
   const list = houseList.value;
   const located = locationState.value;
+  // At a door with a good GPS fix: its card is one tap away.
+  const here = fix ? houseHere(houses.value, fix) : null;
 
   return (
     <main class="map-screen">
@@ -365,18 +369,36 @@ export function MapScreen() {
         ) : selected ? (
           <HouseCard houseKey={selected} />
         ) : (
-          <div class="bottom-row">
-            <button
-              type="button"
-              class="day-log-button"
-              onClick={() => {
-                panel.value = 'dayLog';
-              }}
-            >
-              {strings.dayLog.open}
-            </button>
-            <FilterChips />
-          </div>
+          <>
+            {here && (
+              <button
+                type="button"
+                class="here-chip"
+                onClick={() => {
+                  selectHouse(here);
+                }}
+              >
+                {strings.map.youreAt(
+                  addressOf(
+                    loaded.rows.filter((row) => row.houseKey === here),
+                    loaded.campaign.roles,
+                  ),
+                )}
+              </button>
+            )}
+            <div class="bottom-row">
+              <button
+                type="button"
+                class="day-log-button"
+                onClick={() => {
+                  panel.value = 'dayLog';
+                }}
+              >
+                {strings.dayLog.open}
+              </button>
+              <FilterChips />
+            </div>
+          </>
         )}
       </div>
       {panel.value === 'dayLog' && <DayLogPanel />}

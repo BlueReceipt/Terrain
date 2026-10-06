@@ -60,7 +60,7 @@ test('the whole loop of a day, offline, ends in an Excel file holding all of it'
   await card.getByRole('button', { name: 'Edit info' }).click();
   const form = await editMariesCell(page);
   await form.getByRole('button', { name: 'Save changes' }).click();
-  await expect(page.getByRole('status').filter({ hasText: 'Info updated: 1 row' })).toBeVisible();
+  await expect(page.getByRole('status').filter({ hasText: 'Info updated: 1 entry' })).toBeVisible();
 
   // Given: every row at the house.
   await page.clock.setFixedTime(at('14:32'));
@@ -84,7 +84,7 @@ test('the whole loop of a day, offline, ends in an Excel file holding all of it'
   // A note for the house.
   await page.clock.setFixedTime(at('14:40'));
   await card.getByRole('button', { name: 'Note', exact: true }).click();
-  const editor = page.getByRole('dialog', { name: `Note for 3 rows at ${RUE_SAINT_PAUL}` });
+  const editor = page.getByRole('dialog', { name: `Note for 3 entries at ${RUE_SAINT_PAUL}` });
   await editor.getByRole('textbox').fill('Cantine Alain, confirmer avec Alain');
   await editor.getByRole('button', { name: 'Save note' }).click();
   await closeCard(card);
@@ -146,7 +146,7 @@ test('a phone that dies mid-day keeps every confirmed action and drops an unsave
 }) => {
   let card = await openHouse(page, TREMPETTE, RUE_SAINT_PAUL);
   await mark(card, 'Given');
-  await expect(page.getByRole('status').filter({ hasText: 'Given: 3 rows' })).toBeVisible();
+  await expect(page.getByRole('status').filter({ hasText: 'Given: 3 entries' })).toBeVisible();
 
   // Edit info half done, then the app is killed: a reload stands in for it.
   await card.getByRole('button', { name: 'Show everything' }).click();

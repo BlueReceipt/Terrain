@@ -258,6 +258,9 @@ export function HouseCard({ houseKey }: { houseKey: string }) {
                         <span class="owner-name">{nameOf(row, roles)}</span>
                         <StatusChip row={row} />
                       </button>
+                      {row.missingFromLastImport && (
+                        <p class="owner-missing">{strings.card.notInLatestFile}</p>
+                      )}
                       {previous && (
                         <p class="owner-previous">
                           {strings.card.previousInfo}: {previous}

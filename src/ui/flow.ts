@@ -173,12 +173,17 @@ export function backToLinks(): void {
   screen.value = current.value ? { name: 'settings' } : { name: 'home' };
 }
 
-/** Roles found in the file first; the campaign's earlier choices fill gaps when those columns exist. */
+/**
+ * Roles found in the file first; the campaign's earlier choices fill the gaps. A column the file
+ * left out keeps its values in the campaign (Alex, 2026-10-06), so it keeps its role too; only the
+ * parcel ID must be a column of this file, read with it.
+ */
 function rolesFor(parsed: ParsedFile): ColumnRoles {
   const roles: ColumnRoles = { ...parsed.roles };
   const earlier = current.value?.campaign.roles ?? {};
   for (const [role, column] of Object.entries(earlier) as [FieldRole, string][]) {
-    if (roles[role] === undefined && parsed.columns.includes(column)) roles[role] = column;
+    if (roles[role] !== undefined) continue;
+    if (role !== 'parcelId' || parsed.columns.includes(column)) roles[role] = column;
   }
   return roles;
 }

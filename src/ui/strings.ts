@@ -13,7 +13,7 @@ const count = (n: number, one: string, many: string): string =>
 // Every user-facing string lives here so a French UI can follow.
 export const strings = {
   appName: 'Terrain',
-  rows: (n: number) => count(n, 'row', 'rows'),
+  rows: (n: number) => count(n, 'entry', 'entries'),
   houses: (n: number) => count(n, 'house', 'houses'),
   pins: (n: number) => count(n, 'pin', 'pins'),
   noName: 'No name',
@@ -58,7 +58,7 @@ export const strings = {
         'This file only links to your map online; it holds no pins. In My Maps, export again with “Keep data up to date with network link KML” unticked.',
       'not-kml': 'This file can’t be read as a map. Export it from My Maps again.',
       'no-rows':
-        'This file has no pins or rows. Check that you exported the right map or layer from My Maps.',
+        'This file has no pins or entries. Check that you exported the right map or layer from My Maps.',
       'no-coordinates':
         'This file has no coordinates, and no street and town to find its houses from. Add Latitude and Longitude columns, or address and town columns (ADRESSE and MUNICIPALITE), then import it again.',
       'unreadable-spreadsheet':
@@ -100,7 +100,7 @@ export const strings = {
   },
   report: {
     title: 'Import report',
-    inFile: (rows: number, fileName: string) => `${count(rows, 'row', 'rows')} in ${fileName}`,
+    inFile: (rows: number, fileName: string) => `${count(rows, 'entry', 'entries')} in ${fileName}`,
     added: 'Added',
     updated: 'Updated',
     unchanged: 'Unchanged',
@@ -113,11 +113,11 @@ export const strings = {
     conflicts: 'Your corrections the file disagrees with',
     conflict: (column: string, local: string, incoming: string) =>
       `${column}: yours “${local}”, file “${incoming || '(blank)'}”`,
-    duplicates: 'Rows listed twice (same parcel ID, owner and address)',
-    duplicatesHelp: 'Terrain keeps both rows. Check them in the client’s file.',
-    missing: 'Rows missing from this file',
-    missingHelp: 'They stay in the campaign, flagged, after the other rows.',
-    severalRows: 'Houses with more than one row',
+    duplicates: 'Entries listed twice (same parcel ID, owner and address)',
+    duplicatesHelp: 'Terrain keeps both entries. Check them in the client’s file.',
+    missing: 'Entries missing from this file',
+    missingHelp: 'They stay in the campaign, flagged, after the other entries.',
+    severalRows: 'Houses with more than one entry',
     noPosition: 'Houses with no position yet',
     noPositionHelp:
       'No coordinates in the file, and no address Terrain could find. They wait in a list until you pin each house at the door.',
@@ -134,18 +134,18 @@ export const strings = {
     lots: 'Parcels at more than one house',
     severalIds: 'Cells listing several parcel IDs',
     severalIdsHelp:
-      'Mark an ID as old when it’s crossed out in the client’s file. A row never joins a lot through an old ID.',
+      'Mark an ID as old when it’s crossed out in the client’s file. An entry never joins a lot through an old ID.',
     markOld: (id: string) => `${id} is old`,
     sharedPoints: 'Different houses on one spot',
     sharedPointsHelp:
       'Usually a geocoding fallback such as a village center: these pins are probably in the wrong place.',
-    spread: 'Houses whose rows are more than 50 m apart',
+    spread: 'Houses whose entries are more than 50 m apart',
     spreadHelp:
-      'Often pins pulled apart by hand. Terrain shows each house once, where most of its rows are.',
+      'Often pins pulled apart by hand. Terrain shows each house once, where most of its entries are.',
     colors: 'Pin colors',
     reference: (n: number) =>
       `${count(n, 'line, shape or route', 'lines, shapes and routes')} shown as a background drawing`,
-    groupBy: 'Group rows into lots by',
+    groupBy: 'Group entries into lots by',
     parcelIdOption: (lotNumber: string | undefined) =>
       lotNumber ? `Parcel ID and ${lotNumber}` : 'Parcel ID',
     openCampaign: 'Open campaign',
@@ -156,7 +156,7 @@ export const strings = {
   },
   campaign: {
     summary: (rows: number, houses: number) =>
-      `${count(rows, 'row', 'rows')} at ${count(houses, 'house', 'houses')}`,
+      `${count(rows, 'entry', 'entries')} at ${count(houses, 'house', 'houses')}`,
     noPosition: (n: number) => `${count(n, 'house', 'houses')} with no position yet`,
     lots: (n: number) => `${count(n, 'parcel', 'parcels')} at more than one house`,
     importFile: 'Import file',
@@ -166,6 +166,7 @@ export const strings = {
     search: 'Search parcel, owner, lot or address',
     clearSearch: 'Clear the search',
     locate: 'Show where I am',
+    youreAt: (address: string) => `You’re at ${address}`,
     menu: 'Settings',
     noBasemap: 'No offline map loaded. Add one in Settings.',
     filters: 'Show houses by status',
@@ -193,7 +194,7 @@ export const strings = {
     locationWaiting: 'Waiting for the GPS…',
   },
   card: {
-    rows: (n: number) => count(n, 'row', 'rows'),
+    rows: (n: number) => count(n, 'entry', 'entries'),
     close: 'Close',
     more: 'Show everything',
     less: 'Show less',
@@ -201,6 +202,7 @@ export const strings = {
       `${parcelId} also at ${address}: ${owners}`,
     ownerStatus: (name: string, status: string) => `${name}, ${status.toLowerCase()}`,
     previousInfo: 'Previous info',
+    notInLatestFile: 'Not in the client’s latest file',
     noAddress: 'No address',
     noName: 'No name',
     noPosition: 'Not on the map yet',
@@ -208,7 +210,7 @@ export const strings = {
       'Found on the street only, from the address: check at the door, then Use my location.',
     statusLine: (status: string, when: string) => (when ? `${status}, ${when}` : status),
     rail: 'Mark the house',
-    rowRail: 'This row only',
+    rowRail: 'This entry only',
     via: (address: string) => `via ${address}`,
     call: 'Call',
     logCall: 'Log call',
@@ -219,8 +221,8 @@ export const strings = {
       accuracy ? `Use my location, accurate to ${accuracy} m` : 'Use my location for this house',
     pinHelp: 'Stand at the door: the house moves to where the phone is.',
     waitingForGps: 'Waiting for the GPS…',
-    noteForRow: 'Note for this row',
-    editRow: 'Edit this row',
+    noteForRow: 'Note for this entry',
+    editRow: 'Edit this entry',
     markRowToVisit: 'Mark as to visit',
     markHouseToVisit: 'Mark house as to visit',
     editInfo: 'Edit info',
@@ -235,7 +237,7 @@ export const strings = {
     showOnMap: 'Show on map',
     notes: 'Notes',
     noNotes: 'No notes yet.',
-    allRows: (n: number) => `All ${String(n)} rows`,
+    allRows: (n: number) => `All ${String(n)} entries`,
     lotMark: 'Lot',
     importedMark: 'From the file',
     deleteHint: 'Press and hold a note to delete it.',
@@ -255,17 +257,18 @@ export const strings = {
     discard: 'Forget this call',
   },
   noteEditor: {
-    forHouse: (n: number, address: string) => `Note for ${count(n, 'row', 'rows')} at ${address}`,
+    forHouse: (n: number, address: string) =>
+      `Note for ${count(n, 'entry', 'entries')} at ${address}`,
     forRow: (name: string) => `Note for ${name}`,
     save: 'Save note',
     deleteTitle: 'Delete this note?',
-    deleteBody: 'It leaves every row it covers. The history keeps it.',
+    deleteBody: 'It leaves every entry it covers. The history keeps it.',
     delete: 'Delete note',
   },
   edit: {
     editShort: 'Edit',
     title: (address: string) => `Edit info: ${address}`,
-    rowTitle: (name: string) => `Edit this row: ${name}`,
+    rowTitle: (name: string) => `Edit this entry: ${name}`,
     house: 'Same for the whole house',
     parcel: (parcelId: string) => `Parcel ${parcelId}`,
     differs: 'differs',
@@ -275,7 +278,7 @@ export const strings = {
     newOwnerHelp: (previous: string, restart: string | null) =>
       [
         previous && `${previous} goes to Previous info when you save.`,
-        restart && `That visit was theirs: the row goes back to ${restart}.`,
+        restart && `That visit was theirs: the entry goes back to ${restart}.`,
         'Type the new owner’s name and numbers.',
       ]
         .filter(Boolean)
@@ -290,14 +293,14 @@ export const strings = {
     undo: 'Undo',
     rowMarked: (parcelId: string, status: string) => `${parcelId} marked ${status.toLowerCase()}`,
     houseMarked: (status: string, rows: number, address: string) =>
-      `${status}: ${count(rows, 'row', 'rows')} at ${address}`,
+      `${status}: ${count(rows, 'entry', 'entries')} at ${address}`,
     alsoClosed: (rows: number, address: string | null, houses: number) =>
       address
-        ? ` and ${count(rows, 'row', 'rows')} at ${address}`
-        : ` and ${count(rows, 'row', 'rows')} at ${count(houses, 'other house', 'other houses')}`,
+        ? ` and ${count(rows, 'entry', 'entries')} at ${address}`
+        : ` and ${count(rows, 'entry', 'entries')} at ${count(houses, 'other house', 'other houses')}`,
     alsoNoted: (houses: number) =>
       `, noted at ${count(houses, 'other address', 'other addresses')}`,
-    infoUpdated: (rows: number) => `Info updated: ${count(rows, 'row', 'rows')}`,
+    infoUpdated: (rows: number) => `Info updated: ${count(rows, 'entry', 'entries')}`,
     newOwner: (name: string) => (name ? `New owner: ${name}` : 'New owner saved'),
     moved: 'House pinned where you are',
     callLogged: (outcome: string) => `Call logged: ${outcome}`,
@@ -343,7 +346,7 @@ export const strings = {
       'On your computer, in the Terrain folder, run npm run basemap -- followed by this area. It makes the map file to load here.',
     copied: 'Copied.',
     copyFailed: 'Copy didn’t work. Select the area above and copy it.',
-    noArea: 'No row has a position yet. Pin a house at its door first.',
+    noArea: 'No entry has a position yet. Pin a house at its door first.',
     campaign: 'Campaign',
     backups: 'Backups',
     // Campaigns.
@@ -351,12 +354,12 @@ export const strings = {
     rename: 'Rename',
     save: 'Save',
     otherCampaigns: 'Other campaigns on this phone',
-    campaignRows: (name: string, rows: number) => `${name} · ${count(rows, 'row', 'rows')}`,
+    campaignRows: (name: string, rows: number) => `${name} · ${count(rows, 'entry', 'entries')}`,
     openCampaign: (name: string) => `Open ${name}`,
     deleteCampaign: 'Delete this campaign',
     deleteTitle: (name: string) => `Delete ${name}?`,
     deleteBody: (rows: number) =>
-      `Its ${count(rows, 'row', 'rows')} and every status, correction, call and note made in it are removed from this phone. Back up first if you may need them.`,
+      `Its ${count(rows, 'entry', 'entries')} and every status, correction, call and note made in it are removed from this phone. Back up first if you may need them.`,
     deleteConfirm: 'Delete campaign',
     // Statuses.
     statuses: 'Statuses',
@@ -381,7 +384,7 @@ export const strings = {
     archived: 'archived',
     archive: 'Archive',
     restore: 'Restore',
-    startStatus: 'Every row starts here, and Mark as to visit brings a row back to it.',
+    startStatus: 'Every entry starts here, and Mark as to visit brings an entry back to it.',
     badColor: 'A color is # then six digits or letters from A to F, like #0F9D58.',
     needLabel: 'A status needs a label.',
     addStatus: 'Add a status',
@@ -392,11 +395,11 @@ export const strings = {
       'How Edit info shows each column: once for the house, once per parcel ID, or once per owner.',
     groups: { house: 'House', parcel: 'Parcel', person: 'Owner' },
     lots: 'Lots',
-    lotColumn: 'Group rows into lots by',
+    lotColumn: 'Group entries into lots by',
     parcelIdColumn: (lotNumber: string | undefined) =>
       lotNumber ? `Parcel ID and ${lotNumber}` : 'Parcel ID',
     lotsAcross: (n: number) => `${count(n, 'lot is', 'lots are')} at more than one house.`,
-    lotVisitDate: 'Rows closed from the lot get Visit date',
+    lotVisitDate: 'Entries closed from the lot get Visit date',
     // Calls.
     callOutcomes: 'Call outcomes',
     callOutcomesHelp: 'The buttons after a call, in this order.',
@@ -445,9 +448,9 @@ export const strings = {
     viaLot: (n: number) => `+${n.toLocaleString('en-CA')} via lot`,
     // The words of the log itself, on screen and in the text it copies.
     words: {
-      rows: (n) => count(n, 'row', 'rows'),
+      rows: (n) => count(n, 'entry', 'entries'),
       parcelRows: (parcelId, rows) =>
-        rows === 1 ? parcelId : `${parcelId} (${count(rows, 'row', 'rows')})`,
+        rows === 1 ? parcelId : `${parcelId} (${count(rows, 'entry', 'entries')})`,
       infoUpdated: (fields) => `info updated: ${fields}`,
       field: (column, whom) => `${column} (${whom})`,
       moved: (accuracyM) =>
@@ -467,7 +470,7 @@ export const strings = {
       noAddress: 'No address',
       title: (campaign, day) => `Terrain, ${campaign}, ${day}`,
       statusCount: (status, rows, viaLot) =>
-        `${status}: ${count(rows, 'row', 'rows')}${viaLot > 0 ? ` (+${viaLot.toLocaleString('en-CA')} via lot)` : ''}`,
+        `${status}: ${count(rows, 'entry', 'entries')}${viaLot > 0 ? ` (+${viaLot.toLocaleString('en-CA')} via lot)` : ''}`,
       corrections: (n) => `Corrections: ${n.toLocaleString('en-CA')}`,
       calls: (n) => `Calls: ${n.toLocaleString('en-CA')}`,
       notes: (n) => `Notes: ${n.toLocaleString('en-CA')}`,
@@ -480,7 +483,7 @@ export const strings = {
     making: 'Making the file…',
     excel: 'Excel for the client',
     excelHelp:
-      'Two sheets: Parcels, every row with its current values in the client’s columns, and Journal, every change with what it replaced.',
+      'Two sheets: Parcels, every entry with its current values in the client’s columns, and Journal, every change with what it replaced.',
     excelButton: 'Export Excel',
     // Terrain's columns, when the client's file doesn't have them: added at the end of the export.
     appHeaders: {
@@ -495,13 +498,14 @@ export const strings = {
     myMaps: 'My Maps update',
     myMapsHelp:
       'One file per layer. In My Maps, on a copy of the map: layer menu → Reimport and merge → Replace all items, choose the file, then Parcel ID as the title.',
-    layer: (name: string, rows: number) => `${name || 'Layer'} · ${count(rows, 'row', 'rows')}`,
+    layer: (name: string, rows: number) =>
+      `${name || 'Layer'} · ${count(rows, 'entry', 'entries')}`,
     byCoordinates: 'Position the pins by Latitude and Longitude.',
     byLocation: 'Position the pins by Location: some pins have only their address.',
     cantPlace: (rows: number) =>
-      `${count(rows, 'row has', 'rows have')} no position and no address: My Maps can’t place ${rows === 1 ? 'it' : 'them'}. Pin ${rows === 1 ? 'that house' : 'those houses'} in Terrain first.`,
+      `${count(rows, 'entry has', 'entries have')} no position and no address: My Maps can’t place ${rows === 1 ? 'it' : 'them'}. Pin ${rows === 1 ? 'that house' : 'those houses'} in Terrain first.`,
     tooBig: (rows: number) =>
-      `My Maps imports up to ${rows.toLocaleString('en-CA')} rows per file. Split this layer in My Maps first.`,
+      `My Maps imports up to ${rows.toLocaleString('en-CA')} entries per file. Split this layer in My Maps first.`,
     backup: 'Backup',
     backupHelp: 'Everything on this phone, every campaign, to restore here or on a new phone.',
     backupButton: 'Back up',
@@ -555,7 +559,7 @@ export const strings = {
     title: 'Restore this backup?',
     madeOn: (when: string) => `Backup made ${when}`,
     holds: (campaigns: readonly string[], rows: number) =>
-      `${campaigns.length === 0 ? 'No campaign' : campaigns.join(', ')}: ${count(rows, 'row', 'rows')}`,
+      `${campaigns.length === 0 ? 'No campaign' : campaigns.join(', ')}: ${count(rows, 'entry', 'entries')}`,
     replaces:
       'Everything on this phone is replaced by the backup. Back up first if you need what’s here now.',
     replace: 'Replace with backup',

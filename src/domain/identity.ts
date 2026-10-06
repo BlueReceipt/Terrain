@@ -111,6 +111,26 @@ export function metersBetween(a: LatLng, b: LatLng): number {
   return Math.hypot(north, east);
 }
 
+// "You're at": the GPS accurate to 50 m or better, and a house within 100 m.
+const HERE_ACCURACY_M = 50;
+const HERE_DISTANCE_M = 100;
+
+/** The house the phone stands at, for the "You're at" chip: the nearest one, or none. */
+export function houseHere(
+  houses: readonly House[],
+  fix: { position: LatLng; accuracyM: number },
+): string | null {
+  if (fix.accuracyM > HERE_ACCURACY_M) return null;
+  let nearest: { houseKey: string; meters: number } | null = null;
+  for (const house of houses) {
+    if (!house.position) continue;
+    const meters = metersBetween(house.position, fix.position);
+    if (meters <= HERE_DISTANCE_M && (!nearest || meters < nearest.meters))
+      nearest = { houseKey: house.houseKey, meters };
+  }
+  return nearest?.houseKey ?? null;
+}
+
 export interface IdentityInput {
   rowId: string;
   rowIndex: number;

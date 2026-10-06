@@ -106,7 +106,7 @@ test('lots regroup at once, and a column made a house field shows once in Edit i
   page,
 }) => {
   await openSettings(page);
-  await page.getByRole('combobox', { name: 'Group rows into lots by' }).selectOption('NUM_LOT');
+  await page.getByRole('combobox', { name: 'Group entries into lots by' }).selectOption('NUM_LOT');
   await expect(page.getByText('2 lots are at more than one house.')).toBeVisible();
   await page.getByRole('combobox', { name: /^TEL_RES/ }).selectOption('house');
 

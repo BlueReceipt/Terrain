@@ -526,11 +526,11 @@ describe('day log', () => {
     expect(dayLogText(log, 'Poutine sample', 'DD.MM.YYYY HH:mm', strings.dayLog.words)).toBe(
       [
         'Terrain, Poutine sample, 26.09.2026',
-        'Given: 3 rows (+1 via lot) · Corrections: 4 · Calls: 1 · Notes: 1',
+        'Given: 3 entries (+1 via lot) · Corrections: 4 · Calls: 1 · Notes: 1',
         '',
         '14:28  123, rue Saint-Paul  info updated: TEL_RES (Alain Trempette), CELLULAIRE (Marie Trempette)',
         '14:32  123, rue Saint-Paul  Given',
-        '       P1-216B (2 rows), P1-217A',
+        '       P1-216B (2 entries), P1-217A',
         '       also closed 12, chemin du Lac (Luc Trempette, P1-216B)',
         '14:35  123, rue Saint-Paul  call 514 555-0100: Voicemail (Marie Trempette)',
         '14:40  123, rue Saint-Paul  note: Cantine Alain, confirmer avec Alain',
@@ -622,7 +622,7 @@ describe('day log', () => {
     expect(dayLogText(log, 'Poutine sample', 'DD.MM.YYYY HH:mm', strings.dayLog.words)).toBe(
       [
         'Terrain, Poutine sample, 26.09.2026',
-        'Given: 2 rows (+1 via lot) · Skipped: 1 row · Calls: 1 · Notes: 4',
+        'Given: 2 entries (+1 via lot) · Skipped: 1 entry · Calls: 1 · Notes: 4',
         '',
         // The time is the status's.
         '09:51  123, rue Saint-Paul  Given (Marie Trempette) · note: Chien dans la cour · note: Rappeler Alain (Alain Trempette)',

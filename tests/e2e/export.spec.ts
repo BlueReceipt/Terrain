@@ -26,7 +26,7 @@ async function work(page: Page) {
   await mark(card, 'Given');
   await page.clock.setFixedTime(new Date('2026-09-26T14:40:00-04:00'));
   await card.getByRole('button', { name: 'Note', exact: true }).click();
-  const editor = page.getByRole('dialog', { name: 'Note for 3 rows at 123, rue Saint-Paul' });
+  const editor = page.getByRole('dialog', { name: 'Note for 3 entries at 123, rue Saint-Paul' });
   await editor.getByRole('textbox').fill('Cantine Alain, confirmer avec Alain');
   await editor.getByRole('button', { name: 'Save note' }).click();
   await closeCard(card);
@@ -52,11 +52,11 @@ test('the day log counts the day, puts a status and its note on one line, copies
   await work(page);
   const log = await openDayLog(page);
   await expect(log.getByRole('list', { name: 'The day in numbers' })).toHaveText(
-    /Given: 3 rows\s*\+1 via lot\s*Notes: 1/,
+    /Given: 3 entries\s*\+1 via lot\s*Notes: 1/,
   );
   // Given, then the note written there: one line, Given's color under the time, named for a screen reader.
   await expect(log.locator('.log-line')).toHaveText([
-    /^14:32\s*Given\s*123, rue Saint-Paul note: Cantine Alain, confirmer avec Alain\s*P1-216B \(2 rows\), P1-217A\s*also closed 12, chemin du Lac \(Luc Trempette, P1-216B\)$/,
+    /^14:32\s*Given\s*123, rue Saint-Paul note: Cantine Alain, confirmer avec Alain\s*P1-216B \(2 entries\), P1-217A\s*also closed 12, chemin du Lac \(Luc Trempette, P1-216B\)$/,
   ]);
   await expect(log.locator('.log-line .swatch')).toHaveCSS('background-color', 'rgb(15, 157, 88)');
   await expect(
@@ -74,10 +74,10 @@ test('the day log counts the day, puts a status and its note on one line, copies
   expect(copied.replace(/\r\n/g, '\n')).toBe(
     [
       'Terrain, cases, 26.09.2026',
-      'Given: 3 rows (+1 via lot) · Notes: 1',
+      'Given: 3 entries (+1 via lot) · Notes: 1',
       '',
       '14:32  123, rue Saint-Paul  Given · note: Cantine Alain, confirmer avec Alain',
-      '       P1-216B (2 rows), P1-217A',
+      '       P1-216B (2 entries), P1-217A',
       '       also closed 12, chemin du Lac (Luc Trempette, P1-216B)',
     ].join('\n'),
   );
@@ -161,7 +161,7 @@ test('Excel for the client, offline: Parcels and Journal, and the counter goes t
     'Previous value',
     'New value',
   ]);
-  // Given: 3 rows marked and Luc closed from the lot; the note: 3 rows.
+  // Given: 3 entries marked and Luc closed from the lot; the note: 3 rows.
   expect(journal.slice(1).map((line) => [line[1], line[3], line[5]])).toEqual([
     ['14:32', 'Alain Trempette', 'Status'],
     ['14:32', 'Marie Trempette', 'Status'],
@@ -185,7 +185,7 @@ test('My Maps update: one CSV per layer, with a byte-order mark and its position
   const log = await openDayLog(page);
   await log.getByRole('button', { name: 'Export' }).click();
   const exports = page.getByRole('dialog', { name: 'Export' });
-  const layer = exports.getByRole('button', { name: /^Cases layer · \d+ rows$/ });
+  const layer = exports.getByRole('button', { name: /^Cases layer · \d+ entries$/ });
   const file = await downloaded(page, () => layer.click());
   expect(file.name).toBe('Terrain_cases_Cases layer_2026-09-26.csv');
   const text = file.bytes.toString('utf8');

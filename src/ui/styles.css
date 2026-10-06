@@ -636,6 +636,13 @@ select {
   flex: none;
 }
 
+/* An entry the client's latest file no longer lists: it stays, marked. */
+.owner-missing {
+  margin: 0 0 6px;
+  font-size: var(--text-secondary);
+  font-weight: 700;
+}
+
 /* Previous info, one owner per line. */
 .owner-previous {
   margin: 0 0 6px;
@@ -1045,6 +1052,23 @@ select {
 .bottom-row {
   display: flex;
   align-items: center;
+}
+
+/* "You're at …": the house the phone stands at, its card one tap away. */
+.here-chip {
+  display: block;
+  width: calc(100% - 24px);
+  min-height: var(--touch);
+  margin: 0 12px;
+  padding: 8px 14px;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  background: var(--sheet);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
 }
 
 .bottom-row .chips {

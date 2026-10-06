@@ -76,7 +76,7 @@ test('opens a house’s card from its pin, and a chooser where houses share a sp
   await tapAt(page, ...TREMPETTE);
   const card = page.getByRole('region', { name: '123, rue Saint-Paul' });
   await expect(card).toBeVisible();
-  await expect(card.getByText('3 rows')).toBeVisible();
+  await expect(card.getByText('3 entries')).toBeVisible();
   await expect(card.locator('.owner')).toHaveCount(3);
   await expect(
     card.getByRole('button', { name: /^P1-216B also at 12, chemin du Lac: Luc Trempette/ }),
@@ -287,5 +287,15 @@ test.describe('with the phone’s position', () => {
     await expect
       .poll(() => page.evaluate(() => window.terrainMap?.getCenter().lng ?? 0))
       .toBeCloseTo(TREMPETTE[0], 2);
+  });
+
+  test('offers the house it stands at, one tap from its card', async ({ page }) => {
+    await offlineAfterFirstLoad(page);
+    await openCases(page);
+    const here = page.getByRole('button', { name: 'You’re at 123, rue Saint-Paul' });
+    await here.click();
+    await expect(page.getByRole('region', { name: '123, rue Saint-Paul' })).toBeVisible();
+    // While the card is open, the chip makes way.
+    await expect(here).toBeHidden();
   });
 });
