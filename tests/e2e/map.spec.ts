@@ -37,6 +37,10 @@ test('shows one pin per house with its row count, and the banner without an offl
   baseURL,
 }) => {
   const problems = watch(page, baseURL);
+  const tiles: string[] = [];
+  page.on('request', (request) => {
+    if (new URL(request.url()).pathname.startsWith('/tiles/')) tiles.push(request.url());
+  });
   await offlineAfterFirstLoad(page);
   await openCases(page);
   await expect(
@@ -54,6 +58,12 @@ test('shows one pin per house with its row count, and the banner without an offl
     return (source?.serialize().data.features ?? []).map((feature) => feature.geometry.type);
   });
   expect(reference).toEqual(['Polygon', 'Point', 'LineString', 'Point']);
+  // Away from the public demo, no online map: Terrain asks for no tiles at all.
+  const sources = await page.evaluate(() =>
+    Object.keys(window.terrainMap?.getStyle().sources ?? {}),
+  );
+  expect(sources).not.toContain('openfreemap');
+  expect(tiles).toEqual([]);
   expect(problems).toEqual([]);
 });
 

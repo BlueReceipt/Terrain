@@ -15,6 +15,7 @@ import {
   tetherFeatures,
 } from './layers.ts';
 import { loadMapLibre } from './maplibre.ts';
+import { ONLINE } from './onlineLayers.ts';
 import { mapStyle } from './style.ts';
 
 /** A request to move the camera; a new id moves it again to the same place. */
@@ -26,6 +27,8 @@ export interface Focus {
 
 export interface MapViewProps {
   basemapUrl: string | null;
+  /** The public demo: without an offline map, OpenFreeMap's map while online (`mapStyle`). */
+  online: boolean;
   bounds: Campaign['bounds'];
   pins: readonly Pin[];
   /** The file's lines, shapes and routes, drawn muted under the pins. */
@@ -78,6 +81,7 @@ export function MapView(props: MapViewProps) {
   latest.current = props;
   const {
     basemapUrl,
+    online,
     pins,
     reference,
     selectedPinId,
@@ -96,7 +100,7 @@ export function MapView(props: MapViewProps) {
       const { bounds } = latest.current;
       created = new maplibre.Map({
         container: container.current,
-        style: mapStyle(basemapUrl, window.location.origin),
+        style: mapStyle(basemapUrl, window.location.origin, online),
         ...(bounds
           ? { bounds, fitBoundsOptions: { padding: 48, maxZoom: 15 } }
           : { center: QUEBEC, zoom: 7 }),
@@ -109,6 +113,10 @@ export function MapView(props: MapViewProps) {
       created.touchZoomRotate.disableRotation();
       created.keyboard.disableRotation();
       const instance = created;
+      // The demo's online map has no tiles while offline: the map stays plain under the pins.
+      instance.on('error', (event) => {
+        if ((event as { sourceId?: string }).sourceId !== ONLINE) console.error(event.error);
+      });
       instance.on('load', () => {
         instance.addSource(REFERENCE, { type: 'geojson', data: referenceFeatures([]) });
         instance.addSource(PINS, { type: 'geojson', data: pinFeatures([], null, new Set()) });
@@ -150,7 +158,7 @@ export function MapView(props: MapViewProps) {
       created?.remove();
       map.current = null;
     };
-  }, [basemapUrl]);
+  }, [basemapUrl, online]);
 
   useEffect(() => {
     if (map.current && loaded.current)

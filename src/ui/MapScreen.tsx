@@ -5,6 +5,7 @@ import { search, type SearchResult } from '../domain/search.ts';
 import { locationState, myFix, startLocating, stopLocating } from '../map/geolocation.ts';
 import { MapView } from '../map/MapView.tsx';
 import { freshPendingCall, refreshPending } from './actions.ts';
+import { isPublicDemo } from './demo.ts';
 import { DayLogPanel } from './DayLog.tsx';
 import { ExportPanel } from './ExportPanel.tsx';
 import { basemap, current, openSettings, statuses } from './flow.ts';
@@ -232,6 +233,8 @@ export function MapScreen() {
   }, []);
 
   if (!loaded) return null;
+  // The public demo draws OpenFreeMap's map while online, so it needs no offline map.
+  const demo = isPublicDemo(location.hostname);
   const fix = myFix.value;
   const selected = selectedHouseKey.value;
   const chooser = chooserHouseKeys.value;
@@ -242,6 +245,7 @@ export function MapScreen() {
     <main class="map-screen">
       <MapView
         basemapUrl={basemap.value?.url ?? null}
+        online={demo}
         bounds={loaded.campaign.bounds}
         pins={content.value.pins}
         reference={loaded.campaign.reference}
@@ -281,7 +285,7 @@ export function MapScreen() {
           ☰
         </button>
       </header>
-      {!basemap.value && (
+      {!basemap.value && !demo && (
         <button type="button" class="banner" onClick={openSettings}>
           {strings.map.noBasemap}
         </button>

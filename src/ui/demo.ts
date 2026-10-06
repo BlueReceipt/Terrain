@@ -3,10 +3,10 @@
 import sampleUrl from '../../fixtures/public/poutine-autour-du-quebec.kmz?url';
 
 /**
- * The public demo addresses (Alex, 2026-10-05). Only there does the first screen offer the poutine
- * sample and My Maps links, the links fetched through the demo's relay (relay/mymaps.js).
- * Everywhere else Terrain starts as a field book does: empty, waiting for the user's own file, and
- * it never fetches a map online.
+ * The public demo addresses (Alex, 2026-10-05). Only there does Terrain offer the poutine sample
+ * and My Maps links, and draw an online background map while connected, both through the demo's
+ * relay (relay/worker.js). Everywhere else Terrain starts as a field book does: empty, waiting for
+ * the user's own file, and it never fetches a map or a tile online.
  */
 const DEMO_HOSTS: readonly string[] = ['terrain.ederer.digital'];
 

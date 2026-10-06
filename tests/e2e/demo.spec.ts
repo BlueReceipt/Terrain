@@ -30,7 +30,7 @@ test.use({
 const ID = '1PoutineSampleMapIdForTests_0123456';
 const SAMPLE = readFileSync(join(FIXTURES, 'poutine-autour-du-quebec.kmz'));
 
-/** The demo's relay (relay/mymaps.js), standing in for Cloudflare and Google. */
+/** The demo's relay (relay/worker.js), standing in for Cloudflare and Google. */
 async function relayAnswers(page: Page, answer: 'map' | 'not-shared'): Promise<string[]> {
   const asked: string[] = [];
   await page.context().route('**/mymaps/**', (route) => {
@@ -45,6 +45,20 @@ async function relayAnswers(page: Page, answer: 'map' | 'not-shared'): Promise<s
   });
   return asked;
 }
+
+/** The relay's background tiles, standing in for OpenFreeMap: empty tiles, each path noted. */
+async function tilesAnswer(page: Page): Promise<string[]> {
+  const asked: string[] = [];
+  await page.context().route('**/tiles/**', (route) => {
+    asked.push(new URL(route.request().url()).pathname);
+    return route.fulfill({ status: 204 });
+  });
+  return asked;
+}
+
+test.beforeEach(async ({ page }) => {
+  await tilesAnswer(page);
+});
 
 async function openMapIn(page: Page): Promise<void> {
   await page.getByRole('button', { name: 'Continue' }).click();
@@ -65,6 +79,28 @@ test('the public demo imports the poutine sample offline: 114 houses, every one 
   await expect(page.getByText('Try Terrain with 124 poutine places across Québec')).toBeVisible();
   await page.getByRole('button', { name: 'Try the poutine sample' }).click();
   await openMapIn(page);
+});
+
+test('the public demo draws OpenFreeMap’s map, asking only its own address for the tiles', async ({
+  page,
+}) => {
+  const tiles = await tilesAnswer(page);
+  const errors: string[] = [];
+  page.on('console', (message) => {
+    if (message.type() === 'error') errors.push(message.text());
+  });
+  await page.goto(DEMO);
+  await page.getByRole('button', { name: 'Try the poutine sample' }).click();
+  await openMapIn(page);
+  await expect.poll(() => tiles.length).toBeGreaterThan(0);
+  for (const path of tiles) expect(path).toMatch(/^\/tiles\/\d+\/\d+\/\d+\.pbf$/);
+  const source = await page.evaluate(() => window.terrainMap?.getStyle().sources.openfreemap);
+  expect(source).toMatchObject({
+    type: 'vector',
+    tiles: [`${new URL(DEMO).origin}/tiles/{z}/{x}/{y}.pbf`],
+  });
+  await expect(page.getByRole('button', { name: /No offline map loaded/ })).toHaveCount(0);
+  expect(errors).toEqual([]);
 });
 
 test('the public demo opens a My Maps map by its link, through its relay', async ({ page }) => {
@@ -119,7 +155,7 @@ test('with a campaign open, Settings opens a My Maps link, and a failed one come
   await page.getByRole('button', { name: 'Try another link' }).click();
   await expect(page.getByRole('heading', { name: 'Settings', level: 1 })).toBeVisible();
 
-  await page.context().unrouteAll();
+  await page.context().unroute('**/mymaps/**');
   const asked = await relayAnswers(page, 'map');
   await page.getByRole('button', { name: 'Open a My Maps link' }).click();
   await link.fill(`https://www.google.com/maps/d/viewer?mid=${ID}`);

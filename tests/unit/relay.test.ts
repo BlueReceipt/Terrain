@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import relay from '../../relay/mymaps.js';
+import relay from '../../relay/worker.js';
 import { readFixture } from '../support/import.ts';
 
 const ID = '1PoutineSampleMapIdForTests_0123456';
@@ -95,5 +95,70 @@ describe('the demo’s My Maps relay', () => {
   it('refuses a map over 20 MB', async () => {
     google(new Response(KMZ, { headers: { 'Content-Length': String(21 * 1024 * 1024) } }));
     expect(await errorOf(await ask(`/mymaps/${ID}`))).toBe('too-big');
+  });
+});
+
+describe('the demo’s background tiles', () => {
+  const INDEX = 'https://tiles.openfreemap.org/planet';
+  const BUILD = 'https://tiles.openfreemap.org/planet/20260927_080001_pt';
+  const TILE: Uint8Array<ArrayBuffer> = new Uint8Array([0x1a, 0x02, 0x78, 0x02]);
+
+  /** OpenFreeMap, as the relay sees it: its index naming this week's build, then one tile answer. */
+  function openFreeMap(answer: Response, index: unknown = { tiles: [`${BUILD}/{z}/{x}/{y}.pbf`] }) {
+    const spy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation((url) =>
+        Promise.resolve(url === INDEX ? Response.json(index) : answer.clone()),
+      );
+    return {
+      asked: () =>
+        spy.mock.calls.map(([url]) =>
+          typeof url === 'string' ? url : url instanceof URL ? url.href : url.url,
+        ),
+    };
+  }
+
+  it('fetches a tile from OpenFreeMap’s current build, for the browser to keep a day', async () => {
+    const calls = openFreeMap(new Response(TILE));
+    const response = await ask('/tiles/14/4842/5856.pbf');
+    expect(calls.asked()).toEqual([INDEX, `${BUILD}/14/4842/5856.pbf`]);
+    expect(response.status).toBe(200);
+    expect(response.headers.get('Content-Type')).toBe('application/vnd.mapbox-vector-tile');
+    expect(response.headers.get('Cache-Control')).toBe('public, max-age=86400');
+    expect(response.headers.get('Content-Security-Policy')).toBe("default-src 'none'; sandbox");
+    expect(new Uint8Array(await response.arrayBuffer())).toEqual(TILE);
+  });
+
+  it('answers an empty tile where OpenFreeMap has none', async () => {
+    openFreeMap(new Response('', { status: 404 }));
+    const response = await ask('/tiles/3/1/2.pbf');
+    expect(response.status).toBe(204);
+    expect(await response.text()).toBe('');
+  });
+
+  it('asks nothing for a tile that can’t exist', async () => {
+    const calls = openFreeMap(new Response(TILE));
+    for (const path of [
+      '/tiles/15/0/0.pbf',
+      '/tiles/2/4/0.pbf',
+      '/tiles/2/0/4.pbf',
+      '/tiles/a/b/c.pbf',
+      '/tiles/1/0/0.png',
+      '/tiles/1/0/0.pbf/more',
+    ])
+      expect(await errorOf(await ask(path))).toBe('not-a-tile');
+    expect(await errorOf(await ask('/tiles/0/0/0.pbf', 'POST'))).toBe('not-a-tile');
+    expect(calls.asked()).toEqual([]);
+  });
+
+  it('says when OpenFreeMap can’t be reached, and fetches only from OpenFreeMap', async () => {
+    google(new TypeError('network down'));
+    expect(await errorOf(await ask('/tiles/0/0/0.pbf'))).toBe('unreachable');
+    vi.restoreAllMocks();
+    const calls = openFreeMap(new Response(TILE), {
+      tiles: ['https://elsewhere.example/{z}/{x}/{y}.pbf'],
+    });
+    expect(await errorOf(await ask('/tiles/0/0/0.pbf'))).toBe('unreachable');
+    expect(calls.asked()).toEqual([INDEX]);
   });
 });

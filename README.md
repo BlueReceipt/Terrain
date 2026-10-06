@@ -2,7 +2,7 @@
 
 A field book for land-contact campaigns, on the phone and offline. Your My Maps pins come in from a KMZ; Terrain shows one pin per house, every row of the house on one card, and writes what you do at the door (status, Visit date, corrections, calls, notes) into the client's own columns. Everything stays on the phone until you export it.
 
-**Try it:** https://terrain.ederer.digital. Its first screen offers a sample, 124 poutine places across Québec, built into the app, and opens your own My Maps map by its link if the map is shared with *Anyone with the link*. What you do there stays in your browser. (Both are offered only on the addresses listed in `src/ui/demo.ts`; see "The demo’s My Maps relay" below.)
+**Try it:** https://terrain.ederer.digital. Its first screen offers a sample, 124 poutine places across Québec, built into the app, and opens your own My Maps map by its link if the map is shared with *Anyone with the link*. While it's online, the demo draws the streets under the pins from [OpenFreeMap](https://openfreemap.org). What you do there stays in your browser. (All three are offered only on the addresses listed in `src/ui/demo.ts`; see "The demo’s relay" below.)
 
 ## 1. Put Terrain online (once, on the PC)
 
@@ -20,13 +20,18 @@ The site is public, but it only holds the app: no campaign, name or phone number
 
 To update Terrain without uploading anything, connect the Worker to your copy of this repository once: in the Worker, **Settings → Builds → Connect**, then the repository and its `main` branch, with `npm run build` as the build command and `npx wrangler deploy` as the deploy command. From then on, each push to `main` builds Terrain and publishes it as `wrangler.jsonc` says: set its `name` to your Worker's and its addresses to yours first, since Wrangler replaces the Worker's addresses with the ones listed there. Without that: run `npm run build` again, then in the Worker choose **New deployment** and upload the new `dist` the same way. On the phone, Terrain shows **Update ready** with **Reload** once nothing is open (no card sheet, no export, no call waiting).
 
-### The demo’s My Maps relay
+### The demo’s relay
 
-Google doesn't let other sites read a My Maps export, so the demo asks its own address and a second, small Worker fetches the map from Google: `relay/mymaps.js`, which only fetches one map's KMZ export, only for a map shared with *Anyone with the link*, and logs or keeps nothing. On any other address there is no relay, and Terrain never fetches a map online. To set it up for your own demo address:
+The demo only ever talks to its own address. A second, small Worker on two routes of that address fetches for it, `relay/worker.js`, and logs or keeps nothing:
+
+- `/mymaps/…`: Google doesn't let other sites read a My Maps export, so the relay fetches one map's KMZ export, only for a map shared with *Anyone with the link*.
+- `/tiles/…`: the background map's tiles from OpenFreeMap (OpenStreetMap data, free, no key). Offline, the map stays plain under the pins.
+
+On any other address there is no relay: Terrain never fetches a map or a tile online, and its background map is an offline map file (section 4). To set the relay up for your own demo address:
 
 1. **Compute → Workers & Pages → Create application → Start with Hello World**. Name it (Alex's is `terrain-mymaps`) and deploy.
-2. **Edit code**: replace everything with the contents of `relay/mymaps.js`, and deploy.
-3. In that Worker: **Domains → Add Route**. Zone: your domain. Route: your demo address followed by `/mymaps*`, for example `terrain.ederer.digital/mymaps*`. Failure mode: *Fail closed*.
+2. In `relay/wrangler.jsonc`, set the name to your Worker's and the routes to your demo address and its domain.
+3. In that Worker: **Settings → Builds → Connect**, then the repository and its `main` branch, with `relay` as the root directory, no build command, and `npx wrangler deploy` as the deploy command. Each push to `main` then publishes the relay with both routes. Without that: paste `relay/worker.js` into **Edit code** and deploy, then add both routes in **Domains → Add Route** (your demo address followed by `/mymaps*`, then by `/tiles/*`), failure mode *Fail closed*.
 4. List your demo address in `DEMO_HOSTS` in `src/ui/demo.ts`, then publish the app again: a push, or a new `dist` uploaded to the app's Worker.
 
 ## 2. Install it on the phone

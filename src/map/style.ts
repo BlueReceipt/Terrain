@@ -1,5 +1,6 @@
 import { layers, namedFlavor, type Flavor } from '@protomaps/basemaps';
 import type { LayerSpecification, StyleSpecification } from 'maplibre-gl';
+import { ONLINE, onlineLayers } from './onlineLayers.ts';
 
 export const FONT_REGULAR = 'Atkinson Hyperlegible Next Regular';
 export const FONT_BOLD = 'Atkinson Hyperlegible Next Bold';
@@ -36,10 +37,37 @@ function withoutIcons(layer: LayerSpecification): LayerSpecification {
 
 /**
  * The map's style: Protomaps' light flavor, desaturated so the pins own the color, with
- * labels in French in the app's font. Without an offline map, a plain background under the pins.
+ * labels in French in the app's font. Without an offline map: on the public demo (`online`), the
+ * same look drawn from OpenFreeMap's tiles through the demo's relay, plain while offline; anywhere
+ * else, a plain background under the pins.
  */
-export function mapStyle(basemapUrl: string | null, origin: string): StyleSpecification {
+export function mapStyle(
+  basemapUrl: string | null,
+  origin: string,
+  online = false,
+): StyleSpecification {
   const glyphs = `${origin}/map-assets/glyphs/{fontstack}/{range}.pbf`;
+  const flavor: Flavor = {
+    ...desaturated(namedFlavor('light')),
+    regular: FONT_REGULAR,
+    bold: FONT_BOLD,
+    italic: FONT_REGULAR,
+  };
+  if (!basemapUrl && online) {
+    return {
+      version: 8,
+      glyphs,
+      sources: {
+        [ONLINE]: {
+          type: 'vector',
+          tiles: [`${origin}/tiles/{z}/{x}/{y}.pbf`],
+          maxzoom: 14,
+          attribution: 'OpenFreeMap © OpenMapTiles Data from OpenStreetMap',
+        },
+      },
+      layers: onlineLayers(flavor, FONT_REGULAR, FONT_BOLD),
+    };
+  }
   if (!basemapUrl) {
     return {
       version: 8,
@@ -48,12 +76,6 @@ export function mapStyle(basemapUrl: string | null, origin: string): StyleSpecif
       layers: [{ id: 'background', type: 'background', paint: { 'background-color': PLAIN } }],
     };
   }
-  const flavor: Flavor = {
-    ...desaturated(namedFlavor('light')),
-    regular: FONT_REGULAR,
-    bold: FONT_BOLD,
-    italic: FONT_REGULAR,
-  };
   const base = layers('protomaps', flavor, { lang: 'fr' })
     .filter((layer) => layer.id !== 'pois')
     .map(withoutIcons);
